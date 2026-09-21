@@ -1,29 +1,29 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Loader2, Store } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Loader2, Store, Gavel, Hand, Zap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useVehiclePhoto } from '@/hooks/useVehiclePhoto';
 import { useBankCheck } from '@/hooks/useBankCheck';
-import { supabase } from '@/integrations/supabase/client';
-import { createTrackingRoom, logClientEvent } from '@/lib/trackingRoomClient';
+import { logClientEvent } from '@/lib/trackingRoomClient';
 import { JobCard } from '@/components/home/JobCard';
 import { ConfirmJobDialog } from '@/components/home/ConfirmJobDialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNavigation } from '@/components/layout/BottomNavigation';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
-import { canHandleJobTruckType } from '@/utils/truckTypeHierarchy';
-import { resolveJobLocations } from '@/lib/jobLocation';
 import {
-  getExpressRentPosts,
-  getFreelanceAcceptedJobs,
-  acceptExpressRentJob,
-} from '@/lib/externalApi';
-import { getTaladJobs } from '@/lib/taladApi';
+  getTaladJobs,
+  getTaladMarketType,
+  acceptTaladJob,
+  submitTaladBid,
+  expressTaladInterest,
+  type TaladMarketType,
+} from '@/lib/taladApi';
 
 
 interface Job {
@@ -52,11 +52,7 @@ interface Job {
   isAccepted?: boolean;
   bl_no?: string | null;
   booking_no?: string | null;
-  origin_lat?: number;
-  origin_lng?: number;
-  destination_lat?: number;
-  destination_lng?: number;
-  destinations?: Array<{ sequence: number; location: string; company_name?: string; latitude?: number; longitude?: number; address?: string; contact_name?: string; invoice_number?: string; province?: string }>;
+  marketType?: TaladMarketType;
 }
 
 // Helper: filter out numeric-only or very short code values from name fields
@@ -68,20 +64,33 @@ const isValidName = (val: any): string => {
   return s;
 };
 
+const formatPriceInput = (raw: string): string => {
+  const digits = raw.replace(/[^\d]/g, '');
+  if (!digits) return '';
+  return Number(digits).toLocaleString('en-US');
+};
+
 export default function MarketPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const { isFreelanceDriver, loading: roleLoading } = useUserRole();
   const { vehiclePhoto } = useVehiclePhoto();
-  const { requireBankInfo } = useBankCheck();
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<TaladMarketType>('urgent');
+
+  // Accept / interest confirm dialog
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [isAccepting, setIsAccepting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [confirmMode, setConfirmMode] = useState<'accept' | 'interest'>('accept');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Bid dialog
+  const [bidJob, setBidJob] = useState<Job | null>(null);
+  const [bidPrice, setBidPrice] = useState('');
 
   const JOBS_PER_PAGE = 5;
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,6 +166,7 @@ export default function MarketPage() {
             booking_no: bookingNo,
             invoice_number: null,
             remarks: item.description || null,
+            marketType: getTaladMarketType(item),
           } as Job;
         });
 
@@ -179,6 +189,12 @@ export default function MarketPage() {
       loadJobs();
     }
   }, [user, isFreelanceDriver, loadJobs]);
+
+  const tabCounts = useMemo(() => {
+    const counts: Record<TaladMarketType, number> = { urgent: 0, auction: 0, interest: 0 };
+    jobs.forEach((j) => { counts[j.marketType || 'auction'] += 1; });
+    return counts;
+  }, [jobs]);
 
   const applySearch = (jobList: Job[]) => {
     const raw = searchQuery.trim().toLowerCase();
@@ -204,132 +220,82 @@ export default function MarketPage() {
     });
   };
 
-  const displayedJobs = applySearch(jobs);
+  const tabJobs = useMemo(
+    () => jobs.filter((j) => (j.marketType || 'auction') === activeTab),
+    [jobs, activeTab]
+  );
+  const displayedJobs = applySearch(tabJobs);
   const totalPages = Math.ceil(displayedJobs.length / JOBS_PER_PAGE);
   const paginatedJobs = displayedJobs.slice((currentPage - 1) * JOBS_PER_PAGE, currentPage * JOBS_PER_PAGE);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, jobs.length]);
+  }, [searchQuery, jobs.length, activeTab]);
 
-  const handleAcceptJob = (_job: Job) => {
-    // Talad marketplace jobs have no accept endpoint yet — inform the driver instead
-    // of calling the express-rent accept API (wrong system).
-    toast({
-      title: t('market.accept_unavailable_title') || 'ยังไม่รองรับการรับงาน',
-      description: t('market.accept_unavailable_desc') || 'งานจากตลาดนี้ยังไม่เปิดให้กดรับงานในแอป',
+  // Card primary button → route by market type
+  const handleAcceptJob = (job: Job) => {
+    const type = job.marketType || 'auction';
+    logClientEvent({
+      event: `market:${type}:pressed`,
+      driver_id: localStorage.getItem('auth_driver_id') ?? user?.id ?? null,
+      order_number: job.order_code,
+      payload: { context: 'market-page', job_id: job.id, market_type: type },
     });
+
+    if (type === 'auction') {
+      setBidJob(job);
+      setBidPrice('');
+    } else {
+      setSelectedJob(job);
+      setConfirmMode(type === 'interest' ? 'interest' : 'accept');
+      setConfirmDialogOpen(true);
+    }
   };
 
-
-  const confirmJobAcceptance = async () => {
-    if (!selectedJob || !user || isAccepting) return;
-
-    logClientEvent({
-      event: 'accept-job:pressed',
-      driver_id: localStorage.getItem('auth_driver_id') ?? user?.id ?? null,
-      order_number: selectedJob.order_code,
-      payload: { context: 'market-page', job_id: selectedJob.id },
-    });
-
-    setIsAccepting(true);
-
+  // Urgent accept / interest confirm — Talad endpoints not available yet (UI รอ API)
+  const confirmJobAction = async () => {
+    if (!selectedJob || !user || isSubmitting) return;
+    setIsSubmitting(true);
     try {
-      const driverName = user.first_name && user.last_name
-        ? `${user.first_name} ${user.last_name}`
-        : user.full_name || user.name || '';
-      const driverPhone = user.phone_number || user.phone || '';
-      const province = (user.plate_province || '').trim();
-      const number = (user.plate_number || '').trim();
-      const licensePlate = [province, number].filter(Boolean).join(' ').trim();
-      const vehicleType = (user.vehicle_type || '').trim();
-      const vehicleBrand = (user.vehicle_brand || '').trim();
-
-      const { data: result, error } = await acceptExpressRentJob({
-        order_number: selectedJob.order_code,
-        post_id: selectedJob.post_id || selectedJob.id,
-        freelance_driver_id: user.id,
-        freelance_driver_name: driverName,
-        driver_phone: driverPhone,
-        license_plate: licensePlate,
-        vehicle_type: vehicleType,
-        vehicle_brand: vehicleBrand
-      });
-
-      if (error || !result?.success) {
-        toast({
-          title: t('home.error_load'),
-          description: error || t('home.error_accept'),
-          variant: 'destructive'
-        });
-        return;
+      const type = selectedJob.marketType || 'auction';
+      if (type === 'interest') {
+        await expressTaladInterest(selectedJob.id);
+      } else {
+        await acceptTaladJob({ job_id: selectedJob.id });
       }
-
       toast({
-        title: t('home.accept_success'),
-        description: `${t('home.accept_success_desc')} ${selectedJob.order_code}`
+        title: t('market.pending_title'),
+        description: t('market.pending_desc'),
       });
-
-      // Create tracking room after successful job acceptance
-      try {
-        let currentLat = selectedJob.origin_lat || 0;
-        let currentLng = selectedJob.origin_lng || 0;
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            });
-          });
-          currentLat = position.coords.latitude;
-          currentLng = position.coords.longitude;
-        } catch (gpsError) {
-          console.warn('[Market] Could not get GPS position, using origin as fallback:', gpsError);
-        }
-
-        const waypoints = selectedJob.destinations && selectedJob.destinations.length > 1
-          ? selectedJob.destinations
-              .filter((d: any) => d.latitude && d.longitude)
-              .map((d: any) => ({ lat: d.latitude, lng: d.longitude }))
-          : undefined;
-
-        const trackingBody: any = {
-          truck_plate: licensePlate,
-          order_code: selectedJob.order_code,
-          origin_lat: selectedJob.origin_lat || 0,
-          origin_lng: selectedJob.origin_lng || 0,
-          destination_lat: selectedJob.destination_lat || 0,
-          destination_lng: selectedJob.destination_lng || 0,
-          current_lat: currentLat,
-          current_lng: currentLng,
-          driver_id: localStorage.getItem('auth_driver_id') || undefined,
-        };
-        if (waypoints && waypoints.length > 0) {
-          trackingBody.waypoints = waypoints;
-        }
-
-        const trackingResponse = await createTrackingRoom(trackingBody, 'market-accept');
-        if (!trackingResponse.ok) {
-          console.error('[Market] Error creating tracking room:', trackingResponse.status, trackingResponse.error);
-        } else if (trackingResponse.data?.room?.room_code) {
-          localStorage.setItem(`room_code_${selectedJob.order_code}`, trackingResponse.data.room.room_code);
-        }
-      } catch (trackingError) {
-        console.error('[Market] Error creating tracking room:', trackingError);
-      }
-
       setConfirmDialogOpen(false);
-      setIsAccepting(false);
-      loadJobs();
-    } catch (err) {
-      console.error('[Market] Error accepting job:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Auction bid submit — Talad bid endpoint not available yet (UI รอ API)
+  const confirmBid = async () => {
+    if (!bidJob || isSubmitting) return;
+    const price = Number(bidPrice.replace(/[^\d]/g, ''));
+    if (!price || price <= 0) {
       toast({
-        title: t('home.error_load'),
-        description: t('home.error_accept'),
-        variant: 'destructive'
+        title: t('market.bid_dialog_title'),
+        description: t('market.bid_invalid'),
+        variant: 'destructive',
       });
-      setIsAccepting(false);
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await submitTaladBid(bidJob.id, price);
+      toast({
+        title: t('market.pending_title'),
+        description: t('market.pending_desc'),
+      });
+      setBidJob(null);
+      setBidPrice('');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -340,6 +306,12 @@ export default function MarketPage() {
       </div>
     );
   }
+
+  const tabs: Array<{ key: TaladMarketType; labelKey: string; icon: typeof Zap }> = [
+    { key: 'urgent', labelKey: 'market.tab_urgent', icon: Zap },
+    { key: 'auction', labelKey: 'market.tab_auction', icon: Gavel },
+    { key: 'interest', labelKey: 'market.tab_interest', icon: Hand },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-white">
@@ -374,6 +346,30 @@ export default function MarketPage() {
             />
           </div>
 
+          {/* Market type tabs */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {tabs.map(({ key, labelKey, icon: Icon }) => {
+              const active = activeTab === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  className={`flex items-center justify-center gap-1.5 h-11 rounded-xl border text-sm font-medium transition-colors sm:text-base ${
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-white text-muted-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{t(labelKey)}</span>
+                  <span className={`text-xs rounded-full px-1.5 py-0.5 ${active ? 'bg-white/20' : 'bg-muted'}`}>
+                    {tabCounts[key]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
           {/* Job Cards */}
           <div className="card-grid-responsive">
             {isLoading && displayedJobs.length === 0 ? (
@@ -398,7 +394,7 @@ export default function MarketPage() {
                   key={job.id}
                   job={job}
                   onAccept={handleAcceptJob}
-                  isProcessing={isAccepting}
+                  isProcessing={isSubmitting}
                 />
               ))
             )}
@@ -441,13 +437,76 @@ export default function MarketPage() {
 
       <BottomNavigation />
 
+      {/* Accept / Interest confirm */}
       <ConfirmJobDialog
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
-        onConfirm={confirmJobAcceptance}
+        onConfirm={confirmJobAction}
         job={selectedJob}
-        isLoading={isAccepting}
+        isLoading={isSubmitting}
+        titleKey={confirmMode === 'interest' ? 'market.interest_title' : undefined}
+        messageKey={confirmMode === 'interest' ? 'market.interest_message' : undefined}
       />
+
+      {/* Bid dialog (auction) */}
+      <Dialog open={!!bidJob} onOpenChange={(open) => { if (!open) { setBidJob(null); setBidPrice(''); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center flex items-center justify-center gap-2">
+              <Gavel className="w-5 h-5 text-primary" />
+              {t('market.bid_dialog_title')}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="bg-primary/10 rounded-lg p-3 text-center">
+              <p className="text-xs text-muted-foreground">{t('job.orderCode')}</p>
+              <p className="font-bold text-primary text-lg">{bidJob?.order_code}</p>
+              {(bidJob?.origin_location || bidJob?.destination_location) && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {bidJob?.origin_location || '-'} → {bidJob?.destination_location || '-'}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">{t('market.bid_price_label')}</label>
+              <Input
+                inputMode="numeric"
+                placeholder={t('market.bid_price_placeholder')}
+                value={bidPrice}
+                onChange={(e) => setBidPrice(formatPriceInput(e.target.value))}
+                className="h-11 text-lg font-semibold text-right"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex-row gap-3 sm:justify-center">
+            <Button
+              variant="outline"
+              className="flex-1"
+              disabled={isSubmitting}
+              onClick={() => { setBidJob(null); setBidPrice(''); }}
+            >
+              {t('confirm.cancel')}
+            </Button>
+            <Button
+              className="flex-1"
+              disabled={isSubmitting || !bidPrice}
+              onClick={confirmBid}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-1">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {t('job.processing')}
+                </span>
+              ) : (
+                t('market.bid_confirm')
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

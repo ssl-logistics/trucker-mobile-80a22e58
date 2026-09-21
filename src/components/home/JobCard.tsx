@@ -60,6 +60,7 @@ interface Job {
   status?: string;
   bl_no?: string | null;
   booking_no?: string | null;
+  marketType?: 'urgent' | 'auction' | 'interest'; // marketplace category (talad)
   destinations?: Array<{ sequence: number; location?: string; address?: string; company_name?: string; province?: string; contact_name?: string; invoice_number?: string }>;
   origins?: Array<{ sequence: number; location?: string; address?: string; company_name?: string; province?: string }>;
 }
@@ -90,6 +91,13 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
     // If translation not found (returns key), show original value
     return translated === translationKey ? jobType : translated;
   };
+
+  // Primary action label depends on marketplace type (talad) when present
+  const acceptLabel = job.marketType === 'auction'
+    ? t('market.bid_button')
+    : job.marketType === 'interest'
+      ? t('market.interest_button')
+      : (useStartJobLabel ? t('job.startJob') : t('job.accept'));
 
   // Auto open modal when autoOpenDetail is true
   useEffect(() => {
@@ -264,7 +272,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   <span className="truncate">{t('job.processing')}</span>
                 </span>
               ) : (
-                <span className="truncate">{job.isAccepted ? t('job.accepted') : (useStartJobLabel ? t('job.startJob') : t('job.accept'))}</span>
+                <span className="truncate">{job.isAccepted ? t('job.accepted') : acceptLabel}</span>
               )}
             </Button>
             <Button 
@@ -288,7 +296,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                 <span className="truncate">{t('job.processing')}</span>
               </span>
             ) : (
-              <span className="truncate">{job.isAccepted ? t('job.accepted') : (useStartJobLabel ? t('job.startJob') : t('job.accept'))}</span>
+              <span className="truncate">{job.isAccepted ? t('job.accepted') : acceptLabel}</span>
             )}
           </Button>
         )}

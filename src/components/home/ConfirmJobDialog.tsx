@@ -22,9 +22,11 @@ interface ConfirmJobDialogProps {
     destination_company_name: string | null;
   } | null;
   isLoading?: boolean;
+  titleKey?: string;   // override title (e.g. interest mode)
+  messageKey?: string; // override message
 }
 
-export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job, isLoading = false }: ConfirmJobDialogProps) => {
+export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job, isLoading = false, titleKey, messageKey }: ConfirmJobDialogProps) => {
   const { t } = useLanguage();
   
   return (
@@ -33,7 +35,7 @@ export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job, isLoading
         <AlertDialogHeader className="items-center space-y-3">
           <img src={confirmCheckIcon} alt="Confirm" className="w-14 h-14" />
           <AlertDialogTitle className="text-center text-lg font-semibold text-foreground">
-            {t('confirm.title')}
+            {t(titleKey || 'confirm.title')}
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="text-center space-y-1 text-sm text-muted-foreground">
@@ -46,7 +48,7 @@ export const ConfirmJobDialog = ({ open, onOpenChange, onConfirm, job, isLoading
                 {job?.destination_company_name || job?.employer_name}
               </div>
               <div className="pt-2 text-xs text-muted-foreground">
-                {t('confirm.message')}
+                {t(messageKey || 'confirm.message')}
               </div>
             </div>
           </AlertDialogDescription>
