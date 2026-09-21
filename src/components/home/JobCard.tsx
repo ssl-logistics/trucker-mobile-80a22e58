@@ -60,6 +60,7 @@ interface Job {
   status?: string;
   bl_no?: string | null;
   booking_no?: string | null;
+  marketType?: 'urgent' | 'auction' | 'interest'; // marketplace category (talad)
   destinations?: Array<{ sequence: number; location?: string; address?: string; company_name?: string; province?: string; contact_name?: string; invoice_number?: string }>;
   origins?: Array<{ sequence: number; location?: string; address?: string; company_name?: string; province?: string }>;
 }
