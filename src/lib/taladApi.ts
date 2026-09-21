@@ -50,6 +50,37 @@ export interface TaladJob {
   } | null;
 }
 
+export type TaladMarketType = 'urgent' | 'auction' | 'interest';
+
+/**
+ * Classify a talad marketplace job into one of the 3 market types.
+ * container/urgent → urgent, auction_reference → interest, else auction.
+ */
+export function getTaladMarketType(job: TaladJob): TaladMarketType {
+  const category = ((job as any).job_category || '').toLowerCase();
+  const jobType = (job.job_type || '').toLowerCase();
+  if (category === 'container' || jobType === 'urgent' || job.service_type === 'container') return 'urgent';
+  if (category === 'auction_reference') return 'interest';
+  return 'auction';
+}
+
+// --- Action stubs: Talad has no accept/bid/interest endpoints yet (UI รอ API) ---
+
+export async function acceptTaladJob(_job: TaladJob): Promise<{ ok: boolean; error: string | null }> {
+  // TODO: call talad accept endpoint once provided
+  return { ok: false, error: 'accept endpoint not available yet' };
+}
+
+export async function submitTaladBid(_jobId: string, _price: number): Promise<{ ok: boolean; error: string | null }> {
+  // TODO: call talad bid endpoint once provided
+  return { ok: false, error: 'bid endpoint not available yet' };
+}
+
+export async function expressTaladInterest(_jobId: string): Promise<{ ok: boolean; error: string | null }> {
+  // TODO: call talad interest endpoint once provided
+  return { ok: false, error: 'interest endpoint not available yet' };
+}
+
 /**
  * Fetch marketplace jobs from the external "talad" marketplace via a secure
  * edge-function proxy (the x-api-key never reaches the client).
