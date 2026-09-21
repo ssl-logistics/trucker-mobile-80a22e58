@@ -482,7 +482,6 @@ export default function SettingsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <BottomNavigation />
     </div>
   );
 }

@@ -104,7 +104,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <BottomNavigation />
     </div>
   );
 }

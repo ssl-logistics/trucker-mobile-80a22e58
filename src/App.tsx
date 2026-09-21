@@ -520,14 +520,6 @@ const App = () => (
                         }
                       />
                       <Route
-                        path="/dashboard"
-                        element={
-                          <ProtectedRoute>
-                            <DashboardPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
                         path="/dashboard/finance"
                         element={
                           <ProtectedRoute>
@@ -628,14 +620,6 @@ const App = () => (
                         element={
                           <ProtectedRoute>
                             <NotificationDetailPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/settings"
-                        element={
-                          <ProtectedRoute>
-                            <SettingsPage />
                           </ProtectedRoute>
                         }
                       />

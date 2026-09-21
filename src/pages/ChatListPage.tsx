@@ -136,7 +136,6 @@ export default function ChatListPage() {
         )}
       </div>
 
-      <BottomNavigation />
     </div>
   );
 }

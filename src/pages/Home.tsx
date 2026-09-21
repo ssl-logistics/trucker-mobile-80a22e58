@@ -1401,7 +1401,6 @@ const isValidName = (val: any): string => {
         </div>
       </PullToRefresh>
 
-      <BottomNavigation />
 
       {/* Onboarding Tour */}
       <HomeTour />
