@@ -44,7 +44,7 @@ interface Job {
   origin_location: string;
   destination_location: string;
   destination_company_name: string | null;
-  price: number;
+  price: number | null;
   start_date: string;
   pickup_time: string;
   equipment_list: string | null;
@@ -216,7 +216,9 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
           {canViewPrice && (
             <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50 sm:px-4 sm:py-2">
               <img src={coinsIcon} alt="coins" className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="text-xl font-bold text-teal-700 sm:text-2xl">฿ {job.price.toLocaleString()}</span>
+              <span className="text-xl font-bold text-teal-700 sm:text-2xl">
+                {job.price != null ? `฿ ${job.price.toLocaleString()}` : t('market.price_not_set')}
+              </span>
             </div>
           )}
         </div>
@@ -384,7 +386,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                 <Banknote className="w-5 h-5 text-primary" />
                 <div>
                   <p className="text-xs text-muted-foreground">{t('job.price')}</p>
-                  <p className="font-bold text-lg text-primary">฿{job.price.toLocaleString()}</p>
+                  <p className="font-bold text-lg text-primary">{job.price != null ? `฿${job.price.toLocaleString()}` : t('market.price_not_set')}</p>
                 </div>
               </div>
             )}
