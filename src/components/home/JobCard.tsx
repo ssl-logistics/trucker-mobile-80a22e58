@@ -97,7 +97,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
     ? t('market.bid_button')
     : job.marketType === 'interest'
       ? t('market.interest_button')
-      : (useStartJobLabel ? t('job.startJob') : t('job.accept'));
+      : acceptLabel;
 
   // Auto open modal when autoOpenDetail is true
   useEffect(() => {
@@ -272,7 +272,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                   <span className="truncate">{t('job.processing')}</span>
                 </span>
               ) : (
-                <span className="truncate">{job.isAccepted ? t('job.accepted') : (useStartJobLabel ? t('job.startJob') : t('job.accept'))}</span>
+                <span className="truncate">{job.isAccepted ? t('job.accepted') : acceptLabel}</span>
               )}
             </Button>
             <Button 
@@ -296,7 +296,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
                 <span className="truncate">{t('job.processing')}</span>
               </span>
             ) : (
-              <span className="truncate">{job.isAccepted ? t('job.accepted') : (useStartJobLabel ? t('job.startJob') : t('job.accept'))}</span>
+              <span className="truncate">{job.isAccepted ? t('job.accepted') : acceptLabel}</span>
             )}
           </Button>
         )}
