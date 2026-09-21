@@ -295,6 +295,34 @@ export const preloadablePages = {
   PushDebugPage,
 };
 
+// Persistent shell for the four bottom-nav tabs.
+// The nav stays mounted; only the tab content suspends while its chunk loads.
+function TabLayout() {
+  useEffect(() => {
+    registerTabPreload("/home", Home.preload);
+    registerTabPreload("/dashboard", DashboardPage.preload);
+    registerTabPreload("/chat", ChatListPage.preload);
+    registerTabPreload("/settings", SettingsPage.preload);
+
+    const warm = () => preloadAllTabs();
+    const w = window as any;
+    const id = typeof w.requestIdleCallback === "function" ? w.requestIdleCallback(warm) : window.setTimeout(warm, 1500);
+    return () => {
+      if (typeof w.cancelIdleCallback === "function") w.cancelIdleCallback(id);
+      else window.clearTimeout(id);
+    };
+  }, []);
+
+  return (
+    <>
+      <Suspense fallback={<TabContentLoader />}>
+        <Outlet />
+      </Suspense>
+      <BottomNavigation />
+    </>
+  );
+}
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -320,27 +348,46 @@ const App = () => (
                       <Route path="/forgot-password" element={<ForgotPassword />} />
                       <Route path="/create-new-password" element={<CreateNewPassword />} />
                       <Route path="/auth/line/callback" element={<LineCallbackPage />} />
-                      <Route
-                        path="/home"
-                        element={
-                          <ProtectedRoute>
-                            <Home />
-                          </ProtectedRoute>
-                        }
-                      />
+                      {/* Main tabs share one persistent shell: only the content area reloads */}
+                      <Route element={<TabLayout />}>
+                        <Route
+                          path="/home"
+                          element={
+                            <ProtectedRoute>
+                              <Home />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/chat"
+                          element={
+                            <ProtectedRoute>
+                              <ChatListPage />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/dashboard"
+                          element={
+                            <ProtectedRoute>
+                              <DashboardPage />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings"
+                          element={
+                            <ProtectedRoute>
+                              <SettingsPage />
+                            </ProtectedRoute>
+                          }
+                        />
+                      </Route>
                       <Route
                         path="/search"
                         element={
                           <ProtectedRoute>
                             <SearchPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/chat"
-                        element={
-                          <ProtectedRoute>
-                            <ChatListPage />
                           </ProtectedRoute>
                         }
                       />
