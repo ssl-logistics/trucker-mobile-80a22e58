@@ -245,7 +245,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             )}
           </div>
           
-          {canViewPrice && (
+          {canViewPrice && (job.price != null || (job.marketType !== 'auction' && job.marketType !== 'interest')) && (
             <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-teal-50 sm:px-4 sm:py-2">
               <img src={coinsIcon} alt="coins" className="w-5 h-5 sm:w-6 sm:h-6" />
               <span className="text-xl font-bold text-teal-700 sm:text-2xl">
@@ -413,7 +413,7 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
             </div>
 
             {/* Price */}
-            {canViewPrice && (
+            {canViewPrice && (job.price != null || (job.marketType !== 'auction' && job.marketType !== 'interest')) && (
               <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
                 <Banknote className="w-5 h-5 text-primary" />
                 <div>
