@@ -82,6 +82,25 @@ interface Job {
   destinations?: Array<{ sequence: number; location: string; company_name?: string; latitude?: number; longitude?: number; address?: string; contact_name?: string; invoice_number?: string; province?: string }>;
 }
 
+function readHomeCache(prefix: string, driverId?: string): any[] | null {
+  if (!driverId) return null;
+  try {
+    const raw = localStorage.getItem(prefix + driverId);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function writeHomeCache(prefix: string, driverId: string | undefined, items: any[]) {
+  if (!driverId) return;
+  try {
+    localStorage.setItem(prefix + driverId, JSON.stringify(items));
+  } catch {
+    // ignore quota errors
+  }
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -103,7 +122,7 @@ const isValidName = (val: any): string => {
   return s;
 };
 
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<Job[]>(() => readHomeCache('home_jobs_cache_v1_', user?.id) || []);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
@@ -140,7 +159,7 @@ const isValidName = (val: any): string => {
   }, [userType]);
 
   // State for factory jobs
-  const [factoryJobs, setFactoryJobs] = useState<Job[]>([]);
+  const [factoryJobs, setFactoryJobs] = useState<Job[]>(() => readHomeCache('home_factory_jobs_cache_v1_', user?.id) || []);
   const [isLoadingFactoryJobs, setIsLoadingFactoryJobs] = useState(false);
   
   // State for factory job actions
@@ -403,6 +422,7 @@ const isValidName = (val: any): string => {
       });
 
       setFactoryJobs(transformedJobs);
+      writeHomeCache('home_factory_jobs_cache_v1_', user.id, transformedJobs);
     } catch (err) {
       console.error('Error fetching factory/driver jobs:', err);
     } finally {
@@ -511,6 +531,8 @@ const isValidName = (val: any): string => {
   // Subscribe to jobs table changes for real-time updates
   useEffect(() => {
     if (user) {
+      let debounceId: ReturnType<typeof setTimeout> | null = null;
+      let inFlight = false;
       const jobsChannel = supabase
         .channel('jobs-changes')
         .on(
@@ -521,19 +543,33 @@ const isValidName = (val: any): string => {
             table: 'jobs'
           },
           () => {
-            loadJobs();
+            if (debounceId) clearTimeout(debounceId);
+            debounceId = setTimeout(async () => {
+              if (inFlight) return;
+              inFlight = true;
+              try { await loadJobs(); } finally { inFlight = false; }
+            }, 2000);
           }
         )
         .subscribe();
       
       return () => {
+        if (debounceId) clearTimeout(debounceId);
         supabase.removeChannel(jobsChannel);
       };
     }
   }, [user]);
   const loadJobs = async () => {
     try {
-      // Fetch from external API directly
+      // Fire all independent requests in parallel
+      const acceptedPromise = user
+        ? getFreelanceAcceptedJobs(user.id).catch((e: any) => ({ data: null, error: e }))
+        : Promise.resolve({ data: null, error: null });
+      const applicationsPromise = user
+        ? Promise.resolve(
+            supabase.from('job_applications').select('job_id, payment_completed_at').eq('driver_id', user.id)
+          ).catch(() => ({ data: null }))
+        : Promise.resolve({ data: null });
       const { data: responseData, error } = await getExpressRentPosts();
       
       if (error) {
@@ -645,7 +681,7 @@ const isValidName = (val: any): string => {
         // Fetch accepted jobs from external API directly
         let acceptedOrderNumbers = new Set<string>();
         try {
-          const { data: acceptedResult, error: acceptedError } = await getFreelanceAcceptedJobs(user.id);
+          const { data: acceptedResult, error: acceptedError } = (await acceptedPromise) as any;
           
           if (!acceptedError && acceptedResult) {
             const acceptedData = (acceptedResult as any)?.data || acceptedResult;
@@ -660,10 +696,7 @@ const isValidName = (val: any): string => {
         }
 
         // Also check local job_applications table
-        const { data: applications } = await supabase
-          .from('job_applications')
-          .select('job_id, payment_completed_at')
-          .eq('driver_id', user.id);
+        const { data: applications } = (await applicationsPromise) as any;
         
         const completedJobIds = new Set(
           applications?.filter(app => app.payment_completed_at).map(app => app.job_id) || []
@@ -703,6 +736,7 @@ const isValidName = (val: any): string => {
           }));
         
         setJobs(availableJobs);
+        writeHomeCache('home_jobs_cache_v1_', user.id, availableJobs);
       } else {
         // Filter out jobs with past pickup date/time for non-logged in users too
         const now = new Date();
