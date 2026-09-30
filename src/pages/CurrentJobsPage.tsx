@@ -190,7 +190,14 @@ export default function CurrentJobsPage() {
 
   const loadAcceptedJobs = async () => {
     if (!user) return;
-    setLoading(true);
+    // Show cached list instantly (if any) and refresh in the background
+    const cached = readJobsCache(user.id);
+    if (cached && cached.length > 0) {
+      setAcceptedJobs(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     console.log(`[CurrentJobsPage] ===== LOADING ACCEPTED JOBS =====`);
     console.log(`[CurrentJobsPage] User: ${user.id}, UserType: ${userType}`);
     
@@ -315,14 +322,21 @@ export default function CurrentJobsPage() {
            const apiJobs = mergedApiJobs;
            console.log(`[CurrentJobsPage] Total API jobs returned: ${apiJobs.length}`);
            apiJobs.forEach(j => console.log(`  - Order: ${j.order_number}, Status: ${j.status}, ID: ${j.id}`));
-           const allDriverCheckinResults = await Promise.all(
-             apiJobs
-               .filter((job: any) => job?.order_number)
-               .map(async (job: any) => {
+           const terminalStatuses = new Set(['completed', 'closed', 'container_returned']);
+           const jobsNeedingAllDriverCheck = apiJobs.filter(
+             (job: any) => job?.order_number && !terminalStatuses.has((job.status || '').toLowerCase())
+           );
+           const allDriverCheckinResults: { job: any; checkins: any[] }[] = [];
+           const CONCURRENCY = 5;
+           for (let i = 0; i < jobsNeedingAllDriverCheck.length; i += CONCURRENCY) {
+             const batch = await Promise.all(
+               jobsNeedingAllDriverCheck.slice(i, i + CONCURRENCY).map(async (job: any) => {
                  const res = await getDriverCheckins(freelanceDriverId, driverType, job.order_number, { allDrivers: true }).catch(() => null);
                  return { job, checkins: (res?.data as any)?.data || [] };
                })
-           );
+             );
+             allDriverCheckinResults.push(...batch);
+           }
 
            allDriverCheckinResults.forEach(({ job, checkins }) => {
              checkins.forEach((c: any) => {
@@ -566,6 +580,7 @@ export default function CurrentJobsPage() {
            console.log(`[CurrentJobsPage] Setting accepted jobs: ${dedupedMapped.length} jobs (deduped from ${mappedJobs.length})`);
            dedupedMapped.forEach(j => console.log(`  - ${j.order_number} (status: ${j.status})`));
            setAcceptedJobs(dedupedMapped);
+           writeJobsCache(freelanceDriverId, dedupedMapped);
         } else {
           console.error('Error loading driver assigned jobs:', assignedResult.error);
           setAcceptedJobs([]);
@@ -888,37 +903,37 @@ export default function CurrentJobsPage() {
       }));
 
       setAcceptedJobs(normalizedJobs);
+      writeJobsCache(freelanceDriverId, normalizedJobs);
+      setLoading(false);
 
-      // Auto-create tracking rooms for accepted bid jobs that don't have one yet
-      for (const bidJob of bidWonJobs) {
+      // Auto-create tracking rooms for accepted bid jobs in the background (non-blocking)
+      void Promise.allSettled(bidWonJobs.map(async (bidJob: any) => {
         const orderNum = bidJob.order_number;
-        if (!orderNum) continue;
+        if (!orderNum || roomCreationInFlight.has(orderNum)) return;
         const existingRoomCode = localStorage.getItem(`room_code_${orderNum}`);
         if (existingRoomCode) {
           console.log(`[Tracking] Bid job ${orderNum} already has room_code: ${existingRoomCode}`);
-          continue;
+          return;
         }
+        roomCreationInFlight.add(orderNum);
 
         try {
-          // Get driver's vehicle plate
           const province = (user.plate_province || '').trim();
           const number = (user.plate_number || '').trim();
           const truckPlate = [province, number].filter(Boolean).join(' ').trim() || user.id;
 
-          // Get actual GPS position for current_lat/current_lng
           let currentLat = bidJob.sender_latitude || 0;
           let currentLng = bidJob.sender_longitude || 0;
           try {
             const gpsPos = await new Promise<GeolocationPosition>((resolve, reject) => {
               navigator.geolocation.getCurrentPosition(resolve, reject, {
                 enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
+                timeout: 5000,
+                maximumAge: 60000
               });
             });
             currentLat = gpsPos.coords.latitude;
             currentLng = gpsPos.coords.longitude;
-            console.log(`📍 [Tracking] Got GPS for bid job ${orderNum}:`, currentLat, currentLng);
           } catch (gpsErr) {
             console.warn(`[Tracking] Could not get GPS for ${orderNum}, using origin:`, gpsErr);
           }
@@ -935,8 +950,6 @@ export default function CurrentJobsPage() {
             driver_id: localStorage.getItem('auth_driver_id') || undefined,
           };
 
-          console.log(`[Tracking] Creating tracking room for bid job ${orderNum}:`, trackingBody);
-
           const trackingResponse = await createTrackingRoom(trackingBody, 'current-jobs-bid');
 
           if (!trackingResponse.ok) {
@@ -945,13 +958,15 @@ export default function CurrentJobsPage() {
             const roomCode = trackingResponse.data?.room?.room_code;
             if (roomCode) {
               localStorage.setItem(`room_code_${orderNum}`, roomCode);
-              console.log(`[Tracking] Room created for bid job ${orderNum}: ${roomCode}`);
             }
           }
         } catch (trackingErr) {
           console.error(`[Tracking] Failed to create room for bid job ${orderNum}:`, trackingErr);
+        } finally {
+          roomCreationInFlight.delete(orderNum);
         }
-      }
+      }));
+      return;
     } catch (error) {
       console.error('Error fetching accepted jobs:', error);
       toast({
