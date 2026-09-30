@@ -1,7 +1,7 @@
 import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Camera, Image, Pencil, Plus, Trash2, Scan, Loader2, X, Check, ChevronDown } from "lucide-react";
+import { ChevronLeft, Camera, Image, Pencil, Plus, Trash2, Scan, Loader2, X, Check, ChevronDown, Gauge, Fuel } from "lucide-react";
 import confirmSuccessIcon from "@/assets/confirm-success-icon.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -942,36 +942,48 @@ const AddExpensePage = () => {
             </div>
 
             {isFuelType(expense.type) && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor={`mileage-${expense.id}`}>{t('expense.mileage')}</Label>
-                  <Input
-                    id={`mileage-${expense.id}`}
-                    inputMode="numeric"
-                    placeholder={t('expense.mileagePlaceholder')}
-                    value={expense.mileage ? Number(expense.mileage).toLocaleString() : ''}
-                    onChange={(e) => {
-                      const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
-                      handleExpenseChange(expense.id, 'mileage', raw);
-                    }}
-                    className="text-right"
-                  />
+              <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Fuel className="w-4 h-4 text-primary" />
+                  {t('expense.fuelDetails')}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`liters-${expense.id}`}>{t('expense.fuelLiters')}</Label>
-                  <Input
-                    id={`liters-${expense.id}`}
-                    inputMode="decimal"
-                    placeholder={t('expense.fuelLitersPlaceholder')}
-                    value={expense.fuelLiters}
-                    onChange={(e) => {
-                      let v = e.target.value.replace(/[^\d.]/g, '');
-                      const [i, ...rest] = v.split('.');
-                      if (rest.length) v = `${i}.${rest.join('').slice(0, 2)}`;
-                      handleExpenseChange(expense.id, 'fuelLiters', v);
-                    }}
-                    className="text-right"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor={`mileage-${expense.id}`} className="flex items-center gap-1.5">
+                      <Gauge className="w-3.5 h-3.5 text-muted-foreground" />
+                      {t('expense.mileage')}
+                    </Label>
+                    <Input
+                      id={`mileage-${expense.id}`}
+                      inputMode="numeric"
+                      placeholder={t('expense.mileagePlaceholder')}
+                      value={expense.mileage ? Number(expense.mileage).toLocaleString() : ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+                        handleExpenseChange(expense.id, 'mileage', raw);
+                      }}
+                      className="text-right bg-background"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`liters-${expense.id}`} className="flex items-center gap-1.5">
+                      <Fuel className="w-3.5 h-3.5 text-muted-foreground" />
+                      {t('expense.fuelLiters')}
+                    </Label>
+                    <Input
+                      id={`liters-${expense.id}`}
+                      inputMode="decimal"
+                      placeholder={t('expense.fuelLitersPlaceholder')}
+                      value={expense.fuelLiters}
+                      onChange={(e) => {
+                        let v = e.target.value.replace(/[^\d.]/g, '');
+                        const [i, ...rest] = v.split('.');
+                        if (rest.length) v = `${i}.${rest.join('').slice(0, 2)}`;
+                        handleExpenseChange(expense.id, 'fuelLiters', v);
+                      }}
+                      className="text-right bg-background"
+                    />
+                  </div>
                 </div>
               </div>
             )}
