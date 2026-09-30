@@ -39,7 +39,7 @@
 
 - `bunx tsgo --noEmit` ผ่าน
 - `/tmp/observability/build-errors.log` ต้องขึ้น build OK
-- Playwright: สอดส้างหน้าจอท่ีใชหหัวเรื่อง `.app-sticky-header` แล้ววัด computed `padding-top` ต้องได้ 14px (เดิม 0px) พร้อมยืนยันว่าหัวเรื่องของหน้าแรกไม่เปล่ียนแปลง
+- Playwright: สอดส่องหน้าจอที่ใช้หัวเรื่อง `.app-sticky-header` แล้ววัด computed `padding-top` ต้องได้ 14px (เดิม 0px) พร้อมยืนยันว่าหัวเรื่องของหน้าแรกไม่เปลี่ยนแปลง
 
 ## หมายเหตุ
 
