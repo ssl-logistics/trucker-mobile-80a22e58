@@ -812,7 +812,8 @@ export default function DomesticJobDetail({
         setIsLoadingCheckinStatus(false);
       }
     }
-  }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
+  }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver, jobApplication]);
+  fetchStatusesRef.current = fetchStatuses;
 
   useEffect(() => {
     void fetchStatuses(true);
