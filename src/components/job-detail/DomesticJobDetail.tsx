@@ -575,6 +575,8 @@ export default function DomesticJobDetail({
   };
 
   // Fetch check-in status and SOP status from external APIs
+  const allDriversFallbackRef = useRef<string | null>(null);
+  const fetchStatusesRef = useRef<((showLoading?: boolean) => Promise<void>) | null>(null);
   const fetchStatuses = useCallback(async (showLoading: boolean = true) => {
     if (!userId || !job.order_code) return;
 
@@ -594,44 +596,54 @@ export default function DomesticJobDetail({
     }
 
     try {
-      console.log('Current userId:', userId, 'Order code:', job.order_code);
-
       // Fetch check-in status
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
-      // Use allDrivers ONLY for transferred jobs (server ignores order_number filter
-      // when no driver_id is supplied → returns 1000-row cap of unrelated rows).
-      // For normal jobs, scope to this driver so the API filters server-side correctly.
+      // Start SOP fetch in parallel with the check-in fetch (was sequential before).
+      const sopIdParam = isInternalDriver
+        ? `internal_driver_id=${encodeURIComponent(userId)}`
+        : isExternalDriver
+        ? `external_driver_id=${encodeURIComponent(userId)}`
+        : `freelance_driver_id=${encodeURIComponent(userId)}`;
+      const sopPromise = fetch(
+        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${sopIdParam}&order_number=${encodeURIComponent(job.order_code)}`,
+        { headers: { 'Content-Type': 'application/json', 'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live' } }
+      ).catch(() => null);
+
       const isTransferredJob = !!(job as any)?.is_transferred;
+      const useAllDrivers = isTransferredJob || allDriversFallbackRef.current === job.order_code;
       const { data: checkinResult, error: checkinError } = await getDriverCheckins(
         userId,
         driverType,
         job.order_code,
-        isTransferredJob ? { allDrivers: true } : undefined
+        useAllDrivers ? { allDrivers: true } : undefined
       );
 
       if (checkinError) {
         console.error('[DomesticJobDetail] getDriverCheckins error:', checkinError);
       }
 
-      console.log('Fetched check-in status:', checkinResult);
-
       let allCheckinsRaw = (checkinResult as any)?.data || checkinResult || [];
       let apiCheckins = Array.isArray(allCheckinsRaw) ? allCheckinsRaw : [];
 
-      // Safety net: if driver-scoped fetch returned nothing (e.g. job was transferred
-      // but flag missing), retry with allDrivers so previous drivers' checkins surface.
-      if (!isTransferredJob && apiCheckins.length === 0) {
-        const retry = await getDriverCheckins(userId, driverType, job.order_code, { allDrivers: true });
-        const retryRaw = (retry.data as any)?.data || retry.data || [];
-        if (Array.isArray(retryRaw) && retryRaw.length > 0) {
-          apiCheckins = retryRaw.filter((c: any) =>
-            c.transport_orders?.order_number === job.order_code ||
-            c.order_number === job.order_code
+      // Safety net (background, non-blocking): if driver-scoped fetch returned nothing,
+      // retry with allDrivers; if it finds rows, re-run statuses silently in allDrivers mode.
+      const notStarted = !(jobApplication as any)?.job_started_at &&
+        ['pending', 'awaiting_response', 'awaiting'].includes(String((jobApplication as any)?.status || ''));
+      if (!useAllDrivers && apiCheckins.length === 0 && !notStarted) {
+        const orderCode = job.order_code;
+        getDriverCheckins(userId, driverType, orderCode, { allDrivers: true }).then((retry) => {
+          const retryRaw = (retry.data as any)?.data || retry.data || [];
+          const found = Array.isArray(retryRaw) && retryRaw.some((c: any) =>
+            c.transport_orders?.order_number === orderCode || c.order_number === orderCode
           );
-          console.log('[DomesticJobDetail] Fallback allDrivers fetch:', retryRaw.length, '→ filtered', apiCheckins.length);
-        }
+          if (found && allDriversFallbackRef.current !== orderCode) {
+            allDriversFallbackRef.current = orderCode;
+            fetchStatusesRef.current?.(false);
+          }
+        }).catch(() => {});
       }
+
 
       // Merge in optimistic check-ins for this order. The external API has a 1000-row
       // hard cap and may not return our just-saved record on the next fetch, so we
@@ -771,24 +783,9 @@ export default function DomesticJobDetail({
       console.log('Destination checkins extracted (with inferred):', destCheckins);
       setDestinationCheckins(destCheckins);
 
-      // Fetch SOP status from external API (role-aware driver id param)
-      const sopDriverIdParam = isInternalDriver
-        ? `internal_driver_id=${encodeURIComponent(userId)}`
-        : isExternalDriver
-        ? `external_driver_id=${encodeURIComponent(userId)}`
-        : `freelance_driver_id=${encodeURIComponent(userId)}`;
+      const sopResponse = await sopPromise;
 
-      const sopResponse = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${sopDriverIdParam}&order_number=${encodeURIComponent(job.order_code)}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-          },
-        }
-      );
-
-      if (sopResponse.ok) {
+      if (sopResponse && sopResponse.ok) {
         const sopResult = await sopResponse.json();
         console.log('Fetched SOP status:', sopResult);
 
@@ -815,7 +812,8 @@ export default function DomesticJobDetail({
         setIsLoadingCheckinStatus(false);
       }
     }
-  }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
+  }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver, jobApplication]);
+  fetchStatusesRef.current = fetchStatuses;
 
   useEffect(() => {
     void fetchStatuses(true);
