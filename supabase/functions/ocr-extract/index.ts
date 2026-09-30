@@ -136,14 +136,19 @@ Return ONLY a JSON object in this exact format (no markdown, no explanation):
   ],
   "container_number": "container number if found or null",
   "receipt_number": "receipt/invoice number if found or null",
-  "receipt_date": "date if found or null"
+  "receipt_date": "date if found or null",
+  "odometer_km": numeric_value_or_null,
+  "fuel_liters": numeric_value_or_null
 }
 
 IMPORTANT:
 - All amounts should be numeric values only (no currency symbols, no commas)
 - Extract all individual line items you can find
 - grand_total should be the final payable amount (after VAT)
-- If there's only one total, use it as grand_total`;
+- If there's only one total, use it as grand_total
+- odometer_km: vehicle odometer / mileage reading (เลขไมล์ / เลขกิโล / ODO / Mileage) if printed or handwritten on the receipt, else null
+- fuel_liters: fuel quantity in liters (ลิตร / Liter / LTR / ปริมาณ) for fuel station receipts, else null
+- Never guess odometer_km or fuel_liters; use null when not clearly present`;
     } else if (extraction_type === 'weight_slip') {
       prompt = `Analyze this Thai weight slip / weighbridge ticket (ใบชั่งน้ำหนัก) image and extract the following:
 
