@@ -10,10 +10,7 @@ export default function JobDetailLoadingState() {
   return (
     <div className="min-h-screen bg-background" aria-busy="true" aria-live="polite">
       {/* Skeleton of the sticky header */}
-      <div
-        className="app-sticky-header bg-header text-header-foreground rounded-b-xl shadow-lg"
-        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 14px)' }}
-      >
+      <div className="app-sticky-header bg-header text-header-foreground rounded-b-xl shadow-lg">
         <div className="flex items-center justify-center px-4 py-3">
           <div className="h-6 w-44 rounded-md bg-primary-foreground/20 animate-pulse" />
         </div>
