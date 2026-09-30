@@ -575,6 +575,8 @@ export default function DomesticJobDetail({
   };
 
   // Fetch check-in status and SOP status from external APIs
+  const allDriversFallbackRef = useRef<string | null>(null);
+  const fetchStatusesRef = useRef<((showLoading?: boolean) => Promise<void>) | null>(null);
   const fetchStatuses = useCallback(async (showLoading: boolean = true) => {
     if (!userId || !job.order_code) return;
 
@@ -781,24 +783,9 @@ export default function DomesticJobDetail({
       console.log('Destination checkins extracted (with inferred):', destCheckins);
       setDestinationCheckins(destCheckins);
 
-      // Fetch SOP status from external API (role-aware driver id param)
-      const sopDriverIdParam = isInternalDriver
-        ? `internal_driver_id=${encodeURIComponent(userId)}`
-        : isExternalDriver
-        ? `external_driver_id=${encodeURIComponent(userId)}`
-        : `freelance_driver_id=${encodeURIComponent(userId)}`;
+      const sopResponse = await sopPromise;
 
-      const sopResponse = await fetch(
-        `https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1/get-driver-sop?${sopDriverIdParam}&order_number=${encodeURIComponent(job.order_code)}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live',
-          },
-        }
-      );
-
-      if (sopResponse.ok) {
+      if (sopResponse && sopResponse.ok) {
         const sopResult = await sopResponse.json();
         console.log('Fetched SOP status:', sopResult);
 
