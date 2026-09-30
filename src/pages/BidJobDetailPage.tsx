@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
+import JobDetailLoadingState from '@/components/job-detail/JobDetailLoadingState';
 
 interface BidTicket {
   id: string;
@@ -266,7 +267,7 @@ export default function BidJobDetailPage() {
   };
 
   if (loading) {
-    return null; // Let Suspense boundary handle loading
+    return <JobDetailLoadingState />;
   }
 
   if (!job || !user) {
