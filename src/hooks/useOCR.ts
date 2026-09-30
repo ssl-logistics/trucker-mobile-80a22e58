@@ -31,6 +31,8 @@ interface ExpenseDetailedData {
   container_number?: string | null;
   receipt_number?: string | null;
   receipt_date?: string | null;
+  odometer_km?: number | null;
+  fuel_liters?: number | null;
 }
 
 interface WeightSlipData {

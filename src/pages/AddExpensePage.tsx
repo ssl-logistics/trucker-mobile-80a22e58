@@ -58,6 +58,8 @@ interface OCRDetailedResult {
   container_number?: string | null;
   receipt_number?: string | null;
   receipt_date?: string | null;
+  odometer_km?: number | null;
+  fuel_liters?: number | null;
 }
 
 interface ReceiptPhoto {
@@ -341,11 +343,24 @@ const AddExpensePage = () => {
             0
           );
 
+          // Fuel only: fill mileage/liters from OCR if still empty (never overwrite user input)
+          let mileage = exp.mileage;
+          let fuelLiters = exp.fuelLiters;
+          if (isFuelType(exp.type) && result.success && result.data) {
+            const d = result.data as OCRDetailedResult;
+            const odo = Number(d.odometer_km);
+            const lit = Number(d.fuel_liters);
+            if (!mileage && d.odometer_km != null && Number.isFinite(odo) && odo > 0) mileage = String(odo);
+            if (!fuelLiters && d.fuel_liters != null && Number.isFinite(lit) && lit > 0) fuelLiters = String(lit);
+          }
+
           return {
             ...exp,
             receiptPhotos: updatedPhotos,
             amount: totalOCR > 0 ? String(totalOCR) : exp.amount,
             showOCRDetails: true,
+            mileage,
+            fuelLiters,
           };
         }
         return exp;
