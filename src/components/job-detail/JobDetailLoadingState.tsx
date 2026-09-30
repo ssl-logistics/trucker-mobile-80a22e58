@@ -2,7 +2,6 @@
 // jobs all render through the unified detail view). Shows a skeleton of the
 // detail layout instead of a blank screen.
 export default function JobDetailLoadingState() {
-
   return (
     <div className="min-h-screen bg-background" aria-busy="true" aria-live="polite">
       {/* Skeleton of the sticky header */}
