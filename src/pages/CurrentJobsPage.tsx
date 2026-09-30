@@ -118,6 +118,29 @@ interface AcceptedJob {
     destination_id?: string;
   }>;
 }
+
+// Prevent overlapping tracking-room creation for the same order across quick refreshes
+const roomCreationInFlight = new Set<string>();
+
+const JOBS_CACHE_PREFIX = 'current_jobs_cache_v1_';
+function readJobsCache(driverId: string): AcceptedJob[] | null {
+  try {
+    const raw = localStorage.getItem(JOBS_CACHE_PREFIX + driverId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function writeJobsCache(driverId: string, jobs: AcceptedJob[]) {
+  try {
+    localStorage.setItem(JOBS_CACHE_PREFIX + driverId, JSON.stringify(jobs));
+  } catch {
+    // ignore quota errors
+  }
+}
+
 export default function CurrentJobsPage() {
   const navigate = useNavigate();
   const location = useLocation();
