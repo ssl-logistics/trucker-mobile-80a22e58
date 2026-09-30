@@ -77,7 +77,11 @@ interface ExpenseItem {
   receiptPhotos: ReceiptPhoto[];
   showOCRDetails: boolean;
   isAdvance: boolean;
+  mileage: string;
+  fuelLiters: string;
 }
+
+const isFuelType = (type: string | undefined) => type === 'fuel' || type === 'fuel_drop';
 
 const AddExpensePage = () => {
   const navigate = useNavigate();
@@ -220,7 +224,7 @@ const AddExpensePage = () => {
   })();
   
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
-    { id: "1", type: undefined, customType: "", amount: "", receiptPhotos: [], showOCRDetails: false, isAdvance: false },
+    { id: "1", type: undefined, customType: "", amount: "", receiptPhotos: [], showOCRDetails: false, isAdvance: false, mileage: "", fuelLiters: "" },
   ]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -240,6 +244,8 @@ const AddExpensePage = () => {
       receiptPhotos: [],
       showOCRDetails: false,
       isAdvance: false,
+      mileage: "",
+      fuelLiters: "",
     };
     setExpenses([...expenses, newExpense]);
   };
@@ -251,9 +257,15 @@ const AddExpensePage = () => {
   };
 
   const handleExpenseChange = (id: string, field: keyof ExpenseItem, value: any) => {
-    setExpenses(prev => prev.map(exp => 
-      exp.id === id ? { ...exp, [field]: value } : exp
-    ));
+    setExpenses(prev => prev.map(exp => {
+      if (exp.id !== id) return exp;
+      const next = { ...exp, [field]: value };
+      if (field === 'type' && !isFuelType(value)) {
+        next.mileage = '';
+        next.fuelLiters = '';
+      }
+      return next;
+    }));
   };
 
   const handlePhotoSelect = async (expenseId: string, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -521,15 +533,24 @@ const AddExpensePage = () => {
         // Send expense to external API with OCR data
         // ติ๊ก "สำรองจ่าย" → ส่ง advance_amount แทน amount
         const amountValue = parseFloat(expense.amount);
+        const fuel = isFuelType(expense.type);
+        const mileageNum = fuel && expense.mileage ? Number(expense.mileage) : undefined;
+        const litersNum = fuel && expense.fuelLiters && !isNaN(parseFloat(expense.fuelLiters)) ? parseFloat(expense.fuelLiters) : undefined;
+        const noteParts: string[] = [];
+        if (photoUrls.length > 1) noteParts.push(`มี ${photoUrls.length} ใบเสร็จ`);
+        if (mileageNum != null) noteParts.push(`เลขไมค์ ${mileageNum.toLocaleString()} กม.`);
+        if (litersNum != null) noteParts.push(`${litersNum} ลิตร`);
         const { data: expenseData, error: expenseError } = await addExpense({
           order_number: orderNumber,
           driver_id: user.id,
           driver_type: driverType,
           expense_type: expenseType,
           ...(expense.isAdvance ? { advance_amount: amountValue } : { amount: amountValue }),
+          ...(mileageNum != null ? { mileage: mileageNum } : {}),
+          ...(litersNum != null ? { fuel_liters: litersNum } : {}),
           receipt_photo_url: photoUrls[0] || '',
           receipt_photo_urls: photoUrls.length > 0 ? photoUrls : undefined,
-          notes: photoUrls.length > 1 ? `มี ${photoUrls.length} ใบเสร็จ` : '',
+          notes: noteParts.join(' / '),
           ocr_data: ocrData,
         });
         
@@ -552,6 +573,8 @@ const AddExpensePage = () => {
         receiptPhotos: [],
         showOCRDetails: false,
         isAdvance: false,
+        mileage: '',
+        fuelLiters: '',
       }]);
       setShowConfirmDialog(false);
       
@@ -902,6 +925,41 @@ const AddExpensePage = () => {
                 className={cn("text-right", getTotalOCRAmount(expense) > 0 ? "border-green-300 ring-1 ring-green-200" : "")}
               />
             </div>
+
+            {isFuelType(expense.type) && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor={`mileage-${expense.id}`}>{t('expense.mileage')}</Label>
+                  <Input
+                    id={`mileage-${expense.id}`}
+                    inputMode="numeric"
+                    placeholder={t('expense.mileagePlaceholder')}
+                    value={expense.mileage ? Number(expense.mileage).toLocaleString() : ''}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+                      handleExpenseChange(expense.id, 'mileage', raw);
+                    }}
+                    className="text-right"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`liters-${expense.id}`}>{t('expense.fuelLiters')}</Label>
+                  <Input
+                    id={`liters-${expense.id}`}
+                    inputMode="decimal"
+                    placeholder={t('expense.fuelLitersPlaceholder')}
+                    value={expense.fuelLiters}
+                    onChange={(e) => {
+                      let v = e.target.value.replace(/[^\d.]/g, '');
+                      const [i, ...rest] = v.split('.');
+                      if (rest.length) v = `${i}.${rest.join('').slice(0, 2)}`;
+                      handleExpenseChange(expense.id, 'fuelLiters', v);
+                    }}
+                    className="text-right"
+                  />
+                </div>
+              </div>
+            )}
 
             {index < expenses.length - 1 && (
               <div className="border-b border-border my-6" />

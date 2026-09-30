@@ -638,6 +638,8 @@ export async function addExpense(body: {
   expense_type: string;
   amount?: number;
   advance_amount?: number;
+  mileage?: number;
+  fuel_liters?: number;
   receipt_photo_url?: string;
   receipt_photo_urls?: string[];
   notes?: string;
