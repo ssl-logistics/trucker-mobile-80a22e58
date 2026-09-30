@@ -282,7 +282,7 @@ body::after {
 
 /* AppHeader applies the notch padding on its inner wrapper already */
 .app-sticky-header {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: max(env(safe-area-inset-top, 0px), 14px);
 }
 
 /* Wrapper that makes an inner AppHeader (plus attached bars) stick as one block.
