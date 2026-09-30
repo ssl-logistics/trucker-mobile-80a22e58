@@ -997,7 +997,7 @@ export default function JobDetailPage() {
   }, [loading, job, navigate]);
 
   if (loading) {
-    return null;
+    return <JobDetailLoadingState />;
   }
 
   if (!job || !user) {

@@ -266,7 +266,7 @@ export default function BidJobDetailPage() {
   };
 
   if (loading) {
-    return null; // Let Suspense boundary handle loading
+    return <JobDetailLoadingState />;
   }
 
   if (!job || !user) {
