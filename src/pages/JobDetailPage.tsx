@@ -8,6 +8,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useCheckinStatus } from '@/hooks/useCheckinStatus';
 import { toast } from '@/hooks/use-toast';
 import DomesticJobDetail from '@/components/job-detail/DomesticJobDetail';
+import JobDetailLoadingState from '@/components/job-detail/JobDetailLoadingState';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 
 
