@@ -82,6 +82,25 @@ interface Job {
   destinations?: Array<{ sequence: number; location: string; company_name?: string; latitude?: number; longitude?: number; address?: string; contact_name?: string; invoice_number?: string; province?: string }>;
 }
 
+function readHomeCache(prefix: string, driverId?: string): any[] | null {
+  if (!driverId) return null;
+  try {
+    const raw = localStorage.getItem(prefix + driverId);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function writeHomeCache(prefix: string, driverId: string | undefined, items: any[]) {
+  if (!driverId) return;
+  try {
+    localStorage.setItem(prefix + driverId, JSON.stringify(items));
+  } catch {
+    // ignore quota errors
+  }
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
