@@ -5,3 +5,4 @@
 - [done] เลื่อนหัวเรื่องหน้ารายละเอียดงานลง 14px จากขอบบน (DomesticJobDetail + โครงตอนโหลด)
 - [done] หัวเรื่อง sticky ทุกหน้าห่างขอบบน 14px (แก้ .app-sticky-header ที่ index.css จุดเดียว, ลบ inline override, ไม่แตะหน้าแรก/เมนูหลัก)
 - [done] แยก UI ช่องเลขไมล์/ลิตรเป็นการ์ดย่อย "ข้อมูลน้ำมัน" + ไอคอน Gauge/Fuel (AddExpensePage, i18n ครบ 4 ภาษา)
+- [done] เอาจุด "กำลังโหลด..." ด้านล่างออกจากโครงหน้าตอนโหลด (JobDetailLoadingState, UI เท่านั้น)
