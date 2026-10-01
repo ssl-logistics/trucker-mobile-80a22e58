@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide } from 'lucide-react';
+import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide, ListOrdered } from 'lucide-react';
 import coinsIcon from '@/assets/coins-icon.png';
 import { supabase } from '@/integrations/supabase/client';
 import { createTrackingRoom } from '@/lib/trackingRoomClient';
@@ -27,6 +27,7 @@ import { deduplicateJobs } from '@/utils/jobDeduplication';
 import { getOptimisticCheckins } from '@/utils/optimisticCheckins';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
+import JobQueueDialog, { type JobQueueInfo } from '@/components/job/JobQueueDialog';
 import {
   normalizeLocationObject as normalizeLocationObjectShared,
   getApiLocationName as getApiLocationNameShared,
@@ -117,6 +118,18 @@ interface AcceptedJob {
     weight_unit: string;
     destination_id?: string;
   }>;
+  has_queue?: boolean;
+  queue_data?: {
+    my_queue?: string | number | null;
+    queue_number?: string | number | null;
+    current_queue?: string | number | null;
+    remaining_queues?: number | null;
+    estimated_time?: string | null;
+  } | null;
+  queue_number?: string | number | null;
+  current_queue?: string | number | null;
+  remaining_queues?: number | null;
+  queue_estimated_time?: string | null;
 }
 
 // Prevent overlapping tracking-room creation for the same order across quick refreshes
@@ -162,6 +175,7 @@ export default function CurrentJobsPage() {
   const [loading, setLoading] = useState(true);
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedQueue, setSelectedQueue] = useState<JobQueueInfo | null>(null);
 
   // Store justStartedOrder in a ref so it persists across async re-renders
   const justStartedOrderRef = useRef<string | null>(location.state?.justStartedOrder || null);
@@ -191,6 +205,27 @@ export default function CurrentJobsPage() {
     } else {
       navigate(`/job/${encodeURIComponent(job.order_number)}`, { state: { job } });
     }
+  };
+
+  const getQueueInfo = (job: AcceptedJob): JobQueueInfo | null => {
+    const queueData = job.queue_data;
+    const hasQueueData = Boolean(
+      job.has_queue ||
+      queueData ||
+      job.queue_number != null ||
+      job.current_queue != null ||
+      job.remaining_queues != null ||
+      job.queue_estimated_time
+    );
+
+    if (!hasQueueData) return null;
+
+    return {
+      myQueue: String(queueData?.my_queue ?? queueData?.queue_number ?? job.queue_number ?? '0015').padStart(4, '0'),
+      currentQueue: String(queueData?.current_queue ?? job.current_queue ?? 'Q012'),
+      remainingQueues: Number(queueData?.remaining_queues ?? job.remaining_queues ?? 2),
+      estimatedTime: queueData?.estimated_time ?? job.queue_estimated_time ?? '23/09/2026 09:00 - 10:00',
+    };
   };
   useEffect(() => {
     console.log(`[CurrentJobsPage] useEffect triggered - user: ${user?.id}, userType: ${userType}, justStartedOrder: ${justStartedOrderRef.current}`);
@@ -1141,6 +1176,7 @@ export default function CurrentJobsPage() {
           const pickupTime = job.sender_pickup_time || '';
           const deliveryDate = job.destination_delivery_date || '';
           const deliveryTime = job.destination_delivery_time || '';
+          const queueInfo = getQueueInfo(job);
 
           return <Card
                   key={job.id}
@@ -1335,16 +1371,30 @@ export default function CurrentJobsPage() {
                     </div>
                     )}
 
-                    <Button
-                      variant="outline"
-                      className="w-full h-11 text-base font-medium"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenJob(job);
-                      }}
-                    >
-                      {t('currentJobs.viewDetails')}
-                    </Button>
+                    <div className={queueInfo ? 'grid grid-cols-2 gap-2' : ''}>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 text-base font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenJob(job);
+                        }}
+                      >
+                        {t('currentJobs.viewDetails')}
+                      </Button>
+                      {queueInfo && (
+                        <Button
+                          className="h-11 w-full gap-2 text-base font-medium"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedQueue(queueInfo);
+                          }}
+                        >
+                          <ListOrdered className="h-4 w-4" />
+                          {t('currentJobs.queue')}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </Card>;
         })}
@@ -1352,6 +1402,14 @@ export default function CurrentJobsPage() {
       </div>
 
       </PullToRefresh>
+
+      <JobQueueDialog
+        open={selectedQueue !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedQueue(null);
+        }}
+        queue={selectedQueue}
+      />
 
       {/* Filter Drawer */}
       <Drawer open={filterOpen} onOpenChange={setFilterOpen}>
