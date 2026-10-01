@@ -119,6 +119,10 @@ interface AcceptedJob {
     destination_id?: string;
   }>;
   has_queue?: boolean;
+  // QTruck queue booking flag from get-driver-assigned-jobs (true/false)
+  has_qtruck_booking?: boolean | string | number | null;
+  // Internal marker: job was loaded from get-driver-assigned-jobs (internal/external driver path)
+  _fromDriverAssigned?: boolean;
   queue_data?: {
     my_queue?: string | number | null;
     queue_number?: string | number | null;
@@ -208,8 +212,17 @@ export default function CurrentJobsPage() {
   };
 
   const getQueueInfo = (job: AcceptedJob): JobQueueInfo | null => {
+    // Queue button only for jobs loaded from get-driver-assigned-jobs
+    // (internal/external drivers). Other sources never show the queue button.
+    if (!job._fromDriverAssigned) return null;
+
     const queueData = job.queue_data;
+    const hasQtruckBooking =
+      job.has_qtruck_booking === true ||
+      job.has_qtruck_booking === 'true' ||
+      job.has_qtruck_booking === 1;
     const hasQueueData = Boolean(
+      hasQtruckBooking ||
       job.has_queue ||
       queueData ||
       job.queue_number != null ||
@@ -543,6 +556,7 @@ export default function CurrentJobsPage() {
           // Map to AcceptedJob format
           const mappedJobs: AcceptedJob[] = activeJobs.map((job: any) => ({
             ...job,
+            _fromDriverAssigned: true,
             id: job.id,
             order_number: job.order_number,
             transport_type_id: job.transport_type_id,
