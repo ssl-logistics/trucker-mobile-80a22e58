@@ -23,3 +23,4 @@
 - [x] Driver fallback lookup via jobs + job_applications when no tracking room
 - [x] Notify on queue status completed
 - [x] Deployed qtruck-webhook
+- [done] แสดงเลขตู้ (container_number + container_number_2) ใต้ป้ายประเภทงานบนการ์ดงานต่างประเทศเท่านั้น และเฉพาะเมื่อมีเลขจริง (CurrentJobsPage, i18n jobDetail.containerNumber)
