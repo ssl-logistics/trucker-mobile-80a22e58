@@ -16,6 +16,7 @@ import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { getFreelanceAcceptedJobs, getFactoryAssignedJobs, getDriverCheckins, getDriverAssignedJobs } from '@/lib/externalApi';
 import { HistoryJobCard } from '@/components/history/HistoryJobCard';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
+import JobDetailLoadingState from '@/components/job-detail/JobDetailLoadingState';
 interface JobApplication {
   id: string;
   applied_at: string;
@@ -798,6 +799,11 @@ export default function JobHistoryPage() {
 
   const filteredApplications = filterApplications(applications);
   const filteredCompletedJobs = filterCompletedJobs(completedJobs);
+
+  // Show the same skeleton as the job detail pages while the history data loads
+  if (loading) {
+    return <JobDetailLoadingState />;
+  }
 
   // Reset pagination when filters change
   useEffect(() => { setDomesticPage(1); setIntlPage(1); }, [selectedMonth, completedJobs.length, applications.length]);
