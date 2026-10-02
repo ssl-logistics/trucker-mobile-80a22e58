@@ -944,6 +944,8 @@ export default function CurrentJobsPage() {
             container_number: ticket.container_number || ticket.container_no || ticket.international_details?.container_number || null,
             container_number_2: ticket.container_number_2 || ticket.international_details?.container_number_2 || null,
             seal_number: ticket.seal_number || ticket.international_details?.seal_number || null,
+            remarks: ticket.notes || ticket.remarks || null,
+
 
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
