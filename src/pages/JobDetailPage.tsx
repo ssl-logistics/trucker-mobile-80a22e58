@@ -663,7 +663,9 @@ export default function JobDetailPage() {
             // จุดส่งสินค้า/จุดรับสินค้า (cargo_point) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
             const cargoName = cargoObj.name || null;
             const cargoAddress = cargoObj.address || null;
-            const cargoAddressFull = [cargoAddress, buildProvDist(cargoObj)].filter(Boolean).join(' ') || null;
+            const cargoAddressFull = cargoAddress
+              ? [cargoAddress, [cargoObj.province, cargoObj.district].filter((v: any) => v && !String(cargoAddress).includes(String(v))).join(' ')].filter(Boolean).join(' ')
+              : (buildProvDist(cargoObj) || null);
             mappedJob.destination_company_name = cargoName || cargoAddress || null;
             (mappedJob as any).cargo_factory_name = cargoName;
             mappedJob.destination_location = cargoName || cargoAddress || '';
