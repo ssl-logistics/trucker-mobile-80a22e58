@@ -34,5 +34,6 @@
 - หาคนขับจากเลขออเดอร์: ค้นตาราง tracking room / ข้อมูลงานที่มี driver_id ของออเดอร์นั้น
 - แก้ `JobQueueDialog.tsx` (loading / empty / status / gate / slot), `CurrentJobsPage.tsx` (เรียกเมื่อกดปุ่ม), `LanguageContext.tsx` (ข้อความ 4 ภาษา)
 
-## ต้องยืนยัน
-- รหัส `x-api-key` สำหรับเรียก QTruck ใช้ตัวเดียวกับ `TRUCKER_API_KEY` หรือเป็นรหัสแยก — ถ้าแยกจะขอให้กรอกเพิ่ม
+## รหัส
+- เรียก QTruck ใช้รหัสแยกใหม่ `QTRUCK_API_KEY` — จะเปิดช่องให้กรอกอย่างปลอดภัยตอนเริ่มทำ
+- รับ webhook ตรวจด้วย `TRUCKER_API_KEY` (มีอยู่แล้ว)
