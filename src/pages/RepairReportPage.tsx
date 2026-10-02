@@ -118,13 +118,26 @@ export default function RepairReportPage() {
       reader.readAsDataURL(file);
     });
 
+  const resetForm = () => {
+    objectUrlsRef.current.forEach((url) => {
+      if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+    });
+    objectUrlsRef.current = [];
+    setMedia([]);
+    setNote("");
+  };
+
   const handleSubmit = async () => {
     const plate = licensePlate.trim();
     const noteText = note.trim();
     const driverId = resolveUserId();
 
+    if (!noteText) {
+      toast({ title: t("repairReport.error"), description: t("repairReport.noteRequired"), variant: "destructive" });
+      return;
+    }
     if (!plate) {
-      toast({ title: t("repairReport.error"), description: t("repairReport.plateRequired"), variant: "destructive" });
+      toast({ title: t("repairReport.error"), description: t("repairReport.plateMissing"), variant: "destructive" });
       return;
     }
     if (!driverId) {
