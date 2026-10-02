@@ -89,6 +89,48 @@ interface CompletedJob {
   status_at_transfer?: string;
 }
 
+// ============= History cache (same pattern as CurrentJobsPage) =============
+const HISTORY_CACHE_PREFIX = 'job_history_cache_v1_';
+const HISTORY_APPS_CACHE_PREFIX = 'job_history_apps_cache_v1_';
+
+function readHistoryCache(driverId: string): CompletedJob[] | null {
+  try {
+    const raw = localStorage.getItem(HISTORY_CACHE_PREFIX + driverId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeHistoryCache(driverId: string, jobs: CompletedJob[]) {
+  try {
+    localStorage.setItem(HISTORY_CACHE_PREFIX + driverId, JSON.stringify(jobs));
+  } catch {
+    // storage full or unavailable — ignore
+  }
+}
+
+function readHistoryAppsCache(driverId: string): JobApplication[] | null {
+  try {
+    const raw = localStorage.getItem(HISTORY_APPS_CACHE_PREFIX + driverId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeHistoryAppsCache(driverId: string, apps: JobApplication[]) {
+  try {
+    localStorage.setItem(HISTORY_APPS_CACHE_PREFIX + driverId, JSON.stringify(apps));
+  } catch {
+    // storage full or unavailable — ignore
+  }
+}
+
 export default function JobHistoryPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -106,6 +148,14 @@ export default function JobHistoryPage() {
 
   useEffect(() => {
     if (user) {
+      // Show cached history instantly, then refresh from APIs in background
+      const cachedJobs = readHistoryCache(user.id);
+      const cachedApps = readHistoryAppsCache(user.id);
+      if (cachedJobs) {
+        setCompletedJobs(cachedJobs);
+        setLoading(false);
+      }
+      if (cachedApps) setApplications(cachedApps);
       // Load from both external API and local database (for bid-won jobs)
       loadCompletedJobs();
       loadJobHistory(); // Also load local job applications
@@ -141,6 +191,7 @@ export default function JobHistoryPage() {
       });
       if (error) throw error;
       setApplications(data || []);
+      if (user?.id) writeHistoryAppsCache(user.id, data || []);
     } catch (error) {
       console.error("Error loading job history:", error);
     }
@@ -382,6 +433,7 @@ export default function JobHistoryPage() {
 
         console.log('Total completed jobs for internal/external driver:', completedFromApi.length);
         setCompletedJobs(completedFromApi);
+        writeHistoryCache(driverId, completedFromApi);
         setLoading(false);
         return;
       }
@@ -659,9 +711,11 @@ export default function JobHistoryPage() {
 
       console.log('Total completed jobs:', uniqueCompleted.length, '(API:', completedFromApi.length, ', Bid:', bidCompletedJobs.length, ')');
       setCompletedJobs(uniqueCompleted);
+      writeHistoryCache(driverId, uniqueCompleted);
     } catch (error) {
       console.error("Error fetching completed jobs:", error);
-      setCompletedJobs([]);
+      // Keep showing cached history if available; only clear when nothing cached
+      if (!user?.id || !readHistoryCache(user.id)) setCompletedJobs([]);
     } finally {
       setLoading(false);
     }

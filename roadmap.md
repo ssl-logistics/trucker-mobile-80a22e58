@@ -8,3 +8,4 @@
 - [done] เอาจุด "กำลังโหลด..." ด้านล่างออกจากโครงหน้าตอนโหลด (JobDetailLoadingState, UI เท่านั้น)
 - [done] เพิ่มปุ่มคิวแบบมีเงื่อนไขและป๊อปอัปข้อมูลคิวตัวอย่างในหน้างานปัจจุบัน (i18n 4 ภาษา)
 - [done] ใช้ธง has_qtruck_booking จาก get-driver-assigned-jobs เป็นเงื่อนไขแสดงปุ่มคิว (เฉพาะงานจากเส้นนั้น)
+- [done] แคชหน้าประวัติงาน: แสดงจาก localStorage ทันทีแล้วรีเฟรชเบื้องหลัง (JobHistoryPage, คีย์ job_history_cache_v1_/job_history_apps_cache_v1_)
