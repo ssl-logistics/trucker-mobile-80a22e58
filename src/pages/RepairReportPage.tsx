@@ -108,6 +108,27 @@ export default function RepairReportPage() {
     }
   };
 
+  // Fetch the plate from the driver vehicle profile (same source as the Vehicle Info page)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await fetchDriverProfileData(resolveUserId());
+        const vehicle = data?.vehicle;
+        if (!cancelled && vehicle?.plate_number) {
+          const plate = [vehicle.plate_number, vehicle.plate_province].filter(Boolean).join(" ");
+          setLicensePlate((prev) => (prev.trim() ? prev : plate));
+        }
+      } finally {
+        if (!cancelled) setPlateLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const driverName = user
     ? (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.full_name || user.name || "")
     : "";
