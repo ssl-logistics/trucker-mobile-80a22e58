@@ -238,6 +238,7 @@ export default function CurrentJobsPage() {
       currentQueue: String(queueData?.current_queue ?? job.current_queue ?? 'Q012'),
       remainingQueues: Number(queueData?.remaining_queues ?? job.remaining_queues ?? 2),
       estimatedTime: queueData?.estimated_time ?? job.queue_estimated_time ?? '23/09/2026 09:00 - 10:00',
+      orderNumber: hasQtruckBooking ? job.order_number : undefined,
     };
   };
   useEffect(() => {
