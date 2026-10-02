@@ -16,6 +16,7 @@ import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { getFreelanceAcceptedJobs, getFactoryAssignedJobs, getDriverCheckins, getDriverAssignedJobs } from '@/lib/externalApi';
 import { HistoryJobCard } from '@/components/history/HistoryJobCard';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
+import JobDetailLoadingState from '@/components/job-detail/JobDetailLoadingState';
 interface JobApplication {
   id: string;
   applied_at: string;
