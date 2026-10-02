@@ -24,3 +24,4 @@
 - [x] Notify on queue status completed
 - [x] Deployed qtruck-webhook
 - [done] แสดงเลขตู้ (container_number + container_number_2) ใต้ป้ายประเภทงานบนการ์ดงานต่างประเทศเท่านั้น และเฉพาะเมื่อมีเลขจริง (CurrentJobsPage, i18n jobDetail.containerNumber)
+- [done] แสดง "รหัสตู้" (เลขท้ายหลัง / ของเลขออเดอร์ เช่น OR20260922002/01 → 01) บนการ์ดงานต่างประเทศ เพื่แยกงานชุดเดียวกัน (CurrentJobsPage, i18n jobDetail.containerCode 4 ภาษา)
