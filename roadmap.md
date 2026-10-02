@@ -17,3 +17,9 @@
 - [x] หน้าแจ้งซ่อม: ดึงทะเบียนจากข้อมูลรถ (fetchDriverProfileData เหมือนหน้าข้อมูลรถ) แทนการอ่านจากข้อมูลล็อกอิน — ช่องกรอกทะเบียนโชว์เฉพาะเมื่อดึงเสร็จแล้วและยังไม่มีทะเบียนจริง ๆ
 - [x] ปรับป๊อปอัปคิวเป็น Modern Card: เลขคิวเด่น, สถานะแบบป้าย, ข้อมูลสองช่อง, ประตู/เวลา และรถด้านล่าง (UI เท่านั้น)
 - [x] ป๊อปอัปคิว: แถบล่าง (ประตู/เวลา + รถ) รวมเป็นพื้นฟ้าอ่อนชิ้นเดียว ไม่มีเส้นคั่น/ไม่มีสองชั้นสี
+
+## QTruck webhook v1.2 alignment (2026-10-02)
+- [x] qtruck-webhook accepts TRUCKER_API_KEY or QTRUCK_API_KEY
+- [x] Driver fallback lookup via jobs + job_applications when no tracking room
+- [x] Notify on queue status completed
+- [x] Deployed qtruck-webhook
