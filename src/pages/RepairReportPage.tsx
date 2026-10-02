@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { getDriverTypeFromUserType } from "@/utils/driverTypeMapping";
+import { fetchDriverProfileData } from "@/lib/driverProfileData";
 import { ACCEPT_IMAGE_DOC } from "@/utils/uploadAccept";
 
 const MAX_FILES = 10;
@@ -73,7 +74,8 @@ export default function RepairReportPage() {
   };
 
   const [licensePlate, setLicensePlate] = useState(prefillPlate);
-  const showPlateInput = !prefillPlate().trim();
+  const [plateLoading, setPlateLoading] = useState(true);
+  const showPlateInput = !plateLoading && !licensePlate.trim();
   const [note, setNote] = useState("");
   const [media, setMedia] = useState<AttachedMedia[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,6 +107,27 @@ export default function RepairReportPage() {
       return null;
     }
   };
+
+  // Fetch the plate from the driver vehicle profile (same source as the Vehicle Info page)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await fetchDriverProfileData(resolveUserId());
+        const vehicle = data?.vehicle;
+        if (!cancelled && vehicle?.plate_number) {
+          const plate = [vehicle.plate_number, vehicle.plate_province].filter(Boolean).join(" ");
+          setLicensePlate((prev) => (prev.trim() ? prev : plate));
+        }
+      } finally {
+        if (!cancelled) setPlateLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const driverName = user
     ? (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.full_name || user.name || "")
