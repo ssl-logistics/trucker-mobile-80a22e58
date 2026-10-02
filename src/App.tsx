@@ -700,6 +700,14 @@ const App = () => (
                         }
                       />
                       <Route
+                        path="/repair-report"
+                        element={
+                          <ProtectedRoute>
+                            <RepairReportPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/api-test"
                         element={
                           <ProtectedRoute>

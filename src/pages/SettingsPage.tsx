@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send, Bug, Bot } from 'lucide-react';
+import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send, Bug, Bot, Wrench } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -273,6 +273,7 @@ export default function SettingsPage() {
       section: t('settings.general'),
       items: [
         { icon: Bell, label: t('settings.notifications'), hasToggle: true, path: '/notifications' },
+        { icon: Wrench, label: t('settings.repair_report'), path: '/repair-report', isRepairReport: true },
         { icon: HelpCircle, label: t('settings.app_guide'), hasRestartTour: true },
         { icon: Bot, label: t('settings.ai_chatbot') || 'AI Chatbot', hasChatbotToggle: true },
       ]
@@ -412,6 +413,19 @@ export default function SettingsPage() {
                     ) : (
                       <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     )}
+                  </button>
+                ) : item.isRepairReport ? (
+                  <button
+                    onClick={() => item.path && navigate(item.path)}
+                    className="flex items-center justify-between w-full px-4 py-3 bg-orange-50/60 hover:bg-orange-100/60 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center">
+                        <Wrench className="w-5 h-5 text-orange-600" />
+                      </span>
+                      <span className="font-medium text-orange-700">{item.label}</span>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-orange-500" />
                   </button>
                 ) : (
                   <button
