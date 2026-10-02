@@ -715,7 +715,7 @@ export default function JobHistoryPage() {
     } catch (error) {
       console.error("Error fetching completed jobs:", error);
       // Keep showing cached history if available; only clear when nothing cached
-      if (!readHistoryCache(driverId)) setCompletedJobs([]);
+      if (!user?.id || !readHistoryCache(user.id)) setCompletedJobs([]);
     } finally {
       setLoading(false);
     }
