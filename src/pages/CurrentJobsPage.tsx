@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide, ListOrdered, Container } from 'lucide-react';
+import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide, ListOrdered, Container, Tag } from 'lucide-react';
 import coinsIcon from '@/assets/coins-icon.png';
 import { supabase } from '@/integrations/supabase/client';
 import { createTrackingRoom } from '@/lib/trackingRoomClient';
@@ -1241,14 +1241,28 @@ export default function CurrentJobsPage() {
                     {(() => {
                       const j: any = job;
                       const isIntl = j.job_type === 'international' || !!j.bl_no || !!j.booking_no;
+                      if (!isIntl) return null;
                       const c1 = String(j.container_number ?? '').trim();
                       const c2 = String(j.container_number_2 ?? '').trim();
-                      if (!isIntl || (!c1 && !c2)) return null;
+                      const order = String(j.order_number ?? '');
+                      const containerCode = order.includes('/') ? order.slice(order.lastIndexOf('/') + 1).trim() : '';
+                      if (!c1 && !c2 && !containerCode) return null;
                       return (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Container className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground">{t('jobDetail.containerNumber')} :</span>
-                          <span className="font-medium tracking-wide">{[c1, c2].filter(Boolean).join(' / ')}</span>
+                        <div className="space-y-1.5">
+                          {(c1 || c2) ? (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Container className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                              <span className="text-muted-foreground">{t('jobDetail.containerNumber')} :</span>
+                              <span className="font-medium tracking-wide">{[c1, c2].filter(Boolean).join(' / ')}</span>
+                            </div>
+                          ) : null}
+                          {containerCode ? (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Tag className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                              <span className="text-muted-foreground">{t('jobDetail.containerCode')} :</span>
+                              <span className="font-medium tracking-wide">{containerCode}</span>
+                            </div>
+                          ) : null}
                         </div>
                       );
                     })()}
