@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { getDriverTypeFromUserType } from "@/utils/driverTypeMapping";
+import { fetchDriverProfileData } from "@/lib/driverProfileData";
 import { ACCEPT_IMAGE_DOC } from "@/utils/uploadAccept";
 
 const MAX_FILES = 10;
@@ -73,7 +74,8 @@ export default function RepairReportPage() {
   };
 
   const [licensePlate, setLicensePlate] = useState(prefillPlate);
-  const showPlateInput = !prefillPlate().trim();
+  const [plateLoading, setPlateLoading] = useState(true);
+  const showPlateInput = !plateLoading && !licensePlate.trim();
   const [note, setNote] = useState("");
   const [media, setMedia] = useState<AttachedMedia[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
