@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,8 @@ export default function RepairReportPage() {
     return localStorage.getItem("auth_truck_plate") || "";
   };
 
-  const licensePlate = prefillPlate();
+  const [licensePlate, setLicensePlate] = useState(prefillPlate);
+  const showPlateInput = !prefillPlate().trim();
   const [note, setNote] = useState("");
   const [media, setMedia] = useState<AttachedMedia[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -237,6 +239,23 @@ export default function RepairReportPage() {
       </header>
 
       <div className="p-4 space-y-5">
+        {/* License plate — only shown when it cannot be prefilled from the profile */}
+        {showPlateInput && (
+          <div>
+            <Label className="text-base font-medium">
+              {t("repairReport.plateLabel")} <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              placeholder={t("repairReport.platePlaceholder")}
+              value={licensePlate}
+              onChange={(e) => setLicensePlate(e.target.value)}
+              className="mt-2"
+              disabled={isSubmitting}
+              maxLength={50}
+            />
+          </div>
+        )}
+
         {/* Note */}
         <div>
           <Label className="text-base font-medium">
