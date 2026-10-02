@@ -420,9 +420,7 @@ export default function SettingsPage() {
                     className="flex items-center justify-between w-full px-4 py-3 bg-orange-50/60 hover:bg-orange-100/60 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center">
-                        <Wrench className="w-5 h-5 text-orange-600" />
-                      </span>
+                      <Wrench className="w-5 h-5 text-orange-600" />
                       <span className="font-medium text-orange-700">{item.label}</span>
                     </div>
                     <ChevronRight className="w-5 h-5 text-orange-500" />
