@@ -137,7 +137,7 @@ export default function JobQueueDialog({ open, onOpenChange, queue }: JobQueueDi
               </div>
             </div>
 
-            <div className="space-y-4 border-y border-border/70 bg-muted/30 px-6 py-5">
+            <div className="space-y-4 border-t border-border/70 bg-muted/30 px-6 py-5">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
                   <MapPin className="h-5 w-5" aria-hidden="true" />
@@ -158,9 +158,8 @@ export default function JobQueueDialog({ open, onOpenChange, queue }: JobQueueDi
               </div>
             </div>
 
-            <div className="relative flex h-20 items-end justify-center overflow-hidden bg-secondary/5">
-              <div className="absolute inset-x-0 bottom-0 h-10 bg-secondary/10" />
-              <Truck className="relative mb-3 h-12 w-12 text-secondary motion-safe:transition-transform motion-safe:duration-500" aria-hidden="true" />
+            <div className="relative flex h-20 items-end justify-center overflow-hidden bg-secondary/[0.07]">
+              <Truck className="relative mb-3 h-12 w-12 text-secondary/75 motion-safe:transition-transform motion-safe:duration-500" aria-hidden="true" />
             </div>
           </>
         )}
