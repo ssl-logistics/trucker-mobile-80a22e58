@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { getDriverTypeFromUserType } from "@/utils/driverTypeMapping";
 import { fetchDriverProfileData } from "@/lib/driverProfileData";
+import { resolvePlateFromUser } from "@/lib/vehicleSources";
 import { ACCEPT_IMAGE_DOC } from "@/utils/uploadAccept";
 
 const MAX_FILES = 10;
@@ -65,15 +66,24 @@ export default function RepairReportPage() {
   const { user, userType } = useAuth();
   const { toast } = useToast();
 
-  // Prefill license plate from driver profile (fallback to cached truck plate)
+  // Prefill license plate (same sources as Vehicle Info page, then stored driver, then cached truck plate)
   const prefillPlate = () => {
-    if (user?.plate_number) {
-      return [user.plate_number, user?.plate_province].filter(Boolean).join(" ");
-    }
+    const fromUser = resolvePlateFromUser(user);
+    if (fromUser) return fromUser;
+    try {
+      const stored = JSON.parse(localStorage.getItem("auth_driver") || "null");
+      const fromStored = resolvePlateFromUser(stored);
+      if (fromStored) return fromStored;
+    } catch { /* ignore */ }
     return localStorage.getItem("auth_truck_plate") || "";
   };
 
   const [licensePlate, setLicensePlate] = useState(prefillPlate);
+  useEffect(() => {
+    const p = prefillPlate();
+    if (p) setLicensePlate((prev) => (prev.trim() ? prev : p));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
   const [plateLoading, setPlateLoading] = useState(true);
   const showPlateInput = !plateLoading && !licensePlate.trim();
   const [note, setNote] = useState("");
