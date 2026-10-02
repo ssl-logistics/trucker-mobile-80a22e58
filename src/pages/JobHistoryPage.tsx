@@ -148,6 +148,14 @@ export default function JobHistoryPage() {
 
   useEffect(() => {
     if (user) {
+      // Show cached history instantly, then refresh from APIs in background
+      const cachedJobs = readHistoryCache(user.id);
+      const cachedApps = readHistoryAppsCache(user.id);
+      if (cachedJobs) {
+        setCompletedJobs(cachedJobs);
+        setLoading(false);
+      }
+      if (cachedApps) setApplications(cachedApps);
       // Load from both external API and local database (for bid-won jobs)
       loadCompletedJobs();
       loadJobHistory(); // Also load local job applications
@@ -183,6 +191,7 @@ export default function JobHistoryPage() {
       });
       if (error) throw error;
       setApplications(data || []);
+      if (user?.id) writeHistoryAppsCache(user.id, data || []);
     } catch (error) {
       console.error("Error loading job history:", error);
     }
