@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Loader2, SlidersHorizontal, X } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { createTrackingRoom, logClientEvent } from '@/lib/trackingRoomClient';
 import { useAuth } from '@/contexts/AuthContext';
