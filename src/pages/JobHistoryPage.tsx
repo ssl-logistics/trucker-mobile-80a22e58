@@ -800,13 +800,15 @@ export default function JobHistoryPage() {
   const filteredApplications = filterApplications(applications);
   const filteredCompletedJobs = filterCompletedJobs(completedJobs);
 
+  // Reset pagination when filters change
+  useEffect(() => { setDomesticPage(1); setIntlPage(1); }, [selectedMonth, completedJobs.length, applications.length]);
+
   // Show the same skeleton as the job detail pages while the history data loads
+  // (must stay after all hooks to keep hook order stable)
   if (loading) {
     return <JobDetailLoadingState />;
   }
 
-  // Reset pagination when filters change
-  useEffect(() => { setDomesticPage(1); setIntlPage(1); }, [selectedMonth, completedJobs.length, applications.length]);
 
   return <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
