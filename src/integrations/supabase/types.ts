@@ -998,6 +998,30 @@ export type Database = {
         }
         Relationships: []
       }
+      qtruck_webhook_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          event_type: string
+          external_ref: string | null
+          payload: Json | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          event_type: string
+          external_ref?: string | null
+          payload?: Json | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          event_type?: string
+          external_ref?: string | null
+          payload?: Json | null
+        }
+        Relationships: []
+      }
       talad_chat_messages: {
         Row: {
           created_at: string
