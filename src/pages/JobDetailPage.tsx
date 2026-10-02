@@ -661,10 +661,13 @@ export default function JobDetailPage() {
             if (originObj.customer) (mappedJob as any).origin_customer = originObj.customer;
 
             // จุดส่งสินค้า/จุดรับสินค้า (cargo_point) — ใช้ฟิลหลักตรงจาก API เท่านั้น ไม่มี fallback
-            mappedJob.destination_company_name = cargoObj.address || null;
-            (mappedJob as any).cargo_factory_name = cargoObj.name || null;
-            mappedJob.destination_location = cargoObj.address || '';
-            mappedJob.destination_address = buildProvDist(cargoObj);
+            const cargoName = cargoObj.name || null;
+            const cargoAddress = cargoObj.address || null;
+            const cargoAddressFull = [cargoAddress, buildProvDist(cargoObj)].filter(Boolean).join(' ') || null;
+            mappedJob.destination_company_name = cargoName || cargoAddress || null;
+            (mappedJob as any).cargo_factory_name = cargoName;
+            mappedJob.destination_location = cargoName || cargoAddress || '';
+            mappedJob.destination_address = cargoAddressFull;
             mappedJob.destination_contact_person = cargoObj.contact_name || null;
             (mappedJob as any).destination_contact_name = cargoObj.contact_name || null;
             mappedJob.destination_date = buildSchedDateTime(cargoObj);
