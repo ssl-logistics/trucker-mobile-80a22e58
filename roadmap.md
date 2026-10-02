@@ -13,3 +13,4 @@
 - [done] หน้า Home เปิดเนียนขึ้น: skeleton การ์ดแทน spinner ตอนโหลดครั้งแรก, แคช URL รูปโปรไฟล์ใน localStorage แสดงทันที, กัน re-render ซ้ำตอน silent refresh (Home.tsx, AppHeader.tsx)
 - [done] คิว QTruck จริง (get-qtruck-queue) + webhook แจ้งเตือน (qtruck-webhook) + ป๊อปอัปกลางจอ/push
 - [x] เพิ่มเมนูแจ้งซ่อมในหน้าตั้งค่า + หน้าแจ้งซ่อมใหม่ (/repair-report) ส่งเข้า API ระบบหลัก report-vehicle-maintenance — ทดสอบผ่านครบ: เมนู, กรอกทะเบียน, แนบรูป, ส่งสำเร็จ
+- [x] หน้าแจ้งซ่อม: ส่งแล้วล้างฟอร์มทั้งกรณีส่งสำเร็จและล้มเหลว แล้วยังคางอยู่ในหน้าต่อ; กรณีล้มเหลวแสดงเหตุผลที่ระบบตอบกลับมา (RepairReportPage + i18n 4 ภาษา)
