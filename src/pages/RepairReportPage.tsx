@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getDriverTypeFromUserType } from "@/utils/driverTypeMapping";
 import { ACCEPT_IMAGE_DOC } from "@/utils/uploadAccept";
@@ -35,7 +34,7 @@ export default function RepairReportPage() {
     return localStorage.getItem("auth_truck_plate") || "";
   };
 
-  const [licensePlate, setLicensePlate] = useState(prefillPlate);
+  const licensePlate = prefillPlate();
   const [note, setNote] = useState("");
   const [media, setMedia] = useState<AttachedMedia[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -186,21 +185,6 @@ export default function RepairReportPage() {
       </header>
 
       <div className="p-4 space-y-5">
-        {/* License plate */}
-        <div>
-          <Label className="text-base font-medium">
-            {t("repairReport.plateLabel")} <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            value={licensePlate}
-            onChange={(e) => setLicensePlate(e.target.value)}
-            placeholder={t("repairReport.platePlaceholder")}
-            className="mt-2"
-            disabled={isSubmitting}
-            maxLength={50}
-          />
-        </div>
-
         {/* Note */}
         <div>
           <Label className="text-base font-medium">
