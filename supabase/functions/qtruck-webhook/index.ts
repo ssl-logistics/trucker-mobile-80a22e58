@@ -3,13 +3,15 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { 'Content-Type': 'application/json' } })
 
-const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้าย', cancelled: 'คิวถูกยกเลิก' }
-const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled' }
+const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้าย', cancelled: 'คิวถูกยกเลิก', completed: 'คิวเสร็จสิ้น' }
+const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled', completed: 'Queue completed' }
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
-  const key = Deno.env.get('QTRUCK_API_KEY')
-  if (!key || req.headers.get('x-api-key') !== key) return json({ error: 'Unauthorized' }, 401)
+  // QTruck doc specifies TRUCKER_API_KEY; earlier setup used QTRUCK_API_KEY — accept either.
+  const sentKey = req.headers.get('x-api-key')
+  const allowed = [Deno.env.get('QTRUCK_API_KEY'), Deno.env.get('TRUCKER_API_KEY')].filter(Boolean)
+  if (!sentKey || !allowed.includes(sentKey)) return json({ error: 'Unauthorized' }, 401)
 
   try {
     const body = await req.json()
