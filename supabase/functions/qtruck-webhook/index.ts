@@ -3,13 +3,15 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { 'Content-Type': 'application/json' } })
 
-const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้าย', cancelled: 'คิวถูกยกเลิก' }
-const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled' }
+const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้าย', cancelled: 'คิวถูกยกเลิก', completed: 'คิวเสร็จสิ้น' }
+const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled', completed: 'Queue completed' }
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
-  const key = Deno.env.get('QTRUCK_API_KEY')
-  if (!key || req.headers.get('x-api-key') !== key) return json({ error: 'Unauthorized' }, 401)
+  // QTruck doc specifies TRUCKER_API_KEY; earlier setup used QTRUCK_API_KEY — accept either.
+  const sentKey = req.headers.get('x-api-key')
+  const allowed = [Deno.env.get('QTRUCK_API_KEY'), Deno.env.get('TRUCKER_API_KEY')].filter(Boolean)
+  if (!sentKey || !allowed.includes(sentKey)) return json({ error: 'Unauthorized' }, 401)
 
   try {
     const body = await req.json()
@@ -43,14 +45,32 @@ Deno.serve(async (req) => {
       descEn = `Queue ${qn}, please proceed to Gate ${gate}`
     } else if (eventType === 'queue.status_changed' && STATUS_TH[q.status]) {
       titleTh = STATUS_TH[q.status]; titleEn = STATUS_EN[q.status]
-      descTh = `คิว ${qn} ${q.status === 'moved' ? `ย้ายไปประตู ${gate}` : 'ถูกยกเลิก'}`
-      descEn = `Queue ${qn} ${q.status === 'moved' ? `moved to Gate ${gate}` : 'was cancelled'}`
+      if (q.status === 'moved') {
+        descTh = `คิว ${qn} ย้ายไปประตู ${gate}`; descEn = `Queue ${qn} moved to Gate ${gate}`
+      } else if (q.status === 'completed') {
+        descTh = `คิว ${qn} ที่ประตู ${gate} เสร็จเรียบร้อยแล้ว`; descEn = `Queue ${qn} at Gate ${gate} is completed`
+      } else {
+        descTh = `คิว ${qn} ถูกยกเลิก`; descEn = `Queue ${qn} was cancelled`
+      }
     }
     if (!titleTh || !orderNumber) return json({ success: true, notified: false })
 
     const { data: room } = await supabase
       .from('order_tracking_rooms').select('driver_id').eq('order_number', orderNumber).maybeSingle()
-    const driverId = room?.driver_id
+    let driverId = room?.driver_id
+    if (!driverId) {
+      // Fallback: queue events can arrive before the driver starts the job (no tracking room yet).
+      // Look up the job by order_code, then the accepted driver from job_applications.
+      const { data: job } = await supabase
+        .from('jobs').select('id').eq('order_code', orderNumber).maybeSingle()
+      if (job?.id) {
+        const { data: app } = await supabase
+          .from('job_applications').select('driver_id')
+          .eq('job_id', job.id).in('status', ['accepted', 'won'])
+          .order('applied_at', { ascending: false }).limit(1).maybeSingle()
+        driverId = app?.driver_id
+      }
+    }
     if (!driverId) {
       console.warn('No driver found for order', orderNumber)
       return json({ success: true, notified: false, reason: 'driver_not_found' })
