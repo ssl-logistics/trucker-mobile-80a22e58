@@ -433,6 +433,7 @@ export default function JobHistoryPage() {
 
         console.log('Total completed jobs for internal/external driver:', completedFromApi.length);
         setCompletedJobs(completedFromApi);
+        writeHistoryCache(driverId, completedFromApi);
         setLoading(false);
         return;
       }
@@ -710,9 +711,11 @@ export default function JobHistoryPage() {
 
       console.log('Total completed jobs:', uniqueCompleted.length, '(API:', completedFromApi.length, ', Bid:', bidCompletedJobs.length, ')');
       setCompletedJobs(uniqueCompleted);
+      writeHistoryCache(driverId, uniqueCompleted);
     } catch (error) {
       console.error("Error fetching completed jobs:", error);
-      setCompletedJobs([]);
+      // Keep showing cached history if available; only clear when nothing cached
+      if (!readHistoryCache(driverId)) setCompletedJobs([]);
     } finally {
       setLoading(false);
     }
