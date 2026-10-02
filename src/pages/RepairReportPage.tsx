@@ -24,7 +24,7 @@ interface AttachedMedia {
 export default function RepairReportPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, userType } = useAuth();
   const { toast } = useToast();
 
   // Prefill license plate from driver profile (fallback to cached truck plate)
@@ -101,11 +101,14 @@ export default function RepairReportPage() {
   };
 
   const removeMedia = (index: number) => {
-    setMedia((prev) =>
-      prev
-        .filter((_, i) => i !== index)
-        .map((m) => (m.previewUrl && m.previewUrl.startsWith("blob:") ? m : m)),
-    );
+    setMedia((prev) => {
+      const removed = prev[index];
+      if (removed?.previewUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(removed.previewUrl);
+        objectUrlsRef.current = objectUrlsRef.current.filter((u) => u !== removed.previewUrl);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const readAsDataUrl = (file: File) =>
@@ -142,7 +145,7 @@ export default function RepairReportPage() {
         body: {
           license_plate: plate,
           driver_id: driverId,
-          driver_type: getDriverTypeFromUserType(user?.userType ?? ""),
+          driver_type: getDriverTypeFromUserType(userType ?? ""),
           driver_name: driverName || null,
           note: noteText || null,
           latitude: coords?.latitude ?? null,
