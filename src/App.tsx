@@ -15,6 +15,7 @@ import { DeepLinkListener } from "@/components/DeepLinkListener";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { FloatingChatbot } from "@/components/chatbot/FloatingChatbot";
 import { GlobalProximityAlert } from "@/components/GlobalProximityAlert";
+import QueueAlertPopup from "@/components/job/QueueAlertPopup";
 import { CallProvider } from "@/components/call/CallProvider";
 import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -340,6 +341,7 @@ const App = () => (
                 <div className="min-h-screen">
                   <PushNotificationPrompt />
                   <GlobalProximityAlert />
+                  <QueueAlertPopup />
                   <FloatingChatbot />
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
