@@ -941,7 +941,10 @@ export default function CurrentJobsPage() {
             job_type: isInternationalJob(ticket) ? 'international' : (ticket.job_type || ticket.transport_category || 'domestic'),
             bl_no: ticket.bl_no || ticket.bl_number || ticket.bill_of_lading || null,
             booking_no: ticket.booking_no || ticket.booking_number || null,
-            remarks: ticket.notes || ticket.remarks || null,
+            container_number: ticket.container_number || ticket.container_no || ticket.international_details?.container_number || null,
+            container_number_2: ticket.container_number_2 || ticket.international_details?.container_number_2 || null,
+            seal_number: ticket.seal_number || ticket.international_details?.seal_number || null,
+
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
             // Multiple destinations support
