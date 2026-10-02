@@ -298,6 +298,15 @@ const isValidName = (val: any): string => {
   const totalPages = Math.ceil(displayedJobs.length / JOBS_PER_PAGE);
   const paginatedJobs = displayedJobs.slice((currentPage - 1) * JOBS_PER_PAGE, currentPage * JOBS_PER_PAGE);
   
+  // Compare job lists by id + status to avoid redundant re-renders on silent refresh
+  const isSameJobList = (a: Job[], b: Job[]) => {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i].id !== b[i].id || a[i].status !== b[i].status || a[i].isAccepted !== b[i].isAccepted) return false;
+    }
+    return true;
+  };
+
   // Reset page when filter or jobs change
   useEffect(() => {
     setCurrentPage(1);
@@ -427,7 +436,7 @@ const isValidName = (val: any): string => {
         };
       });
 
-      setFactoryJobs(transformedJobs);
+      setFactoryJobs(prev => isSameJobList(prev, transformedJobs) ? prev : transformedJobs);
       writeHomeCache('home_factory_jobs_cache_v1_', user.id, transformedJobs);
     } catch (err) {
       console.error('Error fetching factory/driver jobs:', err);
@@ -746,7 +755,7 @@ const isValidName = (val: any): string => {
             isAccepted: acceptedJobIds.has(job.id)
           }));
         
-        setJobs(availableJobs);
+        setJobs(prev => isSameJobList(prev, availableJobs) ? prev : availableJobs);
         writeHomeCache('home_jobs_cache_v1_', user.id, availableJobs);
       } else {
         // Filter out jobs with past pickup date/time for non-logged in users too
@@ -1373,11 +1382,23 @@ const isValidName = (val: any): string => {
           {/* Job Cards - Responsive grid */}
           <div className="card-grid-responsive">
             {isLoadingFactoryJobs && displayedJobs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center col-span-full">
-                <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
-                <p className="text-muted-foreground sm:text-lg">
-                  {t('common.loading') || 'กำลังโหลด...'}
-                </p>
+              <div className="space-y-3 col-span-full" aria-busy="true" aria-label={t('common.loading') || 'กำลังโหลด...'}>
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="rounded-xl border bg-card p-4 animate-pulse space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="h-4 w-24 rounded bg-muted" />
+                      <div className="h-5 w-16 rounded-full bg-muted" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 w-3/4 rounded bg-muted" />
+                      <div className="h-3 w-2/3 rounded bg-muted" />
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="h-4 w-20 rounded bg-muted" />
+                      <div className="h-9 w-24 rounded-md bg-muted" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : displayedJobs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center col-span-full">

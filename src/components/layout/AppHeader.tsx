@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Power, Loader2, Building2, Factory, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -79,6 +79,19 @@ export function AppHeader({
   
   // Get presigned URL for S3 profile photos
   const { url: presignedProfilePhoto, isLoading: isPhotoLoading } = usePresignedImageUrl(profilePhoto);
+
+  // Cache the resolved photo URL so the avatar shows instantly on next app open
+  const photoCacheKey = profilePhoto ? `profile_photo_url_v1_${profilePhoto}` : null;
+  const [cachedPhotoUrl] = useState<string | null>(() => {
+    if (!photoCacheKey) return null;
+    try { return localStorage.getItem(photoCacheKey); } catch { return null; }
+  });
+  useEffect(() => {
+    if (presignedProfilePhoto && photoCacheKey) {
+      try { localStorage.setItem(photoCacheKey, presignedProfilePhoto); } catch { /* storage full/blocked */ }
+    }
+  }, [presignedProfilePhoto, photoCacheKey]);
+  const displayPhotoUrl = presignedProfilePhoto || cachedPhotoUrl;
   
   // Check for unread notifications
   const { hasUnread } = useUnreadNotifications();
@@ -101,13 +114,13 @@ export function AppHeader({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-[10px]">
               <Avatar className="w-10 h-10 border-2 border-white/20">
-                {isPhotoLoading ? (
+                {isPhotoLoading && !cachedPhotoUrl ? (
                   <AvatarFallback className="bg-white/20 text-white text-base">
                     <Loader2 className="w-4 h-4 animate-spin" />
                   </AvatarFallback>
                 ) : (
                   <>
-                    <AvatarImage src={presignedProfilePhoto || undefined} alt={userName} key={presignedProfilePhoto} />
+                    <AvatarImage src={displayPhotoUrl || undefined} alt={userName} key={displayPhotoUrl} />
                     <AvatarFallback className="bg-white/20 text-white text-base">
                       {userName?.charAt(0) || "👤"}
                     </AvatarFallback>
