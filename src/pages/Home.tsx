@@ -453,7 +453,7 @@ const isValidName = (val: any): string => {
     const fp = 'home_factory_jobs_cache_v1_';
     const jp = 'home_jobs_cache_v1_';
     const hasCache = readHomeCache(fp, user.id) !== null || readHomeCache(jp, user.id) !== null;
-    const freshEnough = Math.max(homeCacheAge(fp, user.id) === Infinity ? 0 : 1, 0) && homeCacheAge(fp, user.id) < 60_000
+    const freshEnough = homeCacheAge(fp, user.id) < 60_000
       && (userType !== 'freelance_driver' || homeCacheAge(jp, user.id) < 60_000);
     if (!freshEnough) refreshJobs(hasCache);
 
