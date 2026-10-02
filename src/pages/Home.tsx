@@ -82,12 +82,51 @@ interface Job {
   destinations?: Array<{ sequence: number; location: string; company_name?: string; latitude?: number; longitude?: number; address?: string; contact_name?: string; invoice_number?: string; province?: string }>;
 }
 
+const TAKEN_PREFIX = 'home_taken_orders_v1_';
+const TAKEN_TTL_MS = 30 * 60 * 1000;
+function readTaken(driverId?: string): Record<string, number> {
+  if (!driverId) return {};
+  try {
+    const obj = JSON.parse(localStorage.getItem(TAKEN_PREFIX + driverId) || '{}') || {};
+    const now = Date.now();
+    const fresh: Record<string, number> = {};
+    Object.entries(obj).forEach(([k, v]) => { if (now - Number(v) < TAKEN_TTL_MS) fresh[k] = Number(v); });
+    return fresh;
+  } catch {
+    return {};
+  }
+}
+function isJobTaken(driverId: string | undefined, orderCode?: string): boolean {
+  if (!driverId || !orderCode) return false;
+  return orderCode in readTaken(driverId);
+}
+/** Remember a just-accepted/started job so it never reappears from cache or a lagging API. */
+function markJobTaken(driverId: string | undefined, orderCode?: string) {
+  if (!driverId || !orderCode) return;
+  try {
+    const taken = readTaken(driverId);
+    taken[orderCode] = Date.now();
+    localStorage.setItem(TAKEN_PREFIX + driverId, JSON.stringify(taken));
+    for (const prefix of ['home_jobs_cache_v1_', 'home_factory_jobs_cache_v1_']) {
+      const raw = localStorage.getItem(prefix + driverId);
+      const arr = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(arr)) {
+        localStorage.setItem(prefix + driverId, JSON.stringify(arr.filter((j: any) => j?.order_code !== orderCode)));
+      }
+      localStorage.removeItem(prefix + 'ts_' + driverId); // force fresh fetch next visit
+    }
+  } catch {
+    // ignore
+  }
+}
 function readHomeCache(prefix: string, driverId?: string): any[] | null {
   if (!driverId) return null;
   try {
     const raw = localStorage.getItem(prefix + driverId);
     const parsed = raw ? JSON.parse(raw) : null;
-    return Array.isArray(parsed) ? parsed : null;
+    if (!Array.isArray(parsed)) return null;
+    const taken = readTaken(driverId);
+    return parsed.filter((j: any) => !(j?.order_code && j.order_code in taken));
   } catch {
     return null;
   }
@@ -436,8 +475,9 @@ const isValidName = (val: any): string => {
         };
       });
 
-      setFactoryJobs(prev => isSameJobList(prev, transformedJobs) ? prev : transformedJobs);
-      writeHomeCache('home_factory_jobs_cache_v1_', user.id, transformedJobs);
+      const visibleFactoryJobs = transformedJobs.filter((j: any) => !isJobTaken(user.id, j.order_code));
+      setFactoryJobs(prev => isSameJobList(prev, visibleFactoryJobs) ? prev : visibleFactoryJobs);
+      writeHomeCache('home_factory_jobs_cache_v1_', user.id, visibleFactoryJobs);
     } catch (err) {
       console.error('Error fetching factory/driver jobs:', err);
     } finally {
@@ -745,6 +785,7 @@ const isValidName = (val: any): string => {
         const availableJobs = filterPastJobs(transformedJobs)
           .filter(job => !completedJobIds.has(job.id))
           .filter(job => !acceptedOrderNumbers.has(job.order_code)) // Filter by order_code from external API
+          .filter(job => !isJobTaken(user.id, job.order_code))
           .filter(job => {
             const canHandle = canHandleJobTruckType(driverVehicleType, job.equipment_list);
             console.log(`🚛 Job ${job.order_code} requires: ${job.equipment_list}, driver has: ${driverVehicleType}, can handle: ${canHandle}`);
@@ -907,6 +948,9 @@ const isValidName = (val: any): string => {
         console.error('Error creating tracking room:', trackingError);
       }
 
+      const takenCode = selectedJob.order_code;
+      markJobTaken(user.id, takenCode);
+      setJobs(prev => prev.filter(j => j.order_code !== takenCode));
       setConfirmDialogOpen(false);
       setIsAccepting(false);
       loadJobs();
@@ -1025,6 +1069,7 @@ const isValidName = (val: any): string => {
         
         // Remove job from Home list instantly
         setFactoryJobs(prev => prev.filter(j => j.id !== job.id));
+        markJobTaken(user?.id, job.order_code);
         
         // Redirect to Current Jobs page immediately, marking the just-started job
         navigate('/current-jobs', { state: { justStartedOrder: job.order_code } });
@@ -1174,6 +1219,7 @@ const isValidName = (val: any): string => {
 
         // Remove accepted job from list immediately
         setFactoryJobs(prevJobs => prevJobs.filter(j => j.order_code !== orderCode));
+        markJobTaken(user?.id, orderCode);
       } catch (err) {
         console.error('Error accepting factory job:', err);
         toast({
