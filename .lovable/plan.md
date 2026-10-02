@@ -10,7 +10,7 @@
 
 ## 2. เส้นรับแจ้งเตือนจาก QTruck (Webhook)
 - สร้างเส้นใหม่ `qtruck-webhook` (POST) — URL ให้ส่งต่อ QTruck ตั้งเป็น TRUCKER_WEBHOOK_URL
-- ตรวจ header `x-api-key` ต้องตรงกับรหัส `TRUCKER_API_KEY` (มีอยู่แล้ว) ไม่ตรงตอบ 401
+- ตรวจ header `x-api-key` ต้องตรงกับรหัส `QTRUCK_API_KEY` (ตัวเดียวกับที่ใช้ดึงคิว) ไม่ตรงตอบ 401
 - กันรับซ้ำด้วย `x-event-id` (ตารางบันทึก event ที่รับแล้ว)
 - หาคนขับจาก `queue.external_ref` (เลขออเดอร์) → บันทึกแจ้งเตือนในแอป + ส่ง push ให้คนขับคนนั้น:
   - `queue.upcoming`: "อีก {threshold_minutes} นาทีถึงคิว {queue_number} (ประตู {gate})"
@@ -36,4 +36,4 @@
 
 ## รหัส
 - เรียก QTruck ใช้รหัสแยกใหม่ `QTRUCK_API_KEY` — จะเปิดช่องให้กรอกอย่างปลอดภัยตอนเริ่มทำ
-- รับ webhook ตรวจด้วย `TRUCKER_API_KEY` (มีอยู่แล้ว)
+- รับ webhook ตรวจ `x-api-key` ด้วย `QTRUCK_API_KEY` ตัวเดียวกัน
