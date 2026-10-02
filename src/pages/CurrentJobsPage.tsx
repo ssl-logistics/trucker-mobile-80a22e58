@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide, ListOrdered } from 'lucide-react';
+import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide, ListOrdered, Container } from 'lucide-react';
 import coinsIcon from '@/assets/coins-icon.png';
 import { supabase } from '@/integrations/supabase/client';
 import { createTrackingRoom } from '@/lib/trackingRoomClient';
@@ -941,7 +941,12 @@ export default function CurrentJobsPage() {
             job_type: isInternationalJob(ticket) ? 'international' : (ticket.job_type || ticket.transport_category || 'domestic'),
             bl_no: ticket.bl_no || ticket.bl_number || ticket.bill_of_lading || null,
             booking_no: ticket.booking_no || ticket.booking_number || null,
+            container_number: ticket.container_number || ticket.container_no || ticket.international_details?.container_number || null,
+            container_number_2: ticket.container_number_2 || ticket.international_details?.container_number_2 || null,
+            seal_number: ticket.seal_number || ticket.international_details?.seal_number || null,
             remarks: ticket.notes || ticket.remarks || null,
+
+
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
             // Multiple destinations support
@@ -1233,7 +1238,22 @@ export default function CurrentJobsPage() {
                         )}
                       </span>
                     )}
+                    {(() => {
+                      const j: any = job;
+                      const isIntl = j.job_type === 'international' || !!j.bl_no || !!j.booking_no;
+                      const c1 = String(j.container_number ?? '').trim();
+                      const c2 = String(j.container_number_2 ?? '').trim();
+                      if (!isIntl || (!c1 && !c2)) return null;
+                      return (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Container className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground">{t('jobDetail.containerNumber')} :</span>
+                          <span className="font-medium tracking-wide">{[c1, c2].filter(Boolean).join(' / ')}</span>
+                        </div>
+                      );
+                    })()}
                     <div className="flex items-start justify-between gap-4">
+
                       <div className="flex-1 flex gap-2">
                         <div className="flex flex-col items-center">
                           <CircleDot className="w-4 h-4 text-green-600 flex-shrink-0" />
