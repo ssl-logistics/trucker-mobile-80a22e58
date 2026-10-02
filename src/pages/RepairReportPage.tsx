@@ -14,6 +14,43 @@ import { ACCEPT_IMAGE_DOC } from "@/utils/uploadAccept";
 const MAX_FILES = 10;
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 
+const pickMessage = (body: any): string | null => {
+  const raw = body?.error ?? body?.message ?? body?.msg ?? body?.detail ?? body?.data?.error ?? body?.data?.message;
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  if (raw && typeof raw === "object") {
+    const nested = raw.message ?? raw.error;
+    if (typeof nested === "string" && nested.trim()) return nested.trim();
+  }
+  return null;
+};
+
+// Pull the real failure reason out of the edge function response when available
+const extractErrorReason = async (err: any): Promise<string | null> => {
+  const sources = [err?.context?.response, err?.context, err?.error];
+  for (const src of sources) {
+    if (!src) continue;
+    if (typeof src === "string") {
+      if (src.trim() && !/^error$/i.test(src.trim())) return src.trim();
+      continue;
+    }
+    if (typeof src.json === "function") {
+      try {
+        const body = await src.json();
+        const msg = pickMessage(body);
+        if (msg) return msg;
+      } catch {
+        /* body is not json */
+      }
+      continue;
+    }
+    const msg = pickMessage(src);
+    if (msg) return msg;
+  }
+  const fallback = typeof err?.message === "string" ? err.message.trim() : "";
+  if (fallback && !/^error$/i.test(fallback)) return fallback;
+  return null;
+};
+
 interface AttachedMedia {
   file: File;
   previewUrl?: string;
@@ -172,14 +209,16 @@ export default function RepairReportPage() {
         title: t("repairReport.success"),
         description: t("repairReport.successDesc"),
       });
-      navigate(-1);
+      resetForm();
     } catch (error: any) {
       console.error("Error submitting repair report:", error);
+      const reason = await extractErrorReason(error);
       toast({
         title: t("repairReport.error"),
-        description: error?.message || t("repairReport.submitFailed"),
+        description: reason || t("repairReport.submitFailed"),
         variant: "destructive",
       });
+      resetForm();
     } finally {
       setIsSubmitting(false);
     }
