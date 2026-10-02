@@ -92,10 +92,16 @@ function readHomeCache(prefix: string, driverId?: string): any[] | null {
     return null;
   }
 }
+function homeCacheAge(prefix: string, driverId?: string): number {
+  if (!driverId) return Infinity;
+  const ts = Number(localStorage.getItem(prefix + 'ts_' + driverId) || 0);
+  return ts ? Date.now() - ts : Infinity;
+}
 function writeHomeCache(prefix: string, driverId: string | undefined, items: any[]) {
   if (!driverId) return;
   try {
     localStorage.setItem(prefix + driverId, JSON.stringify(items));
+    localStorage.setItem(prefix + 'ts_' + driverId, String(Date.now()));
   } catch {
     // ignore quota errors
   }
@@ -443,8 +449,13 @@ const isValidName = (val: any): string => {
       }
     };
 
-    // Initial load
-    refreshJobs(false);
+    // Initial load: use cache when present (silent refresh); skip if fetched < 60s ago
+    const fp = 'home_factory_jobs_cache_v1_';
+    const jp = 'home_jobs_cache_v1_';
+    const hasCache = readHomeCache(fp, user.id) !== null || readHomeCache(jp, user.id) !== null;
+    const freshEnough = homeCacheAge(fp, user.id) < 60_000
+      && (userType !== 'freelance_driver' || homeCacheAge(jp, user.id) < 60_000);
+    if (!freshEnough) refreshJobs(hasCache);
 
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let lastActivityAt = Date.now();

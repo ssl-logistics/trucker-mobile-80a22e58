@@ -7,12 +7,17 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import coverHeader from "@/assets/cover-header.png";
+import coverHeader from "@/assets/cover-header.webp";
 import currentJobIcon from "@/assets/current-job-icon.svg";
 import biddingIcon from "@/assets/bidding-icon.svg";
 import incomeIcon from "@/assets/income-icon.svg";
 import jobHistoryIcon from "@/assets/job-history-icon.svg";
-import marketIcon from "@/assets/market-icon-new.png";
+import marketIcon from "@/assets/market-icon-new.webp";
+
+// Warm the browser image cache as soon as this module loads
+if (typeof window !== "undefined") {
+  [coverHeader, currentJobIcon, biddingIcon, incomeIcon, jobHistoryIcon, marketIcon].forEach((src) => { const i = new Image(); i.decoding = "async"; i.src = src; });
+}
 interface AppHeaderProps {
   userName?: string;
   profilePhoto?: string;
@@ -175,7 +180,7 @@ export function AppHeader({
           data-tour={item.labelKey === "home.market" ? "bidding-menu" : item.labelKey === "home.current_jobs" ? "current-jobs-menu" : undefined}
         >
                 <div className="w-16 h-16 flex items-center justify-center">
-                  <img src={item.icon} alt={t(item.labelKey)} className="w-full h-full object-contain" />
+                  <img src={item.icon} alt={t(item.labelKey)} className="w-full h-full object-contain" decoding="async" fetchPriority="high" loading="eager" />
                 </div>
                 <span className="text-sm text-[#153860] text-center">{t(item.labelKey)}</span>
               </button>)}
