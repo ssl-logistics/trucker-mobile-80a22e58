@@ -10,3 +10,4 @@
 - [done] ใช้ธง has_qtruck_booking จาก get-driver-assigned-jobs เป็นเงื่อนไขแสดงปุ่มคิว (เฉพาะงานจากเส้นนั้น)
 - [done] แคชหน้าประวัติงาน: แสดงจาก localStorage ทันทีแล้วรีเฟรชเบื้องหลัง (JobHistoryPage, คีย์ job_history_cache_v1_/job_history_apps_cache_v1_)
 - [done] หน้าประวัติงาน: ตอนโหลด (ไม่มีแคช) แสดง skeleton JobDetailLoadingState แบบหน้ารายละเอียดงาน แทนข้อความกำลังโหลด (JobHistoryPage)
+- [done] หน้า Home เปิดเนียนขึ้น: skeleton การ์ดแทน spinner ตอนโหลดครั้งแรก, แคช URL รูปโปรไฟล์ใน localStorage แสดงทันที, กัน re-render ซ้ำตอน silent refresh (Home.tsx, AppHeader.tsx)
