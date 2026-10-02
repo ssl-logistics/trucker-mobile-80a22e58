@@ -678,8 +678,8 @@ export default function JobDetailPage() {
             // override origin_* ให้ใช้ cargo_point field หลักโดยตรง
             const isBooking = !!(foundJob as any).booking_no && !(foundJob as any).bl_no;
             if (isBooking) {
-              mappedJob.origin_location = cargoObj.address || '';
-              mappedJob.origin_address = buildProvDist(cargoObj);
+              mappedJob.origin_location = cargoName || cargoAddress || '';
+              mappedJob.origin_address = cargoAddressFull;
               mappedJob.origin_contact_person = cargoObj.contact_name || null;
               (mappedJob as any).origin_contact_name = cargoObj.contact_name || null;
               mappedJob.start_date = buildSchedDateTime(cargoObj) || '';
@@ -691,13 +691,13 @@ export default function JobDetailPage() {
               mappedJob.destinations = [{
                 id: `cargo-point-${foundJob.id || jobId}`,
                 sequence_number: 1,
-                    company_name: cargoObj.address || null,
+                    company_name: cargoName || cargoAddress || null,
                     contact_name: cargoObj.contact_name || null,
                     contact_phone: cargoObj.phone || null,
-                address: buildProvDist(cargoObj),
+                address: cargoAddressFull,
                 province: cargoObj.province || null,
                 district: cargoObj.district || null,
-                    location_name: cargoObj.address || null,
+                    location_name: cargoName || cargoAddress || null,
                     scheduled_datetime: buildSchedDateTime(cargoObj),
                     delivery_date: buildSchedDateTime(cargoObj),
                     delivery_time: null,
