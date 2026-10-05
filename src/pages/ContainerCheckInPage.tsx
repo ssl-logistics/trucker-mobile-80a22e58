@@ -20,6 +20,7 @@ import GoogleMap from '@/components/GoogleMap';
 import { formatDate } from '@/lib/dateUtils';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, getOcrContainerScans, updateOrderStatus } from '@/lib/externalApi';
+import { notifyQtruckQueueStatus } from '@/lib/qtruckQueueStatus';
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import { notifyCheckinWaypoint, ensureRoomCode } from '@/lib/checkinWaypoint';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
@@ -435,6 +436,11 @@ export default function ContainerCheckInPage() {
           return;
         }
         throw new Error('Check-in failed');
+      }
+
+      // QTruck queue: arrived at origin (container pickup) -> processing (fire-and-forget)
+      if (!isContainerReturn) {
+        notifyQtruckQueueStatus(job.order_code, 'processing');
       }
 
       // Optimistic cache so DomesticJobDetail reflects this immediately even if

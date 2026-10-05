@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { getDriverAssignedJobs, getFreelanceAcceptedJobs, submitOcrScan, verifyOcrContainer, driverCheckin, updateOrderStatus, getExpenses, getDriverCheckins, getOcrContainerScans } from '@/lib/externalApi';
+import { notifyQtruckQueueStatus } from '@/lib/qtruckQueueStatus';
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from "@/contexts/AuthContext";
@@ -1541,6 +1542,11 @@ const ContainerSOPPage = () => {
         } else {
           console.log('[ContainerSOP] Booking job has no closing_time, skipping notification');
         }
+      }
+
+      // QTruck queue: origin SOP confirmed -> completed (fire-and-forget, pickup only)
+      if (!isContainerReturn) {
+        notifyQtruckQueueStatus(jobDetail!.order_code, 'completed');
       }
 
       toast({
