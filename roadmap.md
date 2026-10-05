@@ -27,3 +27,4 @@
 - [done] แสดง "รหัสตู้" (เลขท้ายหลัง / ของเลขออเดอร์ เช่น OR20260922002/01 → 01) บนการ์ดงานต่างประเทศ เพื่แยกงานชุดเดียวกัน (CurrentJobsPage, i18n jobDetail.containerCode 4 ภาษา)
 - [done] หน้ารายละเอียดงานต่างประเทศ: แถว "สถานท่ี" แสดงชื่ อสถานท่ี (cargo_point.name) แถว "ท่ีอยู่" แสดงท่ีอยู่ละเอยด + จังหวัด/อำเภอสวนที่ยังไม่มีในท่ีอยู่ (JobDetailPage cargo_point mapping — ทดสอบกับ OR20260922002/01 กับ /02 แล้ว)
 - [x] qtruck-webhook: เพิ่มเก็บ log อย่างเดียว (ไม่แก้พฤติกรรม) — deploy แล้ว ทดสอบ 401 บันทึก log สำเร็จ
+- [x] ปรับ qtruck-webhook ตามเอกสาร QTruck v2: หาคนขับด้วย driver_phone เมื่อไม่มี external_ref, เพิ่มแจ้ง processing, แสดง queues_ahead — แก้เฉพาะ supabase/functions/qtruck-webhook/index.ts ไฟล์เดียว ไม่แตะ flow อื่น (deploy แล้ว รอผู้ใช้เทสยิงจริง)
