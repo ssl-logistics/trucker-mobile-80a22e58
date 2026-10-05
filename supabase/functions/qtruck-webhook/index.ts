@@ -202,6 +202,11 @@ Deno.serve(async (req) => {
       response_body: {
         result: 'notified', event_id: eventId, event_type: eventType,
         driver_source: driverSource,
+        queue_status: q.status ?? null,
+        gate_name: body?.gate?.name ?? null,
+        slot: body?.slot ? { date: body.slot.date, start_time: body.slot.start_time, end_time: body.slot.end_time } : null,
+        estimated_call_at: body?.estimated_call_at ?? null,
+        queues_ahead: body?.queues_ahead ?? null,
         notification_inserted: !nErr,
         notification_error: nErr?.message ?? null,
         push_invoked: pushOk,
