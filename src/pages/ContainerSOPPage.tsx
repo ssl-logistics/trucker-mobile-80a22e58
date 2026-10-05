@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from 'react';
+import SignatureDialog, { type SignatureResult } from '@/components/job/SignatureDialog';
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Camera, CheckCircle, Image as ImageIcon, Scan, Loader2, FileText, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,8 @@ const ContainerSOPPage = () => {
   
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showSignature, setShowSignature] = useState(false);
+  const signatureRef = useRef<SignatureResult | null>(null);
   const [showPhotoDrawer, setShowPhotoDrawer] = useState(false);
   const [activePhotoSlot, setActivePhotoSlot] = useState<PhotoSlot>('container');
   
@@ -1091,7 +1094,7 @@ const ContainerSOPPage = () => {
     // }
 
 
-    setShowConfirmDialog(true);
+    setShowSignature(true);
   };
 
   const handleConfirmSOP = async () => {
@@ -1340,6 +1343,7 @@ const ContainerSOPPage = () => {
             ...(returnSlipYardName && { return_yard_name: returnSlipYardName }),
             ...(eirUrls.length > 0 && { photo_urls: eirUrls }),
             ...(publicUrl && { photo_url: publicUrl }),
+            ...(signatureRef.current || {}),
           };
           const { error: checkinError } = await driverCheckin(checkinPayload);
           if (checkinError) {
@@ -1403,6 +1407,7 @@ const ContainerSOPPage = () => {
             notes: 'ยืนยันรับตู้หนัก',
             container_number: finalContainerNumber,
             seal_number: finalSealNumber,
+            ...(signatureRef.current || {}),
           };
           console.log('[ContainerSOP] driverCheckin payload (pickup):', checkinPayload);
           const { data: checkinData, error: checkinError } = await driverCheckin(checkinPayload);
@@ -2383,6 +2388,13 @@ const ContainerSOPPage = () => {
       )}
 
       {/* Confirm Dialog */}
+      <SignatureDialog
+        open={showSignature}
+        onOpenChange={setShowSignature}
+        orderCode={String(jobDetail?.order_code || '')}
+        pointKey={isContainerReturn ? 'container_return' : 'container_pickup'}
+        onSigned={(r) => { signatureRef.current = r; handleConfirmSOP(); }}
+      />
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader className="items-center space-y-4">
