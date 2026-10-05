@@ -39,6 +39,8 @@ export default function QueueAlertPopup() {
       );
       if (next) {
         markSeen(next.id);
+        // processing/completed status changes: keep push + notification list, but no in-app popup
+        if (next.reference_type === 'queue.status_changed' && NO_POPUP_TITLES.has(next.title_th)) return;
         setAlert(next);
         if (next.reference_type === 'queue.called' && 'vibrate' in navigator) {
           try { navigator.vibrate([400, 200, 400, 200, 400]); } catch { /* ignore */ }
