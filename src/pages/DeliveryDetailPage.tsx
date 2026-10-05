@@ -117,7 +117,6 @@ export default function DeliveryDetailPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPaymentDrawer, setShowPaymentDrawer] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
-  const [showPodConfirmDialog, setShowPodConfirmDialog] = useState(false);
   const [podPhoto, setPodPhoto] = useState<File | null>(null);
   const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
   const [isSubmittingPod, setIsSubmittingPod] = useState(false);
