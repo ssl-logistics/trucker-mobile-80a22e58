@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { writeAuditLog } from '../_shared/auditLog.ts'
 
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { 'Content-Type': 'application/json' } })
@@ -7,11 +8,28 @@ const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้า�
 const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled', completed: 'Queue completed' }
 
 Deno.serve(async (req) => {
-  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
+  const startedAt = Date.now()
+  const durationMs = () => Date.now() - startedAt
+
+  if (req.method !== 'POST') {
+    console.log('[qtruck-webhook] rejected: method not allowed', req.method)
+    return json({ error: 'Method not allowed' }, 405)
+  }
+
   // QTruck doc specifies TRUCKER_API_KEY; earlier setup used QTRUCK_API_KEY — accept either.
   const sentKey = req.headers.get('x-api-key')
   const allowed = [Deno.env.get('QTRUCK_API_KEY'), Deno.env.get('TRUCKER_API_KEY')].filter(Boolean)
-  if (!sentKey || !allowed.includes(sentKey)) return json({ error: 'Unauthorized' }, 401)
+  if (!sentKey || !allowed.includes(sentKey)) {
+    console.warn('[qtruck-webhook] rejected: invalid x-api-key (key not logged)')
+    await writeAuditLog({
+      function_name: 'qtruck-webhook',
+      success: false,
+      error_message: 'unauthorized: invalid x-api-key',
+      response_status: 401,
+      duration_ms: durationMs(),
+    })
+    return json({ error: 'Unauthorized' }, 401)
+  }
 
   try {
     const body = await req.json()
@@ -20,14 +38,33 @@ Deno.serve(async (req) => {
     const q = body?.queue ?? {}
     const orderNumber: string | null = q.external_ref ?? body?.external_ref ?? null
 
+    console.log('[qtruck-webhook] incoming:', JSON.stringify({
+      event_type: eventType,
+      event_id: eventId,
+      external_ref: orderNumber,
+      queue_number: q.queue_number ?? null,
+      queue_status: q.status ?? null,
+    }))
+
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
     const { error: dupErr } = await supabase.from('qtruck_webhook_events').insert({
       event_id: eventId, event_type: eventType, external_ref: orderNumber, payload: body,
     })
     if (dupErr) {
-      if (dupErr.code === '23505') return json({ success: true, duplicate: true })
-      console.error('event insert error', dupErr)
+      if (dupErr.code === '23505') {
+        console.log('[qtruck-webhook] duplicate event, skipped:', eventId)
+        await writeAuditLog({
+          function_name: 'qtruck-webhook',
+          order_number: orderNumber,
+          request_payload: body,
+          response_body: { result: 'duplicate', event_id: eventId, event_type: eventType },
+          success: true,
+          duration_ms: durationMs(),
+        })
+        return json({ success: true, duplicate: true })
+      }
+      console.error('[qtruck-webhook] event insert error', dupErr)
     }
 
     // Decide whether to notify
@@ -53,11 +90,29 @@ Deno.serve(async (req) => {
         descTh = `คิว ${qn} ถูกยกเลิก`; descEn = `Queue ${qn} was cancelled`
       }
     }
-    if (!titleTh || !orderNumber) return json({ success: true, notified: false })
+    if (!titleTh || !orderNumber) {
+      console.log('[qtruck-webhook] no notification needed:', JSON.stringify({
+        event_type: eventType, external_ref: orderNumber, queue_status: q.status ?? null,
+        reason: !titleTh ? 'event_not_notifiable' : 'missing_external_ref',
+      }))
+      await writeAuditLog({
+        function_name: 'qtruck-webhook',
+        order_number: orderNumber,
+        request_payload: body,
+        response_body: {
+          result: 'no_notify', event_id: eventId, event_type: eventType,
+          reason: !titleTh ? 'event_not_notifiable' : 'missing_external_ref',
+        },
+        success: true,
+        duration_ms: durationMs(),
+      })
+      return json({ success: true, notified: false })
+    }
 
     const { data: room } = await supabase
       .from('order_tracking_rooms').select('driver_id').eq('order_number', orderNumber).maybeSingle()
     let driverId = room?.driver_id
+    let driverSource = room?.driver_id ? 'tracking_room' : null
     if (!driverId) {
       // Fallback: queue events can arrive before the driver starts the job (no tracking room yet).
       // Look up the job by order_code, then the accepted driver from job_applications.
@@ -69,10 +124,23 @@ Deno.serve(async (req) => {
           .eq('job_id', job.id).in('status', ['accepted', 'won'])
           .order('applied_at', { ascending: false }).limit(1).maybeSingle()
         driverId = app?.driver_id
+        if (driverId) driverSource = 'job_application'
       }
     }
+    console.log('[qtruck-webhook] driver lookup:', JSON.stringify({
+      external_ref: orderNumber, found: !!driverId, source: driverSource,
+    }))
     if (!driverId) {
-      console.warn('No driver found for order', orderNumber)
+      console.warn('[qtruck-webhook] No driver found for order', orderNumber)
+      await writeAuditLog({
+        function_name: 'qtruck-webhook',
+        order_number: orderNumber,
+        request_payload: body,
+        response_body: { result: 'driver_not_found', event_id: eventId, event_type: eventType },
+        success: true,
+        error_message: 'driver_not_found',
+        duration_ms: durationMs(),
+      })
       return json({ success: true, notified: false, reason: 'driver_not_found' })
     }
 
@@ -85,8 +153,11 @@ Deno.serve(async (req) => {
       reference_id: orderNumber,
       is_read: false,
     })
-    if (nErr) console.error('notification insert error', nErr)
+    if (nErr) console.error('[qtruck-webhook] notification insert error', nErr)
+    else console.log('[qtruck-webhook] notification inserted for driver', driverId)
 
+    let pushOk = true
+    let pushError: string | null = null
     try {
       await supabase.functions.invoke('send-push-notification', {
         body: {
@@ -94,11 +165,40 @@ Deno.serve(async (req) => {
           url: `/job/${orderNumber}`, tag: `qtruck-${eventId}`, requireInteraction: true,
         },
       })
-    } catch (e) { console.error('push error', e) }
+      console.log('[qtruck-webhook] push invoked for driver', driverId)
+    } catch (e) {
+      pushOk = false
+      pushError = e instanceof Error ? e.message : String(e)
+      console.error('[qtruck-webhook] push error', e)
+    }
+
+    await writeAuditLog({
+      function_name: 'qtruck-webhook',
+      driver_id: driverId,
+      order_number: orderNumber,
+      request_payload: body,
+      response_body: {
+        result: 'notified', event_id: eventId, event_type: eventType,
+        driver_source: driverSource,
+        notification_inserted: !nErr,
+        notification_error: nErr?.message ?? null,
+        push_invoked: pushOk,
+        push_error: pushError,
+      },
+      success: !nErr,
+      error_message: nErr?.message ?? pushError,
+      duration_ms: durationMs(),
+    })
 
     return json({ success: true, notified: true })
   } catch (e) {
-    console.error(e)
+    console.error('[qtruck-webhook] unhandled error', e)
+    await writeAuditLog({
+      function_name: 'qtruck-webhook',
+      success: false,
+      error_message: (e as Error).message,
+      duration_ms: durationMs(),
+    })
     return json({ success: true, error: (e as Error).message })
   }
 })
