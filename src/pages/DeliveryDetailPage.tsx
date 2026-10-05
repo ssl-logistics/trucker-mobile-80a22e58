@@ -807,7 +807,6 @@ export default function DeliveryDetailPage() {
       description: t('delivery.podSuccessToast'),
     });
     
-    setShowPodConfirmDialog(false);
     setIsSubmittingPod(false);
 
     // For international (BL/Booking) jobs, go back to job detail (still need container return)
