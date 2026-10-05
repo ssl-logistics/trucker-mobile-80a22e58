@@ -1,16 +1,19 @@
-# ซ่อนปุ่ม "ดูข้อมูลงานคิว" หลังเช็คอินจุดต้นทางแล้ว
+# แจ้งเตือนคิว QTruck รองรับ 4 ภาษา (th/en/ko/zh)
 
-## เป้าหมาย
-เมื่อคนขับเช็คอินที่จุดต้นทาง (รับสินค้า) แล้ว การ์ดงานในหน้า "งานปัจจุบัน" จะไม่แสดงปุ่มคิวอีก — เหลือแค่ปุ่ม "ดูรายละเอียด" เต็มความกว้างเหมือนงานที่ไม่มีคิว
+## ปัญหา
+ตอนนี้ qtruck-webhook บันทึกแจ้งเตือนเฉพาะ `title_th/title_en` และ `description_th/description_en` — คนขับที่ใช้ภาษาเกาหลีหรือจีนจะเห็นข้อความภาษาไทย (หน้าแจ้งเตือน fallback กลับไปที่ title_th)
 
 ## การเปลี่ยนแปลง
-แก้ไฟล์เดียว: `src/pages/CurrentJobsPage.tsx` ในฟังก์ชัน `getQueueInfo`
+แก้ไฟล์เดียว: `supabase/functions/qtruck-webhook/index.ts`
 
-- เพิ่มเงื่อนไข: ถ้าสถานะงาน (`job.status`) อยู่ในกลุ่มหลังเช็คอินต้นทางแล้ว ให้คืน `null` (ไม่แสดงปุ่มคิว)
-- สถานะที่ซ่อนปุ่ม: `pickup_checked_in`, `in_transit`, `delivered`, `delivery_checked_in`, `returning_container`, `at_container_return` (ใช้รายการสถานะเดียวกับที่หน้านี้ใช้คัดกรองงานอยู่แล้ว)
-- งานที่ยังไม่เช็คอิน (เช่น `accepted`, `in_progress`, `arrived_at_pickup`) ยังแสดงปุ่มคิวตามเดิม
-- ไม่แตะ flow อื่น: การส่งสถานะคิวไป QTruck, ป๊อปอัปแจ้งเตือน, และ JobQueueDialog ทำงานเหมือนเดิมทุกอย่าง
+- เพิ่มข้อความภาษาเกาหลี (ko) และจีน (zh) ให้ครบทุก event:
+  - `queue.upcoming` — "ใกล้ถึงคิวแล้ว" + รายละเอียดนาที/คิว/ประตู/จำนวนคิวข้างหน้า
+  - `queue.called` — "ถึงคิวแล้ว!"
+  - `queue.status_changed` — moved / cancelled / completed / processing (เพิ่ม STATUS_KO, STATUS_ZH)
+- ข้อความต่อท้าย "โรงงาน" / "ทะเบียน" เพิ่มเวอร์ชัน ko/zh ด้วย
+- บันทึกลงคอลัมน์ `title_ko`, `title_zh`, `description_ko`, `description_zh` ของตาราง notifications (หน้า NotificationsPage รองรับการแสดง 4 ภาษาอยู่แล้ว ไม่ต้องแก้ฝั่งแอป)
+- push notification บนมือถือยังส่งภาษาไทยเหมือนเดิม (ไม่แตะ flow เดิม)
 
 ## หมายเหตุทางเทคนิค
-- เงื่อนไขเดิม (ต้องมาจาก get-driver-assigned-jobs + มี has_qtruck_booking/queue_data) คงไว้ครบ
-- เมื่อปุ่มคิวหาย ปุ่ม "ดูรายละเอียด" จะขยายเต็มแถวอัตโนมัติจากโค้ดเดิมที่มีอยู่แล้ว (`queueInfo ? 'grid grid-cols-2' : ''`)
+- แปล ko/zh แบบตายตัวในฟังก์ชัน (ข้อความสั้น คงที่) ไม่ต้องเรียก AI แปล
+- โครงสร้างการทำงานอื่นของ webhook (กันซ้ำ, หาคนขับ, 503 retry, audit log) คงเดิมทั้งหมด
