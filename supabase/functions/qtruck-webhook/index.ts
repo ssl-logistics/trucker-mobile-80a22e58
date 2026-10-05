@@ -4,8 +4,8 @@ import { writeAuditLog } from '../_shared/auditLog.ts'
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { 'Content-Type': 'application/json' } })
 
-const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้าย', cancelled: 'คิวถูกยกเลิก', completed: 'คิวเสร็จสิ้น' }
-const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled', completed: 'Queue completed' }
+const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้าย', cancelled: 'คิวถูกยกเลิก', completed: 'คิวเสร็จสิ้น', processing: 'กำลังขึ้น/ลงสินค้า' }
+const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled', completed: 'Queue completed', processing: 'Loading/unloading in progress' }
 
 Deno.serve(async (req) => {
   const startedAt = Date.now()
@@ -73,9 +73,12 @@ Deno.serve(async (req) => {
     const qn = q.queue_number ?? '-'
     if (eventType === 'queue.upcoming') {
       const m = body?.threshold_minutes ?? ''
+      const ahead = body?.queues_ahead
+      const aheadTh = typeof ahead === 'number' ? ` เหลืออีก ${ahead} คิวข้างหน้า` : ''
+      const aheadEn = typeof ahead === 'number' ? ` (${ahead} queue${ahead === 1 ? '' : 's'} ahead)` : ''
       titleTh = 'ใกล้ถึงคิวแล้ว'; titleEn = 'Your queue is coming up'
-      descTh = `อีก ${m} นาทีถึงคิว ${qn} (ประตู ${gate})`
-      descEn = `${m} minutes until queue ${qn} (Gate ${gate})`
+      descTh = `อีก ${m} นาทีถึงคิว ${qn} (ประตู ${gate})${aheadTh}`
+      descEn = `${m} minutes until queue ${qn} (Gate ${gate})${aheadEn}`
     } else if (eventType === 'queue.called') {
       titleTh = 'ถึงคิวแล้ว!'; titleEn = "It's your turn!"
       descTh = `คิว ${qn} เชิญเข้าประตู ${gate}`
@@ -86,6 +89,8 @@ Deno.serve(async (req) => {
         descTh = `คิว ${qn} ย้ายไปประตู ${gate}`; descEn = `Queue ${qn} moved to Gate ${gate}`
       } else if (q.status === 'completed') {
         descTh = `คิว ${qn} ที่ประตู ${gate} เสร็จเรียบร้อยแล้ว`; descEn = `Queue ${qn} at Gate ${gate} is completed`
+      } else if (q.status === 'processing') {
+        descTh = `คิว ${qn} ที่ประตู ${gate} กำลังขึ้น/ลงสินค้า`; descEn = `Queue ${qn} at Gate ${gate} is being loaded/unloaded`
       } else {
         descTh = `คิว ${qn} ถูกยกเลิก`; descEn = `Queue ${qn} was cancelled`
       }
