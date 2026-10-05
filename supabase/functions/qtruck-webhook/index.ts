@@ -6,6 +6,8 @@ const json = (b: unknown, status = 200) =>
 
 const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้าย', cancelled: 'คิวถูกยกเลิก', completed: 'คิวเสร็จสิ้น', processing: 'กำลังขึ้น/ลงสินค้า' }
 const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled', completed: 'Queue completed', processing: 'Loading/unloading in progress' }
+const STATUS_KO: Record<string, string> = { moved: '대기열이 이동되었습니다', cancelled: '대기열이 취소되었습니다', completed: '대기열 완료', processing: '상/하차 진행 중' }
+const STATUS_ZH: Record<string, string> = { moved: '队列已移动', cancelled: '队列已取消', completed: '队列已完成', processing: '正在装/卸货' }
 
 Deno.serve(async (req) => {
   const startedAt = Date.now()
@@ -68,7 +70,8 @@ Deno.serve(async (req) => {
     }
 
     // Decide whether to notify
-    let titleTh = '', titleEn = '', descTh = '', descEn = ''
+    let titleTh = '', titleEn = '', titleKo = '', titleZh = ''
+    let descTh = '', descEn = '', descKo = '', descZh = ''
     const gate = body?.gate?.name ?? body?.gate?.gate_number ?? '-'
     const qn = q.queue_number ?? '-'
     if (eventType === 'queue.upcoming') {
@@ -76,23 +79,36 @@ Deno.serve(async (req) => {
       const ahead = body?.queues_ahead
       const aheadTh = typeof ahead === 'number' ? ` เหลืออีก ${ahead} คิวข้างหน้า` : ''
       const aheadEn = typeof ahead === 'number' ? ` (${ahead} queue${ahead === 1 ? '' : 's'} ahead)` : ''
+      const aheadKo = typeof ahead === 'number' ? ` (앞에 ${ahead}개 대기열)` : ''
+      const aheadZh = typeof ahead === 'number' ? `（前方还有 ${ahead} 个队列）` : ''
       titleTh = 'ใกล้ถึงคิวแล้ว'; titleEn = 'Your queue is coming up'
+      titleKo = '대기열이 가까워졌습니다'; titleZh = '即将轮到您的队列'
       descTh = `อีก ${m} นาทีถึงคิว ${qn} (ประตู ${gate})${aheadTh}`
       descEn = `${m} minutes until queue ${qn} (Gate ${gate})${aheadEn}`
+      descKo = `${m}분 후 대기열 ${qn} (게이트 ${gate})${aheadKo}`
+      descZh = `${m} 分钟后轮到队列 ${qn}（闸口 ${gate}）${aheadZh}`
     } else if (eventType === 'queue.called') {
       titleTh = 'ถึงคิวแล้ว!'; titleEn = "It's your turn!"
+      titleKo = '대기열 차례입니다!'; titleZh = '轮到您了！'
       descTh = `คิว ${qn} เชิญเข้าประตู ${gate}`
       descEn = `Queue ${qn}, please proceed to Gate ${gate}`
+      descKo = `대기열 ${qn}, 게이트 ${gate}로 진입해 주세요`
+      descZh = `队列 ${qn}，请前往闸口 ${gate}`
     } else if (eventType === 'queue.status_changed' && STATUS_TH[q.status]) {
       titleTh = STATUS_TH[q.status]; titleEn = STATUS_EN[q.status]
+      titleKo = STATUS_KO[q.status]; titleZh = STATUS_ZH[q.status]
       if (q.status === 'moved') {
         descTh = `คิว ${qn} ย้ายไปประตู ${gate}`; descEn = `Queue ${qn} moved to Gate ${gate}`
+        descKo = `대기열 ${qn}이 게이트 ${gate}로 이동되었습니다`; descZh = `队列 ${qn} 已移至闸口 ${gate}`
       } else if (q.status === 'completed') {
         descTh = `คิว ${qn} ที่ประตู ${gate} เสร็จเรียบร้อยแล้ว`; descEn = `Queue ${qn} at Gate ${gate} is completed`
+        descKo = `게이트 ${gate}의 대기열 ${qn}이 완료되었습니다`; descZh = `闸口 ${gate} 的队列 ${qn} 已完成`
       } else if (q.status === 'processing') {
         descTh = `คิว ${qn} ที่ประตู ${gate} กำลังขึ้น/ลงสินค้า`; descEn = `Queue ${qn} at Gate ${gate} is being loaded/unloaded`
+        descKo = `게이트 ${gate}의 대기열 ${qn}이 상/하차 중입니다`; descZh = `闸口 ${gate} 的队列 ${qn} 正在装/卸货`
       } else {
         descTh = `คิว ${qn} ถูกยกเลิก`; descEn = `Queue ${qn} was cancelled`
+        descKo = `대기열 ${qn}이 취소되었습니다`; descZh = `队列 ${qn} 已取消`
       }
     }
     if (!titleTh) {
@@ -192,16 +208,20 @@ Deno.serve(async (req) => {
     if (factoryName) {
       descTh += ` · โรงงาน: ${factoryName}`
       descEn += ` · Factory: ${factoryName}`
+      descKo += ` · 공장: ${factoryName}`
+      descZh += ` · 工厂: ${factoryName}`
     }
     if (truckPlate) {
       descTh += ` · ทะเบียน: ${truckPlate}`
       descEn += ` · Plate: ${truckPlate}`
+      descKo += ` · 차량번호: ${truckPlate}`
+      descZh += ` · 车牌: ${truckPlate}`
     }
 
     const { error: nErr } = await supabase.from('notifications').insert({
       user_id: driverId,
-      title_th: titleTh, title_en: titleEn,
-      description_th: descTh, description_en: descEn,
+      title_th: titleTh, title_en: titleEn, title_ko: titleKo, title_zh: titleZh,
+      description_th: descTh, description_en: descEn, description_ko: descKo, description_zh: descZh,
       notification_type: 'qtruck_queue',
       reference_type: eventType,
       reference_id: orderNumber,
