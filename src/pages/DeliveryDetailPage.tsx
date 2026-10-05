@@ -734,7 +734,6 @@ export default function DeliveryDetailPage() {
         if (accidentInfo) {
           setAccidentOrderInfo(accidentInfo);
           setAccidentEvidenceRequired(true);
-          setShowPodConfirmDialog(false);
           setIsSubmittingPod(false);
           return;
         }
