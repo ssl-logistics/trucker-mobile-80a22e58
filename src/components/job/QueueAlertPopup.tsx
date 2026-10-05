@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import JobQueueDialog, { type JobQueueInfo } from './JobQueueDialog';
 
 const SEEN_KEY = 'qtruck_alert_seen_v1';
+// Queue statuses that must not pop the in-app dialog (push + list still work)
+const NO_POPUP_TITLES = new Set(['กำลังขึ้น/ลงสินค้า', 'คิวเสร็จสิ้น', 'Loading/unloading in progress', 'Queue completed']);
 const readSeen = (): string[] => {
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'); } catch { return []; }
 };
