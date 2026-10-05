@@ -65,9 +65,14 @@ export default function QueueAlertPopup() {
     };
   }, [user?.id, check]);
 
-  const useEn = language !== 'th';
-  const title = alert ? (useEn && alert.title_en) || alert.title_th : '';
-  const desc = alert ? (useEn && alert.description_en) || alert.description_th : '';
+  const pick = (n: any, base: 'title' | 'description') =>
+    (language === 'en' && n[`${base}_en`]) ||
+    (language === 'ko' && n[`${base}_ko`]) ||
+    (language === 'zh' && n[`${base}_zh`]) ||
+    n[`${base}_en`] ||
+    n[`${base}_th`];
+  const title = alert ? pick(alert, 'title') : '';
+  const desc = alert ? pick(alert, 'description') : '';
   const isCalled = alert?.reference_type === 'queue.called';
 
   return (
