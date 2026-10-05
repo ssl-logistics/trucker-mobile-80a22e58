@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import JobQueueDialog, { type JobQueueInfo } from './JobQueueDialog';
 
 const SEEN_KEY = 'qtruck_alert_seen_v1';
+// Queue statuses that must not pop the in-app dialog (push + list still work)
+const NO_POPUP_TITLES = new Set(['กำลังขึ้น/ลงสินค้า', 'คิวเสร็จสิ้น', 'Loading/unloading in progress', 'Queue completed']);
 const readSeen = (): string[] => {
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'); } catch { return []; }
 };
@@ -39,6 +41,8 @@ export default function QueueAlertPopup() {
       );
       if (next) {
         markSeen(next.id);
+        // processing/completed status changes: keep push + notification list, but no in-app popup
+        if (next.reference_type === 'queue.status_changed' && NO_POPUP_TITLES.has(next.title_th)) return;
         setAlert(next);
         if (next.reference_type === 'queue.called' && 'vibrate' in navigator) {
           try { navigator.vibrate([400, 200, 400, 200, 400]); } catch { /* ignore */ }
