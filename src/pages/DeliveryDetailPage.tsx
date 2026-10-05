@@ -121,6 +121,8 @@ export default function DeliveryDetailPage() {
   const [podPhoto, setPodPhoto] = useState<File | null>(null);
   const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
   const [isSubmittingPod, setIsSubmittingPod] = useState(false);
+  const [showSignature, setShowSignature] = useState(false);
+  const signatureRef = useRef<SignatureResult | null>(null);
   const [containerReturn, setContainerReturn] = useState<{
     location: string | null;
     address: string | null;
