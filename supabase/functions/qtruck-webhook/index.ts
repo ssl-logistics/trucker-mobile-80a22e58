@@ -79,23 +79,36 @@ Deno.serve(async (req) => {
       const ahead = body?.queues_ahead
       const aheadTh = typeof ahead === 'number' ? ` เหลืออีก ${ahead} คิวข้างหน้า` : ''
       const aheadEn = typeof ahead === 'number' ? ` (${ahead} queue${ahead === 1 ? '' : 's'} ahead)` : ''
+      const aheadKo = typeof ahead === 'number' ? ` (앞에 ${ahead}개 대기열)` : ''
+      const aheadZh = typeof ahead === 'number' ? `（前方还有 ${ahead} 个队列）` : ''
       titleTh = 'ใกล้ถึงคิวแล้ว'; titleEn = 'Your queue is coming up'
+      titleKo = '대기열이 가까워졌습니다'; titleZh = '即将轮到您的队列'
       descTh = `อีก ${m} นาทีถึงคิว ${qn} (ประตู ${gate})${aheadTh}`
       descEn = `${m} minutes until queue ${qn} (Gate ${gate})${aheadEn}`
+      descKo = `${m}분 후 대기열 ${qn} (게이트 ${gate})${aheadKo}`
+      descZh = `${m} 分钟后轮到队列 ${qn}（闸口 ${gate}）${aheadZh}`
     } else if (eventType === 'queue.called') {
       titleTh = 'ถึงคิวแล้ว!'; titleEn = "It's your turn!"
+      titleKo = '대기열 차례입니다!'; titleZh = '轮到您了！'
       descTh = `คิว ${qn} เชิญเข้าประตู ${gate}`
       descEn = `Queue ${qn}, please proceed to Gate ${gate}`
+      descKo = `대기열 ${qn}, 게이트 ${gate}로 진입해 주세요`
+      descZh = `队列 ${qn}，请前往闸口 ${gate}`
     } else if (eventType === 'queue.status_changed' && STATUS_TH[q.status]) {
       titleTh = STATUS_TH[q.status]; titleEn = STATUS_EN[q.status]
+      titleKo = STATUS_KO[q.status]; titleZh = STATUS_ZH[q.status]
       if (q.status === 'moved') {
         descTh = `คิว ${qn} ย้ายไปประตู ${gate}`; descEn = `Queue ${qn} moved to Gate ${gate}`
+        descKo = `대기열 ${qn}이 게이트 ${gate}로 이동되었습니다`; descZh = `队列 ${qn} 已移至闸口 ${gate}`
       } else if (q.status === 'completed') {
         descTh = `คิว ${qn} ที่ประตู ${gate} เสร็จเรียบร้อยแล้ว`; descEn = `Queue ${qn} at Gate ${gate} is completed`
+        descKo = `게이트 ${gate}의 대기열 ${qn}이 완료되었습니다`; descZh = `闸口 ${gate} 的队列 ${qn} 已完成`
       } else if (q.status === 'processing') {
         descTh = `คิว ${qn} ที่ประตู ${gate} กำลังขึ้น/ลงสินค้า`; descEn = `Queue ${qn} at Gate ${gate} is being loaded/unloaded`
+        descKo = `게이트 ${gate}의 대기열 ${qn}이 상/하차 중입니다`; descZh = `闸口 ${gate} 的队列 ${qn} 正在装/卸货`
       } else {
         descTh = `คิว ${qn} ถูกยกเลิก`; descEn = `Queue ${qn} was cancelled`
+        descKo = `대기열 ${qn}이 취소되었습니다`; descZh = `队列 ${qn} 已取消`
       }
     }
     if (!titleTh) {
