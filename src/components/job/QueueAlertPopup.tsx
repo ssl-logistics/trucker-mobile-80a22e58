@@ -69,8 +69,9 @@ export default function QueueAlertPopup() {
     (language === 'en' && n[`${base}_en`]) ||
     (language === 'ko' && n[`${base}_ko`]) ||
     (language === 'zh' && n[`${base}_zh`]) ||
-    n[`${base}_en`] ||
-    n[`${base}_th`];
+    (language === 'th' && n[`${base}_th`]) ||
+    n[`${base}_th`] ||
+    n[`${base}_en`];
   const title = alert ? pick(alert, 'title') : '';
   const desc = alert ? pick(alert, 'description') : '';
   const isCalled = alert?.reference_type === 'queue.called';
@@ -94,9 +95,8 @@ export default function QueueAlertPopup() {
             <Button
               className="h-11"
               onClick={() => {
-                const ref = alert?.reference_id;
                 setAlert(null);
-                if (ref) setQueueView({ orderNumber: ref, myQueue: '', currentQueue: '', remainingQueues: 0, estimatedTime: '' });
+                navigate('/current-jobs');
               }}
             >
               {t('currentJobs.viewQueue')}
@@ -104,7 +104,6 @@ export default function QueueAlertPopup() {
           </div>
         </DialogContent>
       </Dialog>
-      <JobQueueDialog open={!!queueView} onOpenChange={(o) => !o && setQueueView(null)} queue={queueView} />
     </>
   );
 }
