@@ -159,11 +159,15 @@ Deno.serve(async (req) => {
         order_number: orderNumber,
         request_payload: body,
         response_body: { result: 'driver_not_found', event_id: eventId, event_type: eventType },
-        success: true,
+        success: false,
         error_message: 'driver_not_found',
         duration_ms: durationMs(),
       })
-      return json({ success: true, notified: false, reason: 'driver_not_found' })
+      // Return 503 so QTruck retries (every 1 min, up to 5 times per doc) — the tracking room
+      // often appears seconds later when the driver starts the job. The dedup insert above was
+      // rolled back conceptually: delete the event row so the retry is not skipped as duplicate.
+      await supabase.from('qtruck_webhook_events').delete().eq('event_id', eventId)
+      return json({ success: false, reason: 'driver_not_found' }, 503)
     }
 
     const { error: nErr } = await supabase.from('notifications').insert({
