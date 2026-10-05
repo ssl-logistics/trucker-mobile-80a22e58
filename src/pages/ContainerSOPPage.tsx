@@ -1407,9 +1407,9 @@ const ContainerSOPPage = () => {
             notes: 'ยืนยันรับตู้หนัก',
             container_number: finalContainerNumber,
             seal_number: finalSealNumber,
+            ...(signatureRef.current || {}),
           };
-          console.log('[ContainerSOP] driverCheckin payload (pickup):'
-            ...(signatureRef.current || {}),, checkinPayload);
+          console.log('[ContainerSOP] driverCheckin payload (pickup):', checkinPayload);
           const { data: checkinData, error: checkinError } = await driverCheckin(checkinPayload);
 
           if (!checkinError) {
