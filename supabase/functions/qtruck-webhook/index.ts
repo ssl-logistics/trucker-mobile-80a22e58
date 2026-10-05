@@ -4,8 +4,8 @@ import { writeAuditLog } from '../_shared/auditLog.ts'
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { 'Content-Type': 'application/json' } })
 
-const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้าย', cancelled: 'คิวถูกยกเลิก', completed: 'คิวเสร็จสิ้น' }
-const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled', completed: 'Queue completed' }
+const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้าย', cancelled: 'คิวถูกยกเลิก', completed: 'คิวเสร็จสิ้น', processing: 'กำลังขึ้น/ลงสินค้า' }
+const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled', completed: 'Queue completed', processing: 'Loading/unloading in progress' }
 
 Deno.serve(async (req) => {
   const startedAt = Date.now()
@@ -73,9 +73,12 @@ Deno.serve(async (req) => {
     const qn = q.queue_number ?? '-'
     if (eventType === 'queue.upcoming') {
       const m = body?.threshold_minutes ?? ''
+      const ahead = body?.queues_ahead
+      const aheadTh = typeof ahead === 'number' ? ` เหลืออีก ${ahead} คิวข้างหน้า` : ''
+      const aheadEn = typeof ahead === 'number' ? ` (${ahead} queue${ahead === 1 ? '' : 's'} ahead)` : ''
       titleTh = 'ใกล้ถึงคิวแล้ว'; titleEn = 'Your queue is coming up'
-      descTh = `อีก ${m} นาทีถึงคิว ${qn} (ประตู ${gate})`
-      descEn = `${m} minutes until queue ${qn} (Gate ${gate})`
+      descTh = `อีก ${m} นาทีถึงคิว ${qn} (ประตู ${gate})${aheadTh}`
+      descEn = `${m} minutes until queue ${qn} (Gate ${gate})${aheadEn}`
     } else if (eventType === 'queue.called') {
       titleTh = 'ถึงคิวแล้ว!'; titleEn = "It's your turn!"
       descTh = `คิว ${qn} เชิญเข้าประตู ${gate}`
@@ -86,14 +89,16 @@ Deno.serve(async (req) => {
         descTh = `คิว ${qn} ย้ายไปประตู ${gate}`; descEn = `Queue ${qn} moved to Gate ${gate}`
       } else if (q.status === 'completed') {
         descTh = `คิว ${qn} ที่ประตู ${gate} เสร็จเรียบร้อยแล้ว`; descEn = `Queue ${qn} at Gate ${gate} is completed`
+      } else if (q.status === 'processing') {
+        descTh = `คิว ${qn} ที่ประตู ${gate} กำลังขึ้น/ลงสินค้า`; descEn = `Queue ${qn} at Gate ${gate} is being loaded/unloaded`
       } else {
         descTh = `คิว ${qn} ถูกยกเลิก`; descEn = `Queue ${qn} was cancelled`
       }
     }
-    if (!titleTh || !orderNumber) {
+    if (!titleTh) {
       console.log('[qtruck-webhook] no notification needed:', JSON.stringify({
         event_type: eventType, external_ref: orderNumber, queue_status: q.status ?? null,
-        reason: !titleTh ? 'event_not_notifiable' : 'missing_external_ref',
+        reason: 'event_not_notifiable',
       }))
       await writeAuditLog({
         function_name: 'qtruck-webhook',
@@ -101,7 +106,7 @@ Deno.serve(async (req) => {
         request_payload: body,
         response_body: {
           result: 'no_notify', event_id: eventId, event_type: eventType,
-          reason: !titleTh ? 'event_not_notifiable' : 'missing_external_ref',
+          reason: 'event_not_notifiable',
         },
         success: true,
         duration_ms: durationMs(),
@@ -109,22 +114,39 @@ Deno.serve(async (req) => {
       return json({ success: true, notified: false })
     }
 
-    const { data: room } = await supabase
-      .from('order_tracking_rooms').select('driver_id').eq('order_number', orderNumber).maybeSingle()
-    let driverId = room?.driver_id
-    let driverSource = room?.driver_id ? 'tracking_room' : null
+    let driverId: string | null = null
+    let driverSource: string | null = null
+    if (orderNumber) {
+      const { data: room } = await supabase
+        .from('order_tracking_rooms').select('driver_id').eq('order_number', orderNumber).maybeSingle()
+      driverId = room?.driver_id
+      if (driverId) driverSource = 'tracking_room'
+      if (!driverId) {
+        // Fallback: queue events can arrive before the driver starts the job (no tracking room yet).
+        // Look up the job by order_code, then the accepted driver from job_applications.
+        const { data: job } = await supabase
+          .from('jobs').select('id').eq('order_code', orderNumber).maybeSingle()
+        if (job?.id) {
+          const { data: app } = await supabase
+            .from('job_applications').select('driver_id')
+            .eq('job_id', job.id).in('status', ['accepted', 'won'])
+            .order('applied_at', { ascending: false }).limit(1).maybeSingle()
+          driverId = app?.driver_id
+          if (driverId) driverSource = 'job_application'
+        }
+      }
+    }
     if (!driverId) {
-      // Fallback: queue events can arrive before the driver starts the job (no tracking room yet).
-      // Look up the job by order_code, then the accepted driver from job_applications.
-      const { data: job } = await supabase
-        .from('jobs').select('id').eq('order_code', orderNumber).maybeSingle()
-      if (job?.id) {
-        const { data: app } = await supabase
-          .from('job_applications').select('driver_id')
-          .eq('job_id', job.id).in('status', ['accepted', 'won'])
-          .order('applied_at', { ascending: false }).limit(1).maybeSingle()
-        driverId = app?.driver_id
-        if (driverId) driverSource = 'job_application'
+      // Fallback per QTruck doc: external_ref can be null for queues not booked via Trucker API.
+      // Match the driver by phone number from the queue payload instead.
+      const rawPhone = typeof q.driver_phone === 'string' ? q.driver_phone.replace(/\D/g, '') : ''
+      if (rawPhone) {
+        const noLeadingZero = rawPhone.replace(/^0+/, '')
+        const variants = [...new Set([rawPhone, noLeadingZero, `0${noLeadingZero}`])]
+        const { data: profile } = await supabase
+          .from('profiles').select('id').in('phone_number', variants).limit(1).maybeSingle()
+        driverId = profile?.id
+        if (driverId) driverSource = 'driver_phone'
       }
     }
     console.log('[qtruck-webhook] driver lookup:', JSON.stringify({
@@ -180,6 +202,11 @@ Deno.serve(async (req) => {
       response_body: {
         result: 'notified', event_id: eventId, event_type: eventType,
         driver_source: driverSource,
+        queue_status: q.status ?? null,
+        gate_name: body?.gate?.name ?? null,
+        slot: body?.slot ? { date: body.slot.date, start_time: body.slot.start_time, end_time: body.slot.end_time } : null,
+        estimated_call_at: body?.estimated_call_at ?? null,
+        queues_ahead: body?.queues_ahead ?? null,
         notification_inserted: !nErr,
         notification_error: nErr?.message ?? null,
         push_invoked: pushOk,
