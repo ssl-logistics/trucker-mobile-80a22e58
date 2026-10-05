@@ -18,6 +18,7 @@ import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAc
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
+import SignatureDialog, { type SignatureResult } from '@/components/job/SignatureDialog';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
