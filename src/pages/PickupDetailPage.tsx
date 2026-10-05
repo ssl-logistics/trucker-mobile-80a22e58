@@ -19,6 +19,7 @@ import routeIcon from '@/assets/route-icon-2.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { fetchAcceptedBidTickets, mapBidTicketToPickupLikeJobDetail } from '@/lib/bidTickets';
 import { driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateOrderStatus } from '@/lib/externalApi';
+import { notifyQtruckQueueStatus } from '@/lib/qtruckQueueStatus';
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import { notifyCheckinWaypoint } from '@/lib/checkinWaypoint';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
@@ -336,6 +337,9 @@ export default function PickupDetailPage() {
         }
         throw new Error('Check-in failed');
       }
+
+      // QTruck queue: driver arrived at origin -> processing (fire-and-forget)
+      notifyQtruckQueueStatus(job.order_number || job.order_code, 'processing');
 
       // Optimistic update & navigate immediately
       saveCheckin({

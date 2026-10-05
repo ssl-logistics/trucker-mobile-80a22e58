@@ -14,6 +14,7 @@ import JobActionButtons from '@/components/job/JobActionButtons';
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { formatDate, formatTime } from '@/lib/dateUtils';
 import { getFreelanceAcceptedJobs, getDriverSop, driverSop, getDriverAssignedJobs, updateOrderStatus } from '@/lib/externalApi';
+import { notifyQtruckQueueStatus } from '@/lib/qtruckQueueStatus';
 import {
   Dialog,
   DialogContent,
@@ -526,6 +527,9 @@ export default function SOPCheckInPage() {
       if (sopError) {
         throw new Error(sopError || 'Failed to submit SOP');
       }
+
+      // QTruck queue: pickup SOP confirmed -> completed (fire-and-forget)
+      notifyQtruckQueueStatus(job.order_code, 'completed');
 
       // Send returning_container status for international jobs (BL/Booking)
       const isInternationalJob = !!(job.bl_no || job.booking_no || job.transport_category === 'international');
