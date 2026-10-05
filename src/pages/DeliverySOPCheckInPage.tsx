@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import SignatureDialog, { type SignatureResult } from '@/components/job/SignatureDialog';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,6 +63,8 @@ export default function DeliverySOPCheckInPage() {
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showSignature, setShowSignature] = useState(false);
+  const signatureRef = useRef<SignatureResult | null>(null);
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
 
@@ -227,7 +230,7 @@ export default function DeliverySOPCheckInPage() {
       });
       return;
     }
-    setShowConfirmDialog(true);
+    setShowSignature(true);
   };
 
   const handleConfirmSOP = async () => {
@@ -279,6 +282,7 @@ export default function DeliverySOPCheckInPage() {
            notes: 'ยืนยัน POD จากหน้า Delivery SOP',
            photo_url: publicUrl,
            destination_sequence_number: sequenceNumber,
+            ...(signatureRef.current || {}),
          };
          
          console.log('Sending POD from DeliverySOPCheckInPage:', {
@@ -438,6 +442,13 @@ export default function DeliverySOPCheckInPage() {
       )}
 
       {/* Confirmation Dialog */}
+      <SignatureDialog
+        open={showSignature}
+        onOpenChange={setShowSignature}
+        orderCode={String(job?.order_code || '')}
+        pointKey={`delivery_${destination?.sequence_number || 1}`}
+        onSigned={(r) => { signatureRef.current = r; handleConfirmSOP(); }}
+      />
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader className="items-center space-y-4">

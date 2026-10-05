@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import SignatureDialog, { type SignatureResult } from '@/components/job/SignatureDialog';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle, Scale, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useOCR } from '@/hooks/useOCR';
@@ -73,6 +74,8 @@ export default function SOPCheckInPage() {
   const [activeWeightSlipIndex, setActiveWeightSlipIndex] = useState<number>(-1);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showSignature, setShowSignature] = useState(false);
+  const signatureRef = useRef<SignatureResult | null>(null);
   const [uploading, setUploading] = useState(false);
   const [checkInTime] = useState(new Date());
   const [existingSOP, setExistingSOP] = useState<any>(null);
@@ -438,7 +441,7 @@ export default function SOPCheckInPage() {
       });
       return;
     }
-    setShowConfirmDialog(true);
+    setShowSignature(true);
   };
 
   const handleConfirmSOP = async () => {
@@ -510,6 +513,7 @@ export default function SOPCheckInPage() {
         sop_type: 'pickup',
         product_images: productImageUrls,
         document_images: documentImageUrls,
+            ...(signatureRef.current || {}),
       };
 
       // Build weight_slips array with image_url per slip
@@ -812,6 +816,13 @@ export default function SOPCheckInPage() {
       </div>
       )}
 
+      <SignatureDialog
+        open={showSignature}
+        onOpenChange={setShowSignature}
+        orderCode={String(job?.order_code || '')}
+        pointKey={'pickup'}
+        onSigned={(r) => { signatureRef.current = r; handleConfirmSOP(); }}
+      />
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader className="items-center space-y-4">
