@@ -95,10 +95,10 @@ Deno.serve(async (req) => {
         descTh = `คิว ${qn} ถูกยกเลิก`; descEn = `Queue ${qn} was cancelled`
       }
     }
-    if (!titleTh || !orderNumber) {
+    if (!titleTh) {
       console.log('[qtruck-webhook] no notification needed:', JSON.stringify({
         event_type: eventType, external_ref: orderNumber, queue_status: q.status ?? null,
-        reason: !titleTh ? 'event_not_notifiable' : 'missing_external_ref',
+        reason: 'event_not_notifiable',
       }))
       await writeAuditLog({
         function_name: 'qtruck-webhook',
@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
         request_payload: body,
         response_body: {
           result: 'no_notify', event_id: eventId, event_type: eventType,
-          reason: !titleTh ? 'event_not_notifiable' : 'missing_external_ref',
+          reason: 'event_not_notifiable',
         },
         success: true,
         duration_ms: durationMs(),
@@ -114,22 +114,39 @@ Deno.serve(async (req) => {
       return json({ success: true, notified: false })
     }
 
-    const { data: room } = await supabase
-      .from('order_tracking_rooms').select('driver_id').eq('order_number', orderNumber).maybeSingle()
-    let driverId = room?.driver_id
-    let driverSource = room?.driver_id ? 'tracking_room' : null
+    let driverId: string | null = null
+    let driverSource: string | null = null
+    if (orderNumber) {
+      const { data: room } = await supabase
+        .from('order_tracking_rooms').select('driver_id').eq('order_number', orderNumber).maybeSingle()
+      driverId = room?.driver_id
+      if (driverId) driverSource = 'tracking_room'
+      if (!driverId) {
+        // Fallback: queue events can arrive before the driver starts the job (no tracking room yet).
+        // Look up the job by order_code, then the accepted driver from job_applications.
+        const { data: job } = await supabase
+          .from('jobs').select('id').eq('order_code', orderNumber).maybeSingle()
+        if (job?.id) {
+          const { data: app } = await supabase
+            .from('job_applications').select('driver_id')
+            .eq('job_id', job.id).in('status', ['accepted', 'won'])
+            .order('applied_at', { ascending: false }).limit(1).maybeSingle()
+          driverId = app?.driver_id
+          if (driverId) driverSource = 'job_application'
+        }
+      }
+    }
     if (!driverId) {
-      // Fallback: queue events can arrive before the driver starts the job (no tracking room yet).
-      // Look up the job by order_code, then the accepted driver from job_applications.
-      const { data: job } = await supabase
-        .from('jobs').select('id').eq('order_code', orderNumber).maybeSingle()
-      if (job?.id) {
-        const { data: app } = await supabase
-          .from('job_applications').select('driver_id')
-          .eq('job_id', job.id).in('status', ['accepted', 'won'])
-          .order('applied_at', { ascending: false }).limit(1).maybeSingle()
-        driverId = app?.driver_id
-        if (driverId) driverSource = 'job_application'
+      // Fallback per QTruck doc: external_ref can be null for queues not booked via Trucker API.
+      // Match the driver by phone number from the queue payload instead.
+      const rawPhone = typeof q.driver_phone === 'string' ? q.driver_phone.replace(/\D/g, '') : ''
+      if (rawPhone) {
+        const noLeadingZero = rawPhone.replace(/^0+/, '')
+        const variants = [...new Set([rawPhone, noLeadingZero, `0${noLeadingZero}`])]
+        const { data: profile } = await supabase
+          .from('profiles').select('id').in('phone_number', variants).limit(1).maybeSingle()
+        driverId = profile?.id
+        if (driverId) driverSource = 'driver_phone'
       }
     }
     console.log('[qtruck-webhook] driver lookup:', JSON.stringify({
