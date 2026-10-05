@@ -26,3 +26,4 @@
 - [done] แสดงเลขตู้ (container_number + container_number_2) ใต้ป้ายประเภทงานบนการ์ดงานต่างประเทศเท่านั้น และเฉพาะเมื่อมีเลขจริง (CurrentJobsPage, i18n jobDetail.containerNumber)
 - [done] แสดง "รหัสตู้" (เลขท้ายหลัง / ของเลขออเดอร์ เช่น OR20260922002/01 → 01) บนการ์ดงานต่างประเทศ เพื่แยกงานชุดเดียวกัน (CurrentJobsPage, i18n jobDetail.containerCode 4 ภาษา)
 - [done] หน้ารายละเอียดงานต่างประเทศ: แถว "สถานท่ี" แสดงชื่ อสถานท่ี (cargo_point.name) แถว "ท่ีอยู่" แสดงท่ีอยู่ละเอยด + จังหวัด/อำเภอสวนที่ยังไม่มีในท่ีอยู่ (JobDetailPage cargo_point mapping — ทดสอบกับ OR20260922002/01 กับ /02 แล้ว)
+- [x] qtruck-webhook: เพิ่มเก็บ log อย่างเดียว (ไม่แก้พฤติกรรม) — deploy แล้ว ทดสอบ 401 บันทึก log สำเร็จ
