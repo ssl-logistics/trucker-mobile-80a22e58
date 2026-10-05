@@ -34,45 +34,11 @@ Deno.serve(async (req) => {
     if (!key) return json({ error: 'QTRUCK_API_KEY not configured' }, 500)
     const headers = { 'x-api-key': key, 'Content-Type': 'application/json' }
 
-    // Resolve the active queue for this order
-    const listRes = await fetch(`${BASE}/queues?external_ref=${encodeURIComponent(orderNumber)}`, { headers })
-    const listText = await listRes.text()
-    if (!listRes.ok) {
-      console.error('QTruck list failed', listRes.status, listText)
-      await writeAuditLog({
-        function_name: 'update-qtruck-queue-status',
-        order_number: orderNumber,
-        request_payload: { order_number, status },
-        response_status: listRes.status,
-        response_body: listText,
-        success: false,
-        error_message: 'queue list lookup failed',
-        duration_ms: Date.now() - started,
-      })
-      return json({ success: false, reason: 'queue_list_failed' })
-    }
-
-    const list = JSON.parse(listText)
-    const queues: any[] = Array.isArray(list?.data) ? list.data : []
-    const active = queues.find((q) => !['completed', 'cancelled'].includes(q.status))
-
-    if (!active) {
-      // No active queue for this order — quiet no-op so the main flow is unaffected
-      await writeAuditLog({
-        function_name: 'update-qtruck-queue-status',
-        order_number: orderNumber,
-        request_payload: { order_number, status },
-        success: false,
-        error_message: 'no_active_queue',
-        duration_ms: Date.now() - started,
-      })
-      return json({ success: false, reason: 'no_active_queue' })
-    }
-
-    const patchRes = await fetch(`${BASE}/queues/${encodeURIComponent(active.id)}/status`, {
+    const outBody = { external_ref: orderNumber, status }
+    const patchRes = await fetch(`${BASE}/queues/status`, {
       method: 'PATCH',
       headers,
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(outBody),
     })
     const patchText = await patchRes.text()
 
@@ -80,7 +46,7 @@ Deno.serve(async (req) => {
       function_name: 'update-qtruck-queue-status',
       order_number: orderNumber,
       request_payload: { order_number, status },
-      external_request_payload: { queue_id: active.id, status },
+      external_request_payload: outBody,
       response_status: patchRes.status,
       response_body: patchText,
       success: patchRes.ok,
@@ -93,8 +59,8 @@ Deno.serve(async (req) => {
       return json({ success: false, reason: 'patch_failed', status: patchRes.status })
     }
 
-    console.log(`[QTruck] queue ${active.id} (${orderNumber}) -> ${status}`)
-    return json({ success: true, queue_id: active.id, status })
+    console.log(`[QTruck] ${orderNumber} -> ${status}`)
+    return json({ success: true, status })
   } catch (e) {
     console.error(e)
     await writeAuditLog({
