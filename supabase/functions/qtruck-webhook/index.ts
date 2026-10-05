@@ -208,16 +208,20 @@ Deno.serve(async (req) => {
     if (factoryName) {
       descTh += ` · โรงงาน: ${factoryName}`
       descEn += ` · Factory: ${factoryName}`
+      descKo += ` · 공장: ${factoryName}`
+      descZh += ` · 工厂: ${factoryName}`
     }
     if (truckPlate) {
       descTh += ` · ทะเบียน: ${truckPlate}`
       descEn += ` · Plate: ${truckPlate}`
+      descKo += ` · 차량번호: ${truckPlate}`
+      descZh += ` · 车牌: ${truckPlate}`
     }
 
     const { error: nErr } = await supabase.from('notifications').insert({
       user_id: driverId,
-      title_th: titleTh, title_en: titleEn,
-      description_th: descTh, description_en: descEn,
+      title_th: titleTh, title_en: titleEn, title_ko: titleKo, title_zh: titleZh,
+      description_th: descTh, description_en: descEn, description_ko: descKo, description_zh: descZh,
       notification_type: 'qtruck_queue',
       reference_type: eventType,
       reference_id: orderNumber,
