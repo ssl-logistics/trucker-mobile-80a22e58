@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BellRing } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import JobQueueDialog, { type JobQueueInfo } from './JobQueueDialog';
 
 const SEEN_KEY = 'qtruck_alert_seen_v1';
 // Queue statuses that must not pop the in-app dialog (push + list still work)
@@ -23,8 +23,8 @@ const markSeen = (id: string) => {
 export default function QueueAlertPopup() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const [alert, setAlert] = useState<any | null>(null);
-  const [queueView, setQueueView] = useState<JobQueueInfo | null>(null);
 
   const check = useCallback(async () => {
     if (!user?.id) return;
@@ -69,8 +69,9 @@ export default function QueueAlertPopup() {
     (language === 'en' && n[`${base}_en`]) ||
     (language === 'ko' && n[`${base}_ko`]) ||
     (language === 'zh' && n[`${base}_zh`]) ||
-    n[`${base}_en`] ||
-    n[`${base}_th`];
+    (language === 'th' && n[`${base}_th`]) ||
+    n[`${base}_th`] ||
+    n[`${base}_en`];
   const title = alert ? pick(alert, 'title') : '';
   const desc = alert ? pick(alert, 'description') : '';
   const isCalled = alert?.reference_type === 'queue.called';
@@ -94,9 +95,8 @@ export default function QueueAlertPopup() {
             <Button
               className="h-11"
               onClick={() => {
-                const ref = alert?.reference_id;
                 setAlert(null);
-                if (ref) setQueueView({ orderNumber: ref, myQueue: '', currentQueue: '', remainingQueues: 0, estimatedTime: '' });
+                navigate('/current-jobs');
               }}
             >
               {t('currentJobs.viewQueue')}
@@ -104,7 +104,6 @@ export default function QueueAlertPopup() {
           </div>
         </DialogContent>
       </Dialog>
-      <JobQueueDialog open={!!queueView} onOpenChange={(o) => !o && setQueueView(null)} queue={queueView} />
     </>
   );
 }
