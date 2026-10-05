@@ -239,6 +239,8 @@ Deno.serve(async (req) => {
         slot: body?.slot ? { date: body.slot.date, start_time: body.slot.start_time, end_time: body.slot.end_time } : null,
         estimated_call_at: body?.estimated_call_at ?? null,
         queues_ahead: body?.queues_ahead ?? null,
+        factory_name: factoryName,
+        truck_plate: truckPlate,
         notification_inserted: !nErr,
         notification_error: nErr?.message ?? null,
         push_invoked: pushOk,
