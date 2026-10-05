@@ -18,6 +18,7 @@ import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAc
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
+import SignatureDialog, { type SignatureResult } from '@/components/job/SignatureDialog';
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useGpsTracking } from "@/hooks/useGpsTracking";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
@@ -116,10 +117,11 @@ export default function DeliveryDetailPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPaymentDrawer, setShowPaymentDrawer] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
-  const [showPodConfirmDialog, setShowPodConfirmDialog] = useState(false);
   const [podPhoto, setPodPhoto] = useState<File | null>(null);
   const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
   const [isSubmittingPod, setIsSubmittingPod] = useState(false);
+  const [showSignature, setShowSignature] = useState(false);
+  const signatureRef = useRef<SignatureResult | null>(null);
   const [containerReturn, setContainerReturn] = useState<{
     location: string | null;
     address: string | null;
@@ -707,6 +709,7 @@ export default function DeliveryDetailPage() {
         notes: 'จัดส่งสำเร็จ',
         photo_url: photoUrl,
         payment_method: selectedPaymentMethod,
+        ...(signatureRef.current || {}),
       };
       
       // Only include destination_sequence_number for multi-destination jobs
@@ -731,7 +734,6 @@ export default function DeliveryDetailPage() {
         if (accidentInfo) {
           setAccidentOrderInfo(accidentInfo);
           setAccidentEvidenceRequired(true);
-          setShowPodConfirmDialog(false);
           setIsSubmittingPod(false);
           return;
         }
@@ -805,7 +807,6 @@ export default function DeliveryDetailPage() {
       description: t('delivery.podSuccessToast'),
     });
     
-    setShowPodConfirmDialog(false);
     setIsSubmittingPod(false);
 
     // For international (BL/Booking) jobs, go back to job detail (still need container return)
@@ -1323,7 +1324,7 @@ export default function DeliveryDetailPage() {
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
-            onClick={() => setShowPodConfirmDialog(true)}
+            onClick={() => setShowSignature(true)}
             disabled={!podPhoto}
           >
             {t('delivery.confirmPod')}
@@ -1356,35 +1357,17 @@ export default function DeliveryDetailPage() {
 
       {/* Payment Method Drawer removed - sending null to API */}
 
-      {/* POD Confirmation Dialog */}
-      <Dialog open={!isFromHistory && showPodConfirmDialog} onOpenChange={setShowPodConfirmDialog}>
-        <DialogContent className="max-w-[340px] rounded-2xl">
-          <DialogHeader className="items-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-            </div>
-            <DialogTitle className="text-xl text-center">{t('delivery.confirmStatusTitle')}</DialogTitle>
-            <DialogDescription className="text-center text-base">
-              {t('delivery.confirmPodMessage')}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-row gap-3 sm:gap-3">
-            <Button variant="outline" onClick={() => setShowPodConfirmDialog(false)} className="flex-1 h-11">
-              {t('delivery.cancel')}
-            </Button>
-            <Button onClick={handlePodConfirm} disabled={isSubmittingPod} className="flex-1 h-11 bg-teal-600 hover:bg-teal-700">
-              {isSubmittingPod ? t('delivery.submitting') : t('delivery.confirm')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Signature Dialog - must sign before POD is sent */}
+      <SignatureDialog
+        open={showSignature}
+        onOpenChange={setShowSignature}
+        orderCode={String(job?.order_code || '')}
+        pointKey={`delivery_${destination?.sequence_number || 1}`}
+        onSigned={(r) => {
+          signatureRef.current = r;
+          handlePodConfirm();
+        }}
+      />
 
       <AccidentEvidenceModal
         open={accidentEvidenceRequired}
