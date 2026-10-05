@@ -6,6 +6,8 @@ const json = (b: unknown, status = 200) =>
 
 const STATUS_TH: Record<string, string> = { moved: 'คิวถูกย้าย', cancelled: 'คิวถูกยกเลิก', completed: 'คิวเสร็จสิ้น', processing: 'กำลังขึ้น/ลงสินค้า' }
 const STATUS_EN: Record<string, string> = { moved: 'Queue moved', cancelled: 'Queue cancelled', completed: 'Queue completed', processing: 'Loading/unloading in progress' }
+const STATUS_KO: Record<string, string> = { moved: '대기열이 이동되었습니다', cancelled: '대기열이 취소되었습니다', completed: '대기열 완료', processing: '상/하차 진행 중' }
+const STATUS_ZH: Record<string, string> = { moved: '队列已移动', cancelled: '队列已取消', completed: '队列已完成', processing: '正在装/卸货' }
 
 Deno.serve(async (req) => {
   const startedAt = Date.now()
@@ -68,7 +70,8 @@ Deno.serve(async (req) => {
     }
 
     // Decide whether to notify
-    let titleTh = '', titleEn = '', descTh = '', descEn = ''
+    let titleTh = '', titleEn = '', titleKo = '', titleZh = ''
+    let descTh = '', descEn = '', descKo = '', descZh = ''
     const gate = body?.gate?.name ?? body?.gate?.gate_number ?? '-'
     const qn = q.queue_number ?? '-'
     if (eventType === 'queue.upcoming') {
