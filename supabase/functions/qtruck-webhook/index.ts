@@ -170,6 +170,34 @@ Deno.serve(async (req) => {
       return json({ success: false, reason: 'driver_not_found' }, 503)
     }
 
+    // Enrich description with origin factory name and the driver's truck plate.
+    let factoryName: string | null =
+      body?.factory?.name ?? body?.site?.name ?? q?.factory_name ?? null
+    if (!factoryName && orderNumber) {
+      const { data: jobRow } = await supabase
+        .from('jobs').select('origin_company_name, employer_name').eq('order_code', orderNumber).maybeSingle()
+      factoryName = jobRow?.origin_company_name ?? jobRow?.employer_name ?? null
+    }
+    let truckPlate: string | null = null
+    {
+      const { data: vehicle } = await supabase
+        .from('vehicles').select('plate_number, plate_province')
+        .eq('driver_id', driverId).order('created_at', { ascending: false }).limit(1).maybeSingle()
+      if (vehicle?.plate_number) {
+        truckPlate = vehicle.plate_province
+          ? `${vehicle.plate_number} ${vehicle.plate_province}`
+          : vehicle.plate_number
+      }
+    }
+    if (factoryName) {
+      descTh += ` · โรงงาน: ${factoryName}`
+      descEn += ` · Factory: ${factoryName}`
+    }
+    if (truckPlate) {
+      descTh += ` · ทะเบียน: ${truckPlate}`
+      descEn += ` · Plate: ${truckPlate}`
+    }
+
     const { error: nErr } = await supabase.from('notifications').insert({
       user_id: driverId,
       title_th: titleTh, title_en: titleEn,
