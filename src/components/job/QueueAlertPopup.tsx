@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BellRing } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import JobQueueDialog, { type JobQueueInfo } from './JobQueueDialog';
 
 const SEEN_KEY = 'qtruck_alert_seen_v1';
 // Queue statuses that must not pop the in-app dialog (push + list still work)
@@ -23,8 +23,8 @@ const markSeen = (id: string) => {
 export default function QueueAlertPopup() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const [alert, setAlert] = useState<any | null>(null);
-  const [queueView, setQueueView] = useState<JobQueueInfo | null>(null);
 
   const check = useCallback(async () => {
     if (!user?.id) return;
