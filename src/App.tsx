@@ -195,6 +195,7 @@ function RepairUnencodedJobRoute() {
 
   return <NotFound />;
 }
+const TempDocsTest = lazyWithPreload(() => import("./pages/TempDocsTest")); // TEMPORARY
 const Register = lazyWithPreload(() => import("./pages/Register"));
 const ForgotPassword = lazyWithPreload(() => import("./pages/ForgotPassword"));
 const CreateNewPassword = lazyWithPreload(() => import("./pages/CreateNewPassword"));
