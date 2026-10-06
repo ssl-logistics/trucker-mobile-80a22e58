@@ -242,7 +242,19 @@ export default function DomesticJobDetail({
     try { localStorage.setItem(loadingQrKey, JSON.stringify(rec)); } catch { /* noop */ }
     setLoadingQr(rec);
     setLoadingQrOpen(false);
-    if (value !== null) toast({ title: t('loadingQr.success') });
+    if (value !== null) {
+      toast({ title: t('loadingQr.success') });
+      // Fire-and-forget: notify the QTruck queue system of the station scan.
+      // If the QR content is a URL, pull station_token out of it; otherwise send the raw value.
+      const baseOrder = String(job.order_code || '').split('/')[0];
+      let stationToken = value;
+      try {
+        const u = new URL(value);
+        stationToken = u.searchParams.get('station_token') || value;
+      } catch { /* not a URL — use raw value */ }
+      console.log('[LoadingQR]', { order: baseOrder, stationToken });
+      notifyQtruckQueueScan(baseOrder, stationToken);
+    }
   };
   const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
   const [deliverySopCompleted, setDeliverySopCompleted] = useState(false);
