@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { FileText, Loader2, ImageIcon, RefreshCw } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useUserRole } from '@/hooks/useUserRole';
+import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
+import { Camera, FileText, ImageIcon, Loader2, Paperclip } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getDriverSop, getDriverCheckins } from '@/lib/externalApi';
-import { getPresignedUrl } from '@/hooks/usePresignedImageUrl';
+import { useNativeCamera } from '@/hooks/useNativeCamera';
+import { toast } from '@/hooks/use-toast';
+import { compressImage } from '@/utils/imageCompression';
+import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 
 interface JobDocumentsSheetProps {
   open: boolean;
@@ -15,158 +17,83 @@ interface JobDocumentsSheetProps {
   jobData?: any;
 }
 
-interface DocGroup {
-  key: string;
-  label: string;
-  urls: string[];
+interface UploadedDoc {
+  name: string;
+  url: string;
+  uploadedAt: Date;
 }
 
-const parseUrlArray = (raw: unknown): string[] => {
-  if (Array.isArray(raw)) {
-    return raw.filter((url): url is string => typeof url === 'string' && url.trim() !== '');
-  }
-  if (typeof raw === 'string') {
-    try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed)
-        ? parsed.filter((url): url is string => typeof url === 'string' && url.trim() !== '')
-        : [];
-    } catch {
-      return raw.trim() !== '' ? [raw] : [];
-    }
-  }
-  return [];
-};
-
-const dedupeUrls = (urls: string[]): string[] => Array.from(new Set(urls.filter(Boolean)));
-
-/** Build document groups from SOP + check-in records of the order */
-const buildGroups = (
-  sopRecords: any[],
-  checkinRecords: any[],
-  labels: { pickup: string; weightSlips: string; pod: string; signatures: string; tms: string }
-): DocGroup[] => {
-  const pickupUrls: string[] = [];
-  const weightSlipUrls: string[] = [];
-  const podUrls: string[] = [];
-  const signatureUrls: string[] = [];
-
-  for (const record of sopRecords || []) {
-    pickupUrls.push(...parseUrlArray(record?.product_images));
-    pickupUrls.push(...parseUrlArray(record?.document_images));
-    pickupUrls.push(...parseUrlArray(record?.sop_photo_urls));
-    pickupUrls.push(...parseUrlArray(record?.doc_photo_urls));
-
-    const slips = Array.isArray(record?.weight_slips) ? record.weight_slips : [];
-    for (const slip of slips) {
-      if (slip?.image_url) weightSlipUrls.push(slip.image_url);
-    }
-
-    if (record?.signature_url) signatureUrls.push(record.signature_url);
-  }
-
-  for (const record of checkinRecords || []) {
-    const type = String(record?.checkin_type || '');
-    const photos = [
-      ...parseUrlArray(record?.photo_urls),
-      ...(record?.photo_url ? [record.photo_url] : []),
-    ];
-
-    if (type === 'delivery_confirmed') {
-      podUrls.push(...photos);
-    } else if (type === 'container_pickup_confirmed' || type === 'container_pickup') {
-      pickupUrls.push(...photos);
-    } else if (type === 'container_return_confirmed' || type === 'container_return') {
-      podUrls.push(...photos);
-    }
-
-    if (record?.signature_url) signatureUrls.push(record.signature_url);
-  }
-
-  return [
-    { key: 'pickup', label: labels.pickup, urls: dedupeUrls(pickupUrls) },
-    { key: 'weightSlips', label: labels.weightSlips, urls: dedupeUrls(weightSlipUrls) },
-    { key: 'pod', label: labels.pod, urls: dedupeUrls(podUrls) },
-    { key: 'signatures', label: labels.signatures, urls: dedupeUrls(signatureUrls) },
-    { key: 'tms', label: labels.tms, urls: [] },
-  ];
-};
-
-export default function JobDocumentsSheet({ open, onOpenChange, orderNumber, jobData }: JobDocumentsSheetProps) {
+export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: JobDocumentsSheetProps) {
   const { t } = useLanguage();
-  const { user } = useAuth();
-  const { isInternalDriver, isExternalDriver } = useUserRole();
+  const [uploading, setUploading] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const [uploaded, setUploaded] = useState<UploadedDoc[]>([]);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
-  const [loading, setLoading] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const [groups, setGroups] = useState<DocGroup[]>([]);
-  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
-  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  // Strip destination suffix (e.g. OR20260929003/01 -> OR20260929003) for the S3 folder
+  const baseOrderNumber = (orderNumber || '').split('/')[0];
 
-  const hasAnyUrl = groups.some((group) => group.urls.length > 0);
-
-  const loadDocuments = async () => {
-    if (!orderNumber || !user?.id) return;
-    setLoading(true);
-    setFailed(false);
-    setGroups([]);
-
+  const uploadFile = async (file: File) => {
+    if (!baseOrderNumber) return;
+    setUploading(true);
     try {
-      const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+      const formData = new FormData();
+      formData.append('file', await compressImage(file));
+      formData.append('folder', `documents/${baseOrderNumber}`);
 
-      // allDrivers=true so documents from transferred drivers are also included
-      const [sopResult, checkinResult] = await Promise.all([
-        getDriverSop(user.id, driverType, orderNumber).catch(() => null),
-        getDriverCheckins(user.id, driverType, orderNumber, { allDrivers: true }).catch(() => null),
-      ]);
-
-      // callExternalApi wraps the API body in { data, error } — unwrap it first,
-      // the API body itself is { success, data: [...], pagination }
-      const extractRecords = (r: any): any[] => {
-        const body = r?.data ?? r;
-        if (Array.isArray(body)) return body;
-        return Array.isArray(body?.data) ? body.data : [];
-      };
-      const sopRecords: any[] = extractRecords(sopResult);
-      const checkinRecords: any[] = extractRecords(checkinResult);
-
-      const rawGroups = buildGroups(sopRecords, checkinRecords, {
-        pickup: t('docs.groupPickup'),
-        weightSlips: t('docs.groupWeightSlips'),
-        pod: t('docs.groupPod'),
-        signatures: t('docs.groupSignatures'),
-        tms: t('docs.groupTms'),
+      const { data, error } = await supabase.functions.invoke('upload-to-s3', {
+        body: formData,
       });
 
-      // Resolve presigned URLs for private S3 objects (falls back to original URL)
-      const allUrls = dedupeUrls(rawGroups.flatMap((group) => group.urls));
-      const presigned = new Map<string, string>();
-      await Promise.all(
-        allUrls.map(async (url) => {
-          try {
-            presigned.set(url, await getPresignedUrl(url));
-          } catch {
-            presigned.set(url, url);
-          }
-        })
-      );
+      if (error || !data?.url) {
+        console.error('Document upload response:', { error, data });
+        throw new Error('Upload failed');
+      }
 
-      setGroups(rawGroups.map((group) => ({ ...group, urls: group.urls.map((u) => presigned.get(u) || u) })));
-    } catch (error) {
-      console.error('Error loading job documents:', error);
-      setFailed(true);
+      setUploaded((prev) => [...prev, { name: file.name, url: data.url, uploadedAt: new Date() }]);
+      toast({ title: t('docs.uploadSuccess') });
+    } catch (err) {
+      console.error('Document upload error:', err);
+      toast({ title: t('docs.uploadFailed'), variant: 'destructive' });
     } finally {
-      setLoading(false);
+      setUploading(false);
+      setShowPicker(false);
     }
   };
 
-  // Fetch when the sheet opens (fresh load per open so newly submitted docs appear)
-  useEffect(() => {
-    if (open) {
-      loadDocuments();
+  const handleTakePhoto = async () => {
+    if (isNative) {
+      const file = await takePhoto();
+      if (file) await uploadFile(file);
+      else setShowPicker(false);
+    } else {
+      if (cameraInputRef.current) {
+        cameraInputRef.current.value = '';
+        cameraInputRef.current.click();
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, orderNumber, user?.id]);
+  };
+
+  const handleSelectFromGallery = async () => {
+    if (isNative) {
+      const file = await selectFromGallery();
+      if (file) await uploadFile(file);
+      else setShowPicker(false);
+    } else {
+      if (galleryInputRef.current) {
+        galleryInputRef.current.value = '';
+        galleryInputRef.current.click();
+      }
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) await uploadFile(file);
+    if (e.target) e.target.value = '';
+  };
 
   return (
     <>
@@ -179,70 +106,85 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber, job
             </SheetTitle>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
-            {loading && (
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+            <Button
+              className="w-full h-12"
+              onClick={() => setShowPicker(true)}
+              disabled={uploading || !baseOrderNumber}
+            >
+              {uploading ? (
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              ) : (
+                <Paperclip className="w-5 h-5 mr-2" />
+              )}
+              {uploading ? t('docs.uploading') : t('docs.attach')}
+            </Button>
+
+            {uploaded.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-2 py-10 text-muted-foreground">
-                <Loader2 className="w-6 h-6 animate-spin" />
-                <span className="text-sm">...</span>
-              </div>
-            )}
-
-            {!loading && failed && (
-              <div className="flex flex-col items-center justify-center gap-3 py-10 text-muted-foreground">
                 <ImageIcon className="w-8 h-8 opacity-40" />
-                <p className="text-sm">{t('docs.loadFailed')}</p>
-                <button
-                  onClick={loadDocuments}
-                  className="flex items-center gap-1 text-sm text-primary font-medium"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  {t('docs.retry')}
-                </button>
+                <p className="text-sm">{t('docs.emptyUploaded')}</p>
               </div>
+            ) : (
+              <ul className="space-y-2">
+                {uploaded.map((doc, index) => (
+                  <li
+                    key={`${doc.url}-${index}`}
+                    className="flex items-center gap-3 rounded-lg border px-3 py-2"
+                  >
+                    <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">{doc.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {doc.uploadedAt.toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
-
-            {!loading && !failed && groups.map((group) => (
-              <div key={group.key} className="space-y-2">
-                <h3 className="text-sm font-semibold text-foreground">{group.label}</h3>
-                {group.urls.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">{t('docs.empty')}</p>
-                ) : (
-                  <div className="grid grid-cols-3 gap-2">
-                    {group.urls.map((url, index) => (
-                      <button
-                        key={`${group.key}-${index}`}
-                        className="aspect-square rounded-lg overflow-hidden bg-muted active:opacity-80"
-                        onClick={() => setViewerUrl(url)}
-                      >
-                        <img
-                          src={url}
-                          alt=""
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
           </div>
         </SheetContent>
       </Sheet>
 
-      <Dialog open={!!viewerUrl} onOpenChange={(value) => !value && setViewerUrl(null)}>
-        <DialogContent className="p-0 bg-transparent border-0 max-w-full w-full h-full flex items-center justify-center [&>button]:hidden">
-          <img
-            src={viewerUrl || ''}
-            alt=""
-            className="max-h-full max-w-full object-contain"
-            onClick={() => setViewerUrl(null)}
-          />
-        </DialogContent>
-      </Dialog>
+      <Drawer open={showPicker} onOpenChange={setShowPicker}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{t('docs.attach')}</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 space-y-3">
+            <Button className="w-full h-12" onClick={handleTakePhoto} disabled={uploading}>
+              <Camera className="w-5 h-5 mr-2" />
+              {t('docs.takePhoto')}
+            </Button>
+            <Button variant="outline" className="w-full h-12" onClick={handleSelectFromGallery} disabled={uploading}>
+              <ImageIcon className="w-5 h-5 mr-2" />
+              {t('docs.chooseFromGallery')}
+            </Button>
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="ghost">{t('common.cancel')}</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept={ACCEPT_IMAGE_DOC}
+        capture="environment"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept={ACCEPT_IMAGE_DOC}
+        onChange={handleFileChange}
+        className="hidden"
+      />
     </>
   );
 }
