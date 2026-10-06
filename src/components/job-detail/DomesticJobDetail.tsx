@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import JobActionButtons from '@/components/job/JobActionButtons';
+import LoadingQrScanDialog from '@/components/job/LoadingQrScanDialog';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { formatDate, formatDateTime } from '@/lib/dateUtils';
@@ -227,6 +228,22 @@ export default function DomesticJobDetail({
   // destinations state removed - job_destinations table no longer exists
   const [pickupCheckedIn, setPickupCheckedIn] = useState(false);
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
+  const [loadingQrOpen, setLoadingQrOpen] = useState(false);
+  const [loadingQr, setLoadingQr] = useState<{ value: string | null; skipped: boolean; at: string } | null>(null);
+  const loadingQrKey = `loading_qr_${String(job.order_code || '').split('/')[0]}`;
+  useEffect(() => {
+    try { const raw = localStorage.getItem(loadingQrKey); setLoadingQr(raw ? JSON.parse(raw) : null); } catch { setLoadingQr(null); }
+  }, [loadingQrKey]);
+  const needsLoadingQr = !isFromHistory && !job.bl_no && !job.booking_no && !loadingQr
+    && (pickupCheckedIn || !!jobApplication?.checked_in_at)
+    && !(pickupSopCompleted || !!jobApplication?.sop_completed_at);
+  const handleLoadingQrDone = (value: string | null) => {
+    const rec = { value, skipped: value === null, at: new Date().toISOString() };
+    try { localStorage.setItem(loadingQrKey, JSON.stringify(rec)); } catch { /* noop */ }
+    setLoadingQr(rec);
+    setLoadingQrOpen(false);
+    if (value !== null) toast({ title: t('loadingQr.success') });
+  };
   const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
   const [deliverySopCompleted, setDeliverySopCompleted] = useState(false);
   const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
@@ -1980,8 +1997,15 @@ export default function DomesticJobDetail({
                             </Button>
                           </>
                       }
+                        {loadingQr && !loadingQr.skipped && !job.bl_no && !job.booking_no && (
+                          <div className="col-span-full flex items-center gap-2 rounded-md bg-green-50 border border-green-200 px-2 py-1 text-xs text-green-800">
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            <span>{t('loadingQr.scanned')} {formatDateTime(loadingQr.at, language)}</span>
+                          </div>
+                        )}
                         <Button size="sm" onClick={() => {
                         const queryString = isFromHistory ? '?from=history' : '';
+                        if (needsLoadingQr) { setLoadingQrOpen(true); return; }
                         if (pickupSopCompleted || jobApplication?.sop_completed_at) {
                           navigate(`/job/${encodeURIComponent(job.order_code)}/pickup-summary${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob, fromHistory: isFromHistory } });
                         } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
@@ -1995,7 +2019,7 @@ export default function DomesticJobDetail({
 
                         <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                         }
-                          <span className="text-xs">{pickupSopCompleted || jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : pickupCheckedIn || jobApplication?.checked_in_at ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-xs">{pickupSopCompleted || jobApplication?.sop_completed_at ? t('jobDetail.viewInfo') : needsLoadingQr ? t('loadingQr.button') : pickupCheckedIn || jobApplication?.checked_in_at ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
@@ -2831,6 +2855,7 @@ export default function DomesticJobDetail({
       </div>
 
 
+      <LoadingQrScanDialog open={loadingQrOpen} onOpenChange={setLoadingQrOpen} onDone={handleLoadingQrDone} />
       <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={job.id} orderNumber={job.order_code} />
 
       {/* Accident Evidence — auto-opened when job is locked */}
