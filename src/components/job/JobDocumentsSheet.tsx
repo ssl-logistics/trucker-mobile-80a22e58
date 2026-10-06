@@ -120,9 +120,15 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber, job
         getDriverCheckins(user.id, driverType, orderNumber, { allDrivers: true }).catch(() => null),
       ]);
 
-      const sopRecords: any[] = sopResult?.data || (Array.isArray(sopResult) ? (sopResult as any) : []) || [];
-      const checkinRecords: any[] =
-        checkinResult?.data || (Array.isArray(checkinResult) ? (checkinResult as any) : []) || [];
+      // callExternalApi wraps the API body in { data, error } — unwrap it first,
+      // the API body itself is { success, data: [...], pagination }
+      const extractRecords = (r: any): any[] => {
+        const body = r?.data ?? r;
+        if (Array.isArray(body)) return body;
+        return Array.isArray(body?.data) ? body.data : [];
+      };
+      const sopRecords: any[] = extractRecords(sopResult);
+      const checkinRecords: any[] = extractRecords(checkinResult);
 
       const rawGroups = buildGroups(sopRecords, checkinRecords, {
         pickup: t('docs.groupPickup'),
