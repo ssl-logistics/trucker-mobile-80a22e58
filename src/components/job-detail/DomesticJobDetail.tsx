@@ -27,6 +27,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
+import { notifyQtruckQueueScan } from '@/lib/qtruckQueueStatus';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import LoadingQrScanDialog from '@/components/job/LoadingQrScanDialog';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
