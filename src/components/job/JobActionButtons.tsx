@@ -23,6 +23,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
   const location = useLocation();
   const { t } = useLanguage();
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
+  const [isDocumentsSheetOpen, setIsDocumentsSheetOpen] = useState(false);
   
   const isFromHistory = isHistoryContext(location.search, location.state);
 
@@ -52,9 +53,18 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
     return null;
   }
 
+  // Documents are read-only, so they stay visible in history like "ดูค่าใช้จ่าย"
+  const visibleCount =
+    1 + // documents (always visible while this component renders)
+    (!hideExpenseButtons ? 1 : 0) +
+    (!hideExpenseButtons && !isFromHistory ? 1 : 0) + // add expense
+    (!hideNonExpenseButtons ? 1 : 0); // report problem
+  const gridClass =
+    visibleCount >= 4 ? 'grid-cols-4' : visibleCount === 3 ? 'grid-cols-3' : visibleCount === 2 ? 'grid-cols-2' : 'grid-cols-1';
+
   return (
     <>
-      <div className={`grid gap-3 ${hideExpenseButtons ? 'hidden' : hideNonExpenseButtons ? (isFromHistory ? 'grid-cols-1' : 'grid-cols-2') : 'grid-cols-3'}`}>
+      <div className={`grid gap-3 ${hideExpenseButtons ? 'grid-cols-1' : gridClass}`}>
         {!hideExpenseButtons && (
           <>
             <button 
@@ -86,6 +96,14 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
             <span className="text-xs font-medium">{t('jobActions.reportProblem')}</span>
           </button>
         )}
+
+        <button
+          className="flex flex-col items-center gap-1 text-primary"
+          onClick={() => setIsDocumentsSheetOpen(true)}
+        >
+          <FileText className="w-8 h-8" />
+          <span className="text-xs font-medium">{t('jobActions.documents')}</span>
+        </button>
       </div>
 
       <ReportProblemDrawer
@@ -93,6 +111,13 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
         onOpenChange={setIsReportDrawerOpen}
         jobId={jobId}
         orderNumber={orderNumber}
+      />
+
+      <JobDocumentsSheet
+        open={isDocumentsSheetOpen}
+        onOpenChange={setIsDocumentsSheetOpen}
+        orderNumber={orderNumber || jobId}
+        jobData={jobData}
       />
     </>
   );
