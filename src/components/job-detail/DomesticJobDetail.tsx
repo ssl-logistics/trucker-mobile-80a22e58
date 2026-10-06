@@ -230,6 +230,20 @@ export default function DomesticJobDetail({
   const [pickupSopCompleted, setPickupSopCompleted] = useState(false);
   const [loadingQrOpen, setLoadingQrOpen] = useState(false);
   const [loadingQr, setLoadingQr] = useState<{ value: string | null; skipped: boolean; at: string } | null>(null);
+  const loadingQrKey = `loading_qr_${String(job.order_code || '').split('/')[0]}`;
+  useEffect(() => {
+    try { const raw = localStorage.getItem(loadingQrKey); setLoadingQr(raw ? JSON.parse(raw) : null); } catch { setLoadingQr(null); }
+  }, [loadingQrKey]);
+  const needsLoadingQr = !isFromHistory && !job.bl_no && !job.booking_no && !loadingQr
+    && (pickupCheckedIn || !!jobApplication?.checked_in_at)
+    && !(pickupSopCompleted || !!jobApplication?.sop_completed_at);
+  const handleLoadingQrDone = (value: string | null) => {
+    const rec = { value, skipped: value === null, at: new Date().toISOString() };
+    try { localStorage.setItem(loadingQrKey, JSON.stringify(rec)); } catch { /* noop */ }
+    setLoadingQr(rec);
+    setLoadingQrOpen(false);
+    if (value !== null) toast({ title: t('loadingQr.success') });
+  };
   const [deliveryCheckedIn, setDeliveryCheckedIn] = useState(false);
   const [deliverySopCompleted, setDeliverySopCompleted] = useState(false);
   const [emptyContainerCheckedIn, setEmptyContainerCheckedIn] = useState(false);
@@ -2841,6 +2855,7 @@ export default function DomesticJobDetail({
       </div>
 
 
+      <LoadingQrScanDialog open={loadingQrOpen} onOpenChange={setLoadingQrOpen} onDone={handleLoadingQrDone} />
       <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={job.id} orderNumber={job.order_code} />
 
       {/* Accident Evidence — auto-opened when job is locked */}
