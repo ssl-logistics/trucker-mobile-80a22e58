@@ -197,9 +197,20 @@ export default function JobDetailPage() {
   const { user, userType } = useAuth();
   const { t } = useLanguage();
   const { isInternalDriver, isExternalDriver } = useUserRole();
-  const [job, setJob] = useState<JobDetail | null>(null);
-  const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = `jobDetailCache:${(jobId || '').split('/')[0]}`;
+  const readCache = (): { job: JobDetail; jobApplication: JobApplication | null } | null => {
+    try { const raw = sessionStorage.getItem(cacheKey); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  };
+  const initialCache = readCache();
+  const [job, setJob] = useState<JobDetail | null>(initialCache?.job ?? null);
+  const [jobApplication, setJobApplication] = useState<JobApplication | null>(initialCache?.jobApplication ?? null);
+  const [loading, setLoading] = useState(!initialCache);
+
+  // Remember last loaded job so returning from sub-pages renders instantly
+  useEffect(() => {
+    if (!job || !jobId) return;
+    try { sessionStorage.setItem(cacheKey, JSON.stringify({ job, jobApplication })); } catch { /* quota */ }
+  }, [job, jobApplication, cacheKey]);
   const [accidentEvidenceRequired, setAccidentEvidenceRequired] = useState(false);
   const [accidentOrderInfo, setAccidentOrderInfo] = useState<{ id?: string; order_number?: string } | null>(null);
 
@@ -238,7 +249,15 @@ export default function JobDetailPage() {
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
 
-    setLoading(true);
+    // Stale-while-revalidate: keep showing cached job, refresh silently
+    const cached = readCache();
+    if (cached) {
+      setJob(cached.job);
+      setJobApplication(cached.jobApplication);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
 
     try {
       let response: Response;
