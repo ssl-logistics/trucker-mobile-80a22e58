@@ -56,6 +56,7 @@ interface Job {
   transport_type_label?: string;
   transport_mode?: string | null;
   transport_category?: string | null;
+  assigned_company_type?: string | null;
   origin_location: string;
   destination_location: string;
   destination_company_name: string | null;
@@ -434,7 +435,9 @@ const isValidName = (val: any): string => {
             ? (isValidName(item.assigned_company) || isValidName(item.assignedCompany) || '')
             : (isValidName(item.assigned_company) || isValidName(item.assignedCompany) || isValidName(item.factory_name) || isValidName(item.customer_name) || isValidName(item.sender_company_name) || isValidName(item.sender_name) || isValidName(item.company_name) || isValidName(user?.company_name) || ''),
 
-          transport_type: item.transport_mode || item.send_mode || 'single',
+           transport_type: item.transport_mode || item.send_mode || 'single',
+           // Raw owner type from API ('factory' | 'logistics') used by JobCard label
+           assigned_company_type: item.assigned_company_type ?? null,
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
           transport_mode: item.transport_mode || null,
           transport_category: item.transport_category || null,
@@ -692,6 +695,8 @@ const isValidName = (val: any): string => {
             ? (isValidName(item.assigned_company) || isValidName(item.assignedCompany) || '')
             : (isValidName(item.factory_name) || isValidName(item.customer_name) || isValidName(item.sender_company_name) || isValidName(item.sender_name) || isValidName(item.company_name) || isValidName(user?.company_name) || ''),
           transport_type: item.send_mode || 'single',
+          // Raw owner type from API ('factory' | 'logistics') used by JobCard label
+          assigned_company_type: item.assigned_company_type ?? null,
           transport_type_label: item.transport_type_label || item.send_mode_label || '',
           origin_location: originLocation,
           destination_location: destinationLocation,
