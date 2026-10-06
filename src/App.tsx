@@ -195,7 +195,6 @@ function RepairUnencodedJobRoute() {
 
   return <NotFound />;
 }
-const TempDocsTest = lazyWithPreload(() => import("./pages/TempDocsTest")); // TEMPORARY
 const Register = lazyWithPreload(() => import("./pages/Register"));
 const ForgotPassword = lazyWithPreload(() => import("./pages/ForgotPassword"));
 const CreateNewPassword = lazyWithPreload(() => import("./pages/CreateNewPassword"));
@@ -387,8 +386,6 @@ const App = () => (
                           }
                         />
                       </Route>
-                      {/* TEMPORARY docs-test route — remove after verification */}
-                      <Route path="/__docs-test" element={<TempDocsTest />} />
                       <Route
                         path="/search"
                         element={
