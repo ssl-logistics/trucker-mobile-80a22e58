@@ -386,6 +386,8 @@ const App = () => (
                           }
                         />
                       </Route>
+                      {/* TEMPORARY docs-test route — remove after verification */}
+                      <Route path="/__docs-test" element={<TempDocsTest />} />
                       <Route
                         path="/search"
                         element={
