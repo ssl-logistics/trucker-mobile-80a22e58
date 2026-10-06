@@ -162,8 +162,6 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber, job
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, orderNumber, user?.id]);
 
-  const emptyUrl = typeof jobData?.product_image === 'string' ? jobData.product_image : null;
-
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -192,7 +190,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber, job
                   className="flex items-center gap-1 text-sm text-primary font-medium"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  {t('common.retry')}
+                  {t('docs.retry')}
                 </button>
               </div>
             )}
@@ -232,7 +230,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber, job
       <Dialog open={!!viewerUrl} onOpenChange={(value) => !value && setViewerUrl(null)}>
         <DialogContent className="p-0 bg-transparent border-0 max-w-full w-full h-full flex items-center justify-center [&>button]:hidden">
           <img
-            src={viewerUrl || emptyUrl || ''}
+            src={viewerUrl || ''}
             alt=""
             className="max-h-full max-w-full object-contain"
             onClick={() => setViewerUrl(null)}
