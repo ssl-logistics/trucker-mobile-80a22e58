@@ -1,19 +1,26 @@
-# หลังสแกน QR โหลดสินค้า: เปิดเว็บ + อัปเดตสถานะคิว
+# หลังสแกน QR โหลดสินค้า: ยิงเส้น queues/scan ของระบบคิว
 
 ## สถานะตอนนี้
-หลังสแกน แอปแค่เก็บค่า QR ไว้ในเครื่อง ขึ้นข้อความ "เริ่มโหลดสินค้าแล้ว" และเปลี่ยนปุ่มเป็น "แนบหลักฐาน" — ไม่มีการเปิดเว็บ ไม่ส่งสถานะไประบบคิว และไม่มีบันทึกใน log
+หลังสแกน แอปแค่เก็บค่า QR ไว้ในเครื่อง ขึ้น "เริ่มโหลดสินค้าแล้ว" และเปลี่ยนปุ่มเป็น "แนบหลักฐาน" — ยังไม่ได้ยิงไประบบคิว
 
 ## สิ่งที่จะทำ (เฉพาะงานในประเทศ)
-1. สแกนสำเร็จแล้ว ส่งสถานะ "กำลังโหลด" (processing) ไประบบคิว QTruck ของออเดอร์นั้น ผ่านเส้นเดิม update-qtruck-queue-status (external_ref = เลขออเดอร์ ตัด /NN)
-2. ถ้าค่าใน QR เป็นลิงก์เว็บ (http/https) ให้เปิดลิงก์นั้นในเบราว์เซอร์ต่อทันที
-3. ส่งสถานะแบบไม่รอผล — ถ้าระบบคิวล้มเหลว คนขับยังไปขั้น "แนบหลักฐาน" ได้ตามเดิม
-4. บันทึก log ทุกครั้งที่สแกน (ค่า QR, เลขออเดอร์, ผลการส่ง) ทั้งในแอปและในบันทึกฝั่งระบบ เพื่อตรวจย้อนหลังได้
-5. กด "ข้าม" = ไม่ส่งสถานะ ไม่เปิดเว็บ
+สแกนสำเร็จแล้วเรียกเส้นสแกนของระบบคิวตามเอกสารที่ส่งมา:
+
+```text
+GET /external-queue-api/queues/scan?external_ref=<เลขออเดอร์>&station_token=<ค่าจาก QR>&key=<API_KEY>
+```
+
+- `external_ref` = เลขออเดอร์ (ตัด /NN)
+- `station_token` = ค่าที่สแกนได้จาก QR ทั้งหมด (ถ้า QR เป็น URL จะดึงค่า station_token ออกจากลิงก์ให้ ถ้าไม่ใช่ส่งค่าดิบ)
+- `key` = key ตัวเดียวกับที่ใช้ดึงคิว (QTRUCK_API_KEY) — อยู่ฝั่งเซิร์ฟเวอร์ ไม่โผล่ในแอป
+- เรียกผ่าน edge function ใหม่ `qtruck-queue-scan` (ตรวจ x-app-secret + บันทึก audit log เหมือนเส้นอื่น) เพื่อไม่ให้ key รั่วไปอยู่ในแอป
+- ส่งแบบไม่รอผล: ถ้าคิวตอบ 404 (จบแล้ว) หรือ 400 (หลายคิว active) คนขับยังไปขั้น "แนบหลักฐาน" ได้ตามเดิม แค่บันทึก log
+- กด "ข้าม" = ไม่ยิงเส้นนี้
 
 ## ไม่เปลี่ยน
-เช็คอิน, SOP, ลายเซ็น, งานต่างประเทศ, จุดส่ง, การส่ง processing/completed เดิมของ QTruck
+เช็คอิน, SOP, ลายเซ็น, งานต่างประเทศ, จุดส่ง, การส่ง processing/completed เดิม, ไม่เปิดเว็บจาก QR
 
 ## Technical details
-- `DomesticJobDetail.tsx` `handleLoadingQrDone`: ถ้า value ไม่ null → `console.log('[LoadingQR]', ...)`, invoke `update-qtruck-queue-status` `{order_number: baseOrder, status: 'processing'}` fire-and-forget (ใช้ helper/header x-app-secret แบบเดียวกับจุดที่เรียกอยู่แล้ว); ถ้า `/^https?:\/\//` → `window.open(value, '_blank')` (บน native ใช้ Browser plugin ถ้ามีในโปรเจกต์)
-- Edge function เดิมเขียน audit log อยู่แล้ว (`edge_function_audit_logs`) — ไม่ต้องแก้ฝั่ง backend
-- หมายเหตุ: ถ้าเว็บใน QR เป็นตัวอัปเดตคิวเองอยู่แล้ว ข้อ 1 อาจซ้ำ — ระบบคิวรับสถานะเดิมซ้ำได้
+- ไฟล์ใหม่ `supabase/functions/qtruck-queue-scan/index.ts`: รับ `{order_number, station_token}` → GET `${BASE}/queues/scan?external_ref=...&station_token=...&key=${QTRUCK_API_KEY}`; verifyAppSecret + writeAuditLog
+- `src/lib/qtruckQueueStatus.ts`: เพิ่ม `notifyQtruckQueueScan(orderNumber, stationToken)` fire-and-forget (invoke qtruck-queue-scan)
+- `DomesticJobDetail.tsx` `handleLoadingQrDone`: value ไม่ null → ดึง station_token (`new URL(value).searchParams.get('station_token')` ถ้า parse ได้ ไม่งั้นใช้ value) → เรียก notifyQtruckQueueScan(baseOrder, token) + console.log('[LoadingQR]', ...)
