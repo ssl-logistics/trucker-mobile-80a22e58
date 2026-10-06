@@ -12,6 +12,17 @@ interface Props {
 
 const REGION_ID = 'loading-qr-region';
 
+// Override styles injected by html5-qrcode: hide its status text ("Scanner paused"),
+// links/images and white background, and make the camera video fill the box.
+const SCANNER_CSS = `
+  #${REGION_ID} { position: relative; background: hsl(var(--foreground) / 0.9); border: none; }
+  #${REGION_ID} video { width: 100% !important; height: 100% !important; object-fit: cover; display: block; }
+  #${REGION_ID} img, #${REGION_ID} a, #${REGION_ID} button, #${REGION_ID} select { display: none !important; }
+  #${REGION_ID} span { display: none !important; }
+  #${REGION_ID} canvas { display: none !important; }
+  #${REGION_ID} #qr-shaded-region { inset: 0 !important; }
+`;
+
 export default function LoadingQrScanDialog({ open, onOpenChange, onDone }: Props) {
   const { t } = useLanguage();
   const scannerRef = useRef<Html5Qrcode | null>(null);
