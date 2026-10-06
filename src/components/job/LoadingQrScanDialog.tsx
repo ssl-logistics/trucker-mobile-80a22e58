@@ -12,6 +12,17 @@ interface Props {
 
 const REGION_ID = 'loading-qr-region';
 
+// Override styles injected by html5-qrcode: hide its status text ("Scanner paused"),
+// links/images and white background, and make the camera video fill the box.
+const SCANNER_CSS = `
+  #${REGION_ID} { position: relative; background: hsl(var(--foreground) / 0.9); border: none; }
+  #${REGION_ID} video { width: 100% !important; height: 100% !important; object-fit: cover; display: block; }
+  #${REGION_ID} img, #${REGION_ID} a, #${REGION_ID} button, #${REGION_ID} select { display: none !important; }
+  #${REGION_ID} span { display: none !important; }
+  #${REGION_ID} canvas { display: none !important; }
+  #${REGION_ID} #qr-shaded-region { inset: 0 !important; }
+`;
+
 export default function LoadingQrScanDialog({ open, onOpenChange, onDone }: Props) {
   const { t } = useLanguage();
   const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -57,14 +68,17 @@ export default function LoadingQrScanDialog({ open, onOpenChange, onDone }: Prop
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
+        <style>{SCANNER_CSS}</style>
         <DialogHeader>
-          <DialogTitle>{t('loadingQr.title')}</DialogTitle>
+          <DialogTitle className="text-center">{t('loadingQr.title')}</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-muted-foreground">{t('loadingQr.hint')}</p>
+        <p className="text-sm text-muted-foreground text-center">{t('loadingQr.hint')}</p>
         {cameraError ? (
           <div className="rounded-lg bg-muted p-4 text-sm text-center text-muted-foreground">{t('loadingQr.cameraError')}</div>
         ) : (
-          <div id={REGION_ID} className="w-full aspect-square rounded-lg overflow-hidden bg-muted" />
+          <div className="w-full aspect-square rounded-xl overflow-hidden ring-1 ring-border shadow-sm">
+            <div id={REGION_ID} className="w-full h-full" />
+          </div>
         )}
         <Button variant="outline" className="w-full" onClick={() => { doneRef.current = true; onDone(null); }}>
           {t('loadingQr.skip')}
