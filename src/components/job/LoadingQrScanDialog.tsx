@@ -68,14 +68,17 @@ export default function LoadingQrScanDialog({ open, onOpenChange, onDone }: Prop
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
+        <style>{SCANNER_CSS}</style>
         <DialogHeader>
-          <DialogTitle>{t('loadingQr.title')}</DialogTitle>
+          <DialogTitle className="text-center">{t('loadingQr.title')}</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-muted-foreground">{t('loadingQr.hint')}</p>
+        <p className="text-sm text-muted-foreground text-center">{t('loadingQr.hint')}</p>
         {cameraError ? (
           <div className="rounded-lg bg-muted p-4 text-sm text-center text-muted-foreground">{t('loadingQr.cameraError')}</div>
         ) : (
-          <div id={REGION_ID} className="w-full aspect-square rounded-lg overflow-hidden bg-muted" />
+          <div className="w-full aspect-square rounded-xl overflow-hidden ring-1 ring-border shadow-sm">
+            <div id={REGION_ID} className="w-full h-full" />
+          </div>
         )}
         <Button variant="outline" className="w-full" onClick={() => { doneRef.current = true; onDone(null); }}>
           {t('loadingQr.skip')}
