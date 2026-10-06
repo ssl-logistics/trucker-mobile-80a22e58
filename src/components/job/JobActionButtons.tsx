@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { FileText } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ReportProblemDrawer from "./ReportProblemDrawer";
+import JobDocumentsSheet from "./JobDocumentsSheet";
 import expenseViewIcon from '@/assets/expense-view-icon.svg';
 import expenseAddIcon from '@/assets/expense-add-icon.svg';
 import reportProblemIcon from '@/assets/report-problem-icon.svg';
