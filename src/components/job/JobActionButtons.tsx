@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FileText } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ReportProblemDrawer from "./ReportProblemDrawer";
 import JobDocumentsSheet from "./JobDocumentsSheet";
 import expenseViewIcon from '@/assets/expense-view-icon.svg';
 import expenseAddIcon from '@/assets/expense-add-icon.svg';
 import reportProblemIcon from '@/assets/report-problem-icon.svg';
+import documentsIcon from '@/assets/documents-icon.svg';
 import { isHistoryContext } from '@/lib/historyMode';
 
 interface JobActionButtonsProps {
@@ -101,7 +101,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
           className="flex flex-col items-center gap-1 text-primary"
           onClick={() => setIsDocumentsSheetOpen(true)}
         >
-          <FileText className="w-8 h-8" />
+          <img src={documentsIcon} alt="" className="w-8 h-8" />
           <span className="text-xs font-medium">{t('jobActions.documents')}</span>
         </button>
       </div>
