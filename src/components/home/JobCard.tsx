@@ -41,6 +41,7 @@ interface Job {
   employer_name: string;
   transport_type: string;
   transport_type_label?: string;
+  assigned_company_type?: string | null;
   origin_location: string;
   destination_location: string;
   destination_company_name: string | null;
