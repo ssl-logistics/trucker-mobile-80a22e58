@@ -157,7 +157,11 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
 
       <div className="space-y-2 sm:space-y-3">
         <div className="text-base sm:text-lg">
-          <span className="text-muted-foreground">{isFactoryJob ? t('job.factory') : t('job.employer')} : </span>
+          <span className="text-muted-foreground">
+            {job.assigned_company_type
+              ? (job.assigned_company_type === 'factory' ? t('job.factory') : t('job.ownerCompany'))
+              : (isFactoryJob ? t('job.factory') : t('job.employer'))}
+            : </span>
           <span className="font-medium">{job.employer_name}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
