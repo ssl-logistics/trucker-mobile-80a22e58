@@ -21,3 +21,24 @@ export function notifyQtruckQueueStatus(
     })
     .catch((e) => console.warn('[QTruck] queue status update failed:', e));
 }
+
+/**
+ * Fire-and-forget: notify the QTruck queue system that the driver scanned
+ * the loading-station QR (station_token comes from the scanned QR code).
+ * The edge function quietly logs failures (404 = queue finished, 400 =
+ * multiple active queues), so callers don't need to handle them.
+ */
+export function notifyQtruckQueueScan(
+  orderNumber: string | null | undefined,
+  stationToken: string,
+): void {
+  if (!orderNumber || !stationToken) return;
+  supabase.functions
+    .invoke('qtruck-queue-scan', {
+      body: { order_number: orderNumber, station_token: stationToken },
+    })
+    .then(({ error }) => {
+      if (error) console.warn('[QTruck] queue scan error:', error);
+    })
+    .catch((e) => console.warn('[QTruck] queue scan failed:', e));
+}
