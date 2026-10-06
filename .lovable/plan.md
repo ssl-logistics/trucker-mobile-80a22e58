@@ -4,7 +4,7 @@
 
 คำหน้าชื่อบริษัทบนการ์ดงานหน้าแรกยังไม่ได้เช็คจากข้อมูลที่ API ส่งมา แต่ตัดสินจากแท็บที่เลือก + ประเภทคนขับ/รถ (`isFactoryJob` prop) ทำให้กรณีรถบริษัทแต่วิ่งให้โรงงาน (หรือกลับกัน) แสดงคำไม่ตรงกับตัวงานจริง
 
-## สิ่งที่จะทำ
+## สิ่งที่จะทำ (เฉพาะหน้าแรก)
 
 เปลี่ยนมาเช็คจาก**ช่อง `assigned_company_type`** ที่ API ส่งมาเท่านั้น (ไม่ใช้ประเภทคนขับหรือรถ ไม่ใช้แท็บ) แล้วแสดง 2 คำ:
 
@@ -18,6 +18,11 @@
 ## รายละเอียดทางเทคนิค
 
 - `src/pages/Home.tsx` — ตอน map ข้อมูลจาก 2 API (งานโรงงาน/งานที่ได้รับมอบหมาย และงานเช่าด่วน) เพิ่ม field `assigned_company_type: item.assigned_company_type ?? null` ให้ทุกงาน (ส่งค่าดิบจาก API ผ่านไปเลย ไม่ตีความที่หน้า map)
-- `src/components/home/JobCard.tsx` (บรรทัด 160) — ถ้า `job.assigned_company_type` มีค่า: `'factory'` → แสดง "โรงงาน", ค่าอื่น (`logistics` ฯลฯ) → แสดง "บริษัท"; ถ้าไม่มีค่า (null/undefined) ใช้ prop `isFactoryJob` เดิมเป็น fallback เพื่อไม่พังก่อน TMS ส่งช่องนี้
-- เปลี่ยนค่า translation `job.employer` ใน `src/contexts/LanguageContext.tsx` ครบ 4 ภาษา: th `ผู้จ้าง`→`บริษัท`, en `Employer`→`Company`, ko `고용주`→`회사`, zh `雇主`→`公司` — key นี้ถูกใช้ใน 4 จุด (การ์ดหน้าแรก, การ์ดประวัติงาน, งานปัจจุบัน, หน้าประมูล) ทุกจุดจะแสดง "บริษัท" ให้คำเรียกสอดคล้องกันทั้งแอป
+- `src/components/home/JobCard.tsx` (บรรทัด 160) — ถ้า `job.assigned_company_type` มีค่า: `'factory'` → แสดง `t('job.factory')` = "โรงงาน", ค่าอื่น (`logistics` ฯลฯ) → แสดง `t('job.ownerCompany')` = "บริษัท"; ถ้าไม่มีค่า (null/undefined) ใช้ prop `isFactoryJob` เดิมเป็น fallback เพื่อไม่พังก่อน TMS ส่งช่องนี้
+- เพิ่มคำแปลใหม่ `job.ownerCompany` ใน `src/contexts/LanguageContext.tsx` ครบ 4 ภาษา: th `บริษัท`, en `Company`, ko `회사`, zh `公司` — ใช้เฉพาะใน JobCard เท่านั้น
+- ขอบเขต: แก้เฉพาะหน้าแรก — JobCard ใช้ร่วมกับหน้าตลาด (Market) ด้วย จะได้คำแบบเดียวกัน, ส่วนคำว่า "ผู้จ้าง" ในหน้าอื่น (ประวัติงาน, งานปัจจุบัน, หน้าประมูล) คงเดิมทุกจุด
 - ไม่แตะ: การดึงข้อมูลชื่อบริษัท (employer_name fallback chain), flow การรับงาน, ปุ่มต่างๆ
+
+## หมายเหตุ
+
+- ตอนนี้ API ทั้ง 2 เส้น (get-factory-assigned-jobs และ get-express-rent-posts) ยังไม่ส่ง `assigned_company_type` มาใน response (ตรวจเรียกจริงแล้ว ไม่มีช่องนี้) — แอปจะรองรับไว้ก่อน เมื่อทีม TMS เพิ่มช่องนี้ คำจะแสดงถูกต้องทันที
