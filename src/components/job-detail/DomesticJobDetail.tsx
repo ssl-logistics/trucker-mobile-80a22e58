@@ -609,6 +609,12 @@ export default function DomesticJobDetail({
   // Fetch check-in status and SOP status from external APIs
   const allDriversFallbackRef = useRef<string | null>(null);
   const fetchStatusesRef = useRef<((showLoading?: boolean) => Promise<void>) | null>(null);
+  // Keep the latest jobApplication in a ref so fetchStatuses stays stable and
+  // doesn't retrigger a full (loading) refetch every time the prop updates.
+  const jobApplicationRef = useRef(jobApplication);
+  jobApplicationRef.current = jobApplication;
+  // Orders that already completed their first full load — later fetches run silently.
+  const loadedOrdersRef = useRef<Set<string>>(new Set());
   const fetchStatuses = useCallback(async (showLoading: boolean = true) => {
     if (!userId || !job.order_code) return;
 
