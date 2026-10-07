@@ -53,6 +53,7 @@ import checkInIcon from '@/assets/check-in-icon.png';
 import { ContainerReturnDeadlineBanner } from '@/components/job-detail/ContainerReturnDeadlineBanner';
 import { isHistoryContext } from '@/lib/historyMode';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
+import { readPageCache, writePageCache } from '@/lib/pageCache';
 
 interface DriverCheckin {
   order_number: string;
@@ -608,6 +609,12 @@ export default function DomesticJobDetail({
   // Fetch check-in status and SOP status from external APIs
   const allDriversFallbackRef = useRef<string | null>(null);
   const fetchStatusesRef = useRef<((showLoading?: boolean) => Promise<void>) | null>(null);
+  // Keep the latest jobApplication in a ref so fetchStatuses stays stable and
+  // doesn't retrigger a full (loading) refetch every time the prop updates.
+  const jobApplicationRef = useRef(jobApplication);
+  jobApplicationRef.current = jobApplication;
+  // Orders that already completed their first full load — later fetches run silently.
+  const loadedOrdersRef = useRef<Set<string>>(new Set());
   const fetchStatuses = useCallback(async (showLoading: boolean = true) => {
     if (!userId || !job.order_code) return;
 
@@ -627,6 +634,7 @@ export default function DomesticJobDetail({
     }
 
     try {
+      let pickupSopDone = false;
       // Fetch check-in status
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
@@ -659,8 +667,8 @@ export default function DomesticJobDetail({
 
       // Safety net (background, non-blocking): if driver-scoped fetch returned nothing,
       // retry with allDrivers; if it finds rows, re-run statuses silently in allDrivers mode.
-      const notStarted = !(jobApplication as any)?.job_started_at &&
-        ['pending', 'awaiting_response', 'awaiting'].includes(String((jobApplication as any)?.status || ''));
+      const notStarted = !(jobApplicationRef.current as any)?.job_started_at &&
+        ['pending', 'awaiting_response', 'awaiting'].includes(String((jobApplicationRef.current as any)?.status || ''));
       if (!useAllDrivers && apiCheckins.length === 0 && !notStarted) {
         const orderCode = job.order_code;
         getDriverCheckins(userId, driverType, orderCode, { allDrivers: true }).then((retry) => {
@@ -729,7 +737,7 @@ export default function DomesticJobDetail({
       ) as any) || (checkins.find((c: DriverCheckin) => c.checkin_type === 'container_pickup_confirmed') as any);
       setContainerPickupAt(pickupRecord?.checked_in_at || pickupRecord?.created_at || null);
 
-      const statusLower = String((job as any)?.status || jobApplication?.status || '').toLowerCase();
+      const statusLower = String((job as any)?.status || jobApplicationRef.current?.status || '').toLowerCase();
       const jobCompletedByStatus = ['completed', 'closed', 'container_returned'].includes(statusLower) || isFromHistory;
       const completedFallbackTime = (job as any)?.updated_at || job.destination_date || job.start_date || new Date().toISOString();
 
@@ -829,10 +837,25 @@ export default function DomesticJobDetail({
             : null;
 
           setPickupSopCompleted(!!pickupSOP);
+          pickupSopDone = !!pickupSOP;
           // Note: deliverySopCompleted is ONLY set from hasDeliveryConfirmed (delivery_confirmed checkin)
           // Do NOT set it from delivery SOP record existence - that doesn't mean POD is completed
         }
       }
+
+      // Remember the latest statuses so revisiting this order renders instantly.
+      writePageCache(`checkinStatus:${job.order_code}`, {
+        pickupCheckedIn: hasPickupCheckin,
+        pickupSopCompleted: pickupSopDone,
+        deliveryCheckedIn: hasDeliveryCheckin,
+        deliverySopCompleted: hasDeliveryConfirmed,
+        emptyContainerCheckedIn: hasContainerPickupCheckin,
+        containerReturnCheckedIn: hasContainerReturnCheckin,
+        containerReturnConfirmed: hasContainerReturnConfirmed,
+        containerPickupConfirmed: hasContainerPickupConfirmed,
+        containerPickupAt: pickupRecord?.checked_in_at || pickupRecord?.created_at || null,
+        destinationCheckins: destCheckins,
+      });
     } catch (error) {
       console.error('Error fetching statuses:', error);
       // Don't reset check-in states on error - they may have been set correctly before SOP fetch failed
@@ -843,12 +866,47 @@ export default function DomesticJobDetail({
         setIsLoadingCheckinStatus(false);
       }
     }
-  }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver, jobApplication]);
+  }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
   fetchStatusesRef.current = fetchStatuses;
 
   useEffect(() => {
+    const orderCode = job.order_code;
+    if (!orderCode) return;
+    // Already loaded this order before (e.g. came back from a sub-page) —
+    // refresh silently so the cards never reset or flash the skeleton again.
+    if (loadedOrdersRef.current.has(orderCode)) {
+      void fetchStatuses(false);
+      return;
+    }
+    // First open of this order in the session: hydrate from the local cache if
+    // we have one, so the cards show instantly and the refresh runs silently.
+    const cached = readPageCache<{
+      pickupCheckedIn: boolean; pickupSopCompleted: boolean;
+      deliveryCheckedIn: boolean; deliverySopCompleted: boolean;
+      emptyContainerCheckedIn: boolean; containerReturnCheckedIn: boolean;
+      containerReturnConfirmed: boolean; containerPickupConfirmed: boolean;
+      containerPickupAt: string | null;
+      destinationCheckins: Record<number, { checked_in_at: string | null; sop_completed_at: string | null }>;
+    }>(`checkinStatus:${orderCode}`);
+    if (cached) {
+      setPickupCheckedIn(cached.pickupCheckedIn);
+      setPickupSopCompleted(cached.pickupSopCompleted);
+      setDeliveryCheckedIn(cached.deliveryCheckedIn);
+      setDeliverySopCompleted(cached.deliverySopCompleted);
+      setEmptyContainerCheckedIn(cached.emptyContainerCheckedIn);
+      setContainerReturnCheckedIn(cached.containerReturnCheckedIn);
+      setContainerReturnConfirmed(cached.containerReturnConfirmed);
+      setContainerPickupConfirmed(cached.containerPickupConfirmed);
+      setContainerPickupAt(cached.containerPickupAt);
+      setDestinationCheckins(cached.destinationCheckins || {});
+      setIsLoadingCheckinStatus(false);
+      loadedOrdersRef.current.add(orderCode);
+      void fetchStatuses(false);
+      return;
+    }
+    loadedOrdersRef.current.add(orderCode);
     void fetchStatuses(true);
-  }, [fetchStatuses]);
+  }, [job.order_code, fetchStatuses]);
 
   // Re-fetch on tab focus / page becoming visible — covers the case where the user
   // returns to job detail after performing a check-in / POD on a sub-page.
