@@ -5,6 +5,7 @@ import coinsIcon from '@/assets/coins-icon.png';
 import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
 import { Card } from '@/components/ui/card';
+import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
@@ -317,9 +318,18 @@ export default function JobRouteExpensesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+      <div className="min-h-screen bg-background pb-20">
+        <header className="app-sticky-header bg-header text-header-foreground rounded-b-xl shadow-lg">
+          <div className="flex items-center justify-center px-4 py-3 relative">
+            <button onClick={() => navigate('/income')} className="absolute left-0 p-2 hover:bg-white/10 rounded-full z-10">
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <h1 className="text-lg font-semibold text-center">{t('jobRoute.expenses')}</h1>
+          </div>
+        </header>
+        <div className="px-4 pt-6">
+          <JobListSkeleton count={3} variant="list" />
+        </div>
       </div>
     );
   }

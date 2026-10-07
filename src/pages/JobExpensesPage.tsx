@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Camera, Coins, Loader2, Plus, ImagePlus, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -441,9 +442,27 @@ export default function JobExpensesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+      <div className="min-h-screen bg-background pb-6">
+        <header className="bg-header text-header-foreground px-4 py-6 rounded-b-3xl shadow-lg">
+          <div className="flex items-center justify-center relative">
+            <button
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate(`/job/${encodeURIComponent(jobId)}${isFromHistory ? '?from=history' : ''}`, { replace: true, state: { fromHistory: isFromHistory } });
+                }
+              }}
+              className="absolute left-0 p-1 hover:bg-white/10 rounded-full"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <h1 className="text-xl font-semibold">{t('expenses.title')}</h1>
+          </div>
+        </header>
+        <div className="px-4 pt-6">
+          <JobListSkeleton count={3} variant="list" />
+        </div>
       </div>
     );
   }
