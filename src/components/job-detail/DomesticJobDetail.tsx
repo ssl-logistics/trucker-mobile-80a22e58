@@ -1373,6 +1373,8 @@ export default function DomesticJobDetail({
     autoScrolledOrderRef.current = orderKey;
     const timer = setTimeout(() => {
       let target: HTMLDivElement | null = null;
+      // First-step jobs stay at the top of the page (no auto-scroll).
+      let isFirstStep = false;
       const pickupDone = pickupSopCompleted || !!jobApplication?.sop_completed_at;
       const findFirstIncompleteDest = () =>
         displayDestinations.find((d) => {
@@ -1382,7 +1384,7 @@ export default function DomesticJobDetail({
       if (job.bl_no || job.booking_no) {
         // International: container pickup -> goods (BL delivery / Booking pickup) -> container return
         if (!isContainerStepCompleted) {
-          target = emptyContainerRef.current;
+          isFirstStep = true;
         } else if (job.bl_no) {
           const next = findFirstIncompleteDest();
           if (next) target = deliveryCardRefs.current.get(next.id) ?? null;
@@ -1394,7 +1396,7 @@ export default function DomesticJobDetail({
       } else {
         // Domestic: pickup -> delivery destinations
         if (!pickupDone) {
-          target = card1Ref.current;
+          isFirstStep = true;
         } else {
           const next = findFirstIncompleteDest();
           if (next) target = deliveryCardRefs.current.get(next.id) ?? null;
@@ -1402,10 +1404,15 @@ export default function DomesticJobDetail({
             const last = displayDestinations[displayDestinations.length - 1];
             if (last) target = deliveryCardRefs.current.get(last.id) ?? null;
           }
-          if (!target) target = card1Ref.current;
+          if (!target) {
+            // All steps complete — stay at the top of the page.
+            isFirstStep = true;
+          }
         }
       }
-      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (target && !isFirstStep) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }, 200);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
