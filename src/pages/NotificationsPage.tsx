@@ -317,9 +317,17 @@ export default function NotificationsPage() {
       }}>
       <div className="bg-white">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="text-sm mt-3">{t('common.loading') || 'กำลังโหลด...'}</p>
+          <div className="divide-y animate-pulse">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-start gap-3 px-4 py-3">
+                <div className="w-10 h-10 rounded-full bg-muted shrink-0" />
+                <div className="flex-1 space-y-2 py-1">
+                  <div className="h-3.5 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+                <div className="h-3 w-10 bg-muted rounded" />
+              </div>
+            ))}
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
