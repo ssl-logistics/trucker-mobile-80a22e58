@@ -52,6 +52,7 @@ import statusIcon from '@/assets/status-icon.png';
 import checkInIcon from '@/assets/check-in-icon.png';
 import { ContainerReturnDeadlineBanner } from '@/components/job-detail/ContainerReturnDeadlineBanner';
 import { isHistoryContext } from '@/lib/historyMode';
+import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 
 interface DriverCheckin {
   order_number: string;
@@ -1512,8 +1513,11 @@ export default function DomesticJobDetail({
             </div>
           )}
 
+          {/* Loading placeholder while check-in status is resolved (avoids button flicker) */}
+          {isLoadingCheckinStatus && <JobListSkeleton count={3} variant="timeline" />}
+
           {/* Step Tracker + Content Wrapper */}
-          <div className="relative flex gap-3">
+          <div className={`relative flex gap-3 ${isLoadingCheckinStatus ? 'hidden' : ''}`}>
             {/* Left Timeline Column with Continuous Line */}
             <div className="relative flex flex-col" style={{
             width: '28px',
