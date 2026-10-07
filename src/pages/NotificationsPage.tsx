@@ -38,8 +38,16 @@ export default function NotificationsPage() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<Notification[]>(() => {
+    try {
+      const raw = sessionStorage.getItem('notificationsCache');
+      if (raw) return (JSON.parse(raw)?.data as Notification[]) || [];
+    } catch { /* ignore */ }
+    return [];
+  });
+  const [loading, setLoading] = useState(() => {
+    try { return !sessionStorage.getItem('notificationsCache'); } catch { return true; }
+  });
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,16 +64,16 @@ export default function NotificationsPage() {
         return;
       }
       try {
-        setLoading(true);
         const { data: response, error } = await supabase.functions.invoke('get-notifications', {
           body: { action: 'list', user_id: driverId },
         });
         if (error) {
           console.error('Error fetching notifications:', error);
-          setNotifications([]);
           return;
         }
-        setNotifications(response?.data || []);
+        const list = response?.data || [];
+        setNotifications(list);
+        try { sessionStorage.setItem('notificationsCache', JSON.stringify({ user_id: driverId, data: list })); } catch { /* ignore */ }
       } catch (error) {
         console.error('Error fetching notifications:', error);
         setNotifications([]);
