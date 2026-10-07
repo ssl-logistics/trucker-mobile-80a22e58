@@ -235,7 +235,7 @@ export default function DomesticJobDetail({
   useEffect(() => {
     try { const raw = localStorage.getItem(loadingQrKey); setLoadingQr(raw ? JSON.parse(raw) : null); } catch { setLoadingQr(null); }
   }, [loadingQrKey]);
-  const needsLoadingQr = !isFromHistory && !job.bl_no && !job.booking_no && !loadingQr
+  const needsLoadingQr = !isFromHistory && !job.bl_no && !loadingQr
     && (pickupCheckedIn || !!jobApplication?.checked_in_at)
     && !(pickupSopCompleted || !!jobApplication?.sop_completed_at);
   const handleLoadingQrDone = (value: string | null) => {
@@ -2010,7 +2010,7 @@ export default function DomesticJobDetail({
                             </Button>
                           </>
                       }
-                        {loadingQr && !loadingQr.skipped && !job.bl_no && !job.booking_no && (
+                        {loadingQr && !loadingQr.skipped && !job.bl_no && (
                           <div className="col-span-full flex items-center gap-2 rounded-md bg-green-50 border border-green-200 px-2 py-1 text-xs text-green-800">
                             <CheckCircle className="w-3.5 h-3.5" />
                             <span>{t('loadingQr.scanned')} {formatDateTime(loadingQr.at, language)}</span>
@@ -2047,6 +2047,8 @@ export default function DomesticJobDetail({
               const destCheckin = destCheckinById[dest.id];
               const isPodCompleted = !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
               const isCheckedIn = !!destCheckin?.checked_in_at || !!dest.checked_in_at;
+              // BL (inbound): after delivery check-in, offer the loading QR scan step before upload/POD
+              const needsLoadingQrDelivery = !!job.bl_no && !isFromHistory && !loadingQr && isCheckedIn && !isPodCompleted;
 
               // Check if previous destination is completed (for sequential locking)
               // First destination requires pickup SOP to be completed
@@ -2452,6 +2454,12 @@ export default function DomesticJobDetail({
                       }
                       </div>
 
+                      {loadingQr && !loadingQr.skipped && !!job.bl_no && (
+                        <div className="flex items-center gap-2 rounded-md bg-green-50 border border-green-200 px-2 py-1 text-xs text-green-800 mb-2">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>{t('loadingQr.scanned')} {formatDateTime(loadingQr.at, language)}</span>
+                        </div>
+                      )}
                       <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
                         {!isFromHistory &&
                       <>
@@ -2493,10 +2501,11 @@ export default function DomesticJobDetail({
                           </>
                       }
                         <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
+                        if (needsLoadingQrDelivery) { setLoadingQrOpen(true); return; }
                         navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob, fromHistory: isFromHistory } });
                       }} disabled={isDestinationLocked || (isFromHistory && !isCheckedIn && !isPodCompleted)}>
                           <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
-                          <span className="text-xs">{isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
+                          <span className="text-xs">{needsLoadingQrDelivery ? t('loadingQr.button') : isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
                         </Button>
                       </div>
                     </div>
