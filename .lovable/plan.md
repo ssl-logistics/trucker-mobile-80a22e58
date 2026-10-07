@@ -1,25 +1,25 @@
-# Fix job category filter on Home (frontend only)
+# แก้ตัวกรองงานหน้าแรกให้ตรงกับที่เลือก (แก้เฉพาะหน้าแอป)
 
-## How it filters now
-- BL: job has a BL number.
-- Booking: job has a Booking number.
-- Multi-drop: the job has more than 1 drop-off point.
-- Single trip: the job has 0 or 1 drop-off point.
-- If you tick more than one box, a job shows when it matches any of them.
+## ตอนนี้กรองยังไง
+- งาน BL: งานที่มีเลข BL
+- งาน Booking: งานที่มีเลข Booking
+- งานส่งหลายที่: งานที่มีจุดส่งมากกว่า 1 จุด
+- งานส่งเที่ยวเดียว: งานที่มีจุดส่ง 0 หรือ 1 จุด
+- ถ้าเลือกหลายช่อง งานที่ตรงกับช่องใดช่องหนึ่งจะแสดง
 
-## Why results don't match what you picked
-1. "Single trip" also picks up BL and Booking jobs, because they usually have only 1 drop-off point. Tick only "Single trip" and international jobs still show.
-2. If a job comes with no drop-off list, it counts as having 0 drop-offs, so it always lands in "Single trip". That happens even when the job's send mode is actually multi-drop.
-3. The job's own send mode from the system (`send_mode` / `transport_type`) is never checked.
+## ทำไมผลไม่ตรงกับที่เลือก
+1. เลือก "งานส่งเที่ยวเดียว" อย่างเดียวแล้วงาน BL/Booking ยังโผล่มาด้วย เพราะงานพวกนี้ส่วนใหญ่มีจุดส่งแค่ 1 จุด
+2. งานที่ระบบไม่ได้ส่งรายการจุดส่งมาด้วย จะถูกนับว่ามี 0 จุด แล้วไปอยู่ใน "งานส่งเที่ยวเดียว" เสมอ ถึงงานนั้นจะเป็นแบบส่งหลายที่ก็ตาม
+3. ไม่ได้ดูรูปแบบการส่งที่ระบบระบุมากับงาน (ส่งหลายที่/เที่ยวเดียว) เลย
 
-## Fix
-- BL and Booking: no change.
-- Multi-drop and Single trip will only include domestic jobs. Jobs with a BL or Booking number are left out.
-- Multi-drop: the job's send mode says multi, or it has more than 1 drop-off point.
-- Single trip: a domestic job that isn't multi-drop.
-- Ticking several boxes still shows jobs that match any of them. Clear filter still shows everything.
+## สิ่งที่จะแก้
+- งาน BL และงาน Booking: กรองเหมือนเดิม
+- "งานส่งหลายที่" และ "งานส่งเที่ยวเดียว": นับเฉพาะงานในประเทศ ไม่รวมงานที่มีเลข BL หรือ Booking
+- งานส่งหลายที่: ระบบระบุว่าเป็นแบบส่งหลายที่ หรือมีจุดส่งมากกว่า 1 จุด
+- งานส่งเที่ยวเดียว: งานในประเทศที่ไม่ใช่แบบส่งหลายที่
+- เลือกหลายช่องยังแสดงงานที่ตรงกับช่องใดช่องหนึ่งเหมือนเดิม และกด "ล้างตัวกรอง" ก็ยังแสดงงานทั้งหมด
 
-## Technical details
-- Only `applyCategoryFilter` in `src/pages/Home.tsx` changes. `isIntl = hasBl || hasBooking || job.job_type === 'international'`.
-- `isMulti = !isIntl && (destCount > 1 || /multi/i.test(job.transport_type || ''))`. `isSingle = !isIntl && !isMulti`.
-- Fetching jobs, job cards and all other flows stay as they are.
+## รายละเอียดทางเทคนิค
+- แก้แค่ `applyCategoryFilter` ใน `src/pages/Home.tsx`: `isIntl = hasBl || hasBooking || job.job_type === 'international'`
+- `isMulti = !isIntl && (destCount > 1 || /multi/i.test(job.transport_type || ''))`, `isSingle = !isIntl && !isMulti`
+- การดึงข้อมูลงาน การ์ดงาน และขั้นตอนอื่นทั้งหมดคงเดิม
