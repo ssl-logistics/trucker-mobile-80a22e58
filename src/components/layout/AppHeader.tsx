@@ -8,11 +8,11 @@ import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import coverHeader from "@/assets/cover-header.webp";
-import currentJobIcon from "@/assets/current-job-icon.svg";
-import biddingIcon from "@/assets/bidding-icon.svg";
-import incomeIcon from "@/assets/income-icon.svg";
-import jobHistoryIcon from "@/assets/job-history-icon.svg";
-import marketIcon from "@/assets/market-icon-new.webp";
+import currentJobIcon from "@/assets/current-job-icon.svg?inline";
+import biddingIcon from "@/assets/bidding-icon.svg?inline";
+import incomeIcon from "@/assets/income-icon.svg?inline";
+import jobHistoryIcon from "@/assets/job-history-icon.svg?inline";
+import marketIcon from "@/assets/market-icon-new.webp?inline";
 
 // Warm the browser image cache as soon as this module loads
 if (typeof window !== "undefined") {
@@ -193,7 +193,7 @@ export function AppHeader({
           data-tour={item.labelKey === "home.market" ? "bidding-menu" : item.labelKey === "home.current_jobs" ? "current-jobs-menu" : undefined}
         >
                 <div className="w-16 h-16 flex items-center justify-center">
-                  <img src={item.icon} alt={t(item.labelKey)} className="w-full h-full object-contain" decoding="async" fetchPriority="high" loading="eager" />
+                  <img src={item.icon} alt={t(item.labelKey)} width={64} height={64} className="w-full h-full object-contain" decoding="sync" fetchPriority="high" loading="eager" />
                 </div>
                 <span className="text-sm text-[#153860] text-center">{t(item.labelKey)}</span>
               </button>)}
