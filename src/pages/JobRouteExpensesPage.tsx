@@ -5,6 +5,7 @@ import coinsIcon from '@/assets/coins-icon.png';
 import routeIcon from '@/assets/route-icon.png';
 import boxIcon from '@/assets/box-icon.png';
 import { Card } from '@/components/ui/card';
+import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Camera, Coins, Loader2, Plus, ImagePlus, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
