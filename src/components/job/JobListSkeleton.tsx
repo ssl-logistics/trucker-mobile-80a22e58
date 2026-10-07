@@ -1,5 +1,4 @@
 import { Skeleton } from '@/components/ui/skeleton';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface JobListSkeletonProps {
   count?: number;
@@ -9,10 +8,8 @@ interface JobListSkeletonProps {
 
 /** Faded placeholder cards shown only while data is loading. */
 export function JobListSkeleton({ count = 3, variant = 'list' }: JobListSkeletonProps) {
-  const { t } = useLanguage();
   return (
     <div className="space-y-4" aria-busy="true" aria-live="polite">
-      <p className="text-xs text-muted-foreground text-center">{t('common.loading')}</p>
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="flex gap-3">
           {variant === 'timeline' && (
