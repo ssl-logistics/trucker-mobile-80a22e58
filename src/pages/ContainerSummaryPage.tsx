@@ -1,3 +1,4 @@
+import { readPageCache, writePageCache } from '@/lib/pageCache';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, CheckCircle, Container, Hash } from 'lucide-react';
@@ -181,11 +182,13 @@ export default function ContainerSummaryPage() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const { isInternalDriver, isExternalDriver } = useUserRole();
-  const [job, setJob] = useState<JobDetail | null>(null);
-  const [sopData, setSopData] = useState<SOPData | null>(null);
-  const [ocrScanData, setOcrScanData] = useState<OcrScanData | null>(null);
-  const [returnOcrRefs, setReturnOcrRefs] = useState<{ bl_no: string | null; booking_no: string | null }>({ bl_no: null, booking_no: null });
-  const [loading, setLoading] = useState(true);
+  const [job, setJob] = useState<JobDetail | null>(() => readPageCache<any>(`containerSummary:${jobId || ''}`)?.job ?? null);
+  const [sopData, setSopData] = useState<SOPData | null>(() => readPageCache<any>(`containerSummary:${jobId || ''}`)?.sopData ?? null);
+  const [ocrScanData, setOcrScanData] = useState<OcrScanData | null>(() => readPageCache<any>(`containerSummary:${jobId || ''}`)?.ocrScanData ?? null);
+  const [returnOcrRefs, setReturnOcrRefs] = useState<{ bl_no: string | null; booking_no: string | null }>(() => readPageCache<any>(`containerSummary:${jobId || ''}`)?.returnOcrRefs ?? { bl_no: null, booking_no: null });
+  const summaryCacheKey = `containerSummary:${jobId || ''}`;
+  const initialSummary = readPageCache<{ job: JobDetail | null; sopData: SOPData | null; ocrScanData: OcrScanData | null; returnOcrRefs: { bl_no: string | null; booking_no: string | null } }>(summaryCacheKey);
+  const [loading, setLoading] = useState(!initialSummary);
   const rawPickupPhotoUrls = sopData?.pickup_photo_urls || [];
   const rawPickupEirPhotoUrls = rawPickupPhotoUrls.filter(isEirDocumentUrl);
   const rawReturnPhotoUrls = sopData?.return_photo_urls || (sopData?.return_photo_url ? [sopData.return_photo_url] : []);
@@ -228,18 +231,26 @@ export default function ContainerSummaryPage() {
   const loadData = async () => {
     if (!user || !jobId) return;
 
-    setLoading(true);
+    if (!readPageCache(summaryCacheKey)) setLoading(true);
+    const cacheOut: any = {};
 
     try {
       const driverId = user.id;
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
+      // Start check-in / SOP / OCR requests in parallel right away
+      const checkinPromise = getDriverCheckins(driverId, driverType, jobId);
+      const sopPromise = getDriverSop(driverId, driverType, jobId);
+      const ocrPromise = getOcrContainerScans(undefined, 10, jobId).catch((e: any) => ({ data: null, error: e }));
+
       // Try to get job from navigation state first
       const stateJob = (location.state as any)?.job || (location.state as any)?.jobData;
-      let foundJob: any = null;
+      let foundJob: any = stateJob && (stateJob.order_number || stateJob.order_code) ? stateJob : null;
 
-      // Fetch job from external API - try multiple statuses
-      if (isInternalDriver || isExternalDriver) {
+      // Fetch job from external API only when navigation state has none
+      if (foundJob) {
+        // use navigation state
+      } else if (isInternalDriver || isExternalDriver) {
         const [inProgressRes, inTransitRes, deliveredRes, completedRes] = await Promise.all([
           getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'in_progress'),
           getDriverAssignedJobs(driverId, driverType as 'internal' | 'external', 50, 'in_transit'),
@@ -269,6 +280,16 @@ export default function ContainerSummaryPage() {
       }
 
       if (foundJob) {
+        cacheOut.job = {
+          id: foundJob.order_number || foundJob.order_code || foundJob.id,
+          order_code: foundJob.order_number || foundJob.order_code || jobId!,
+          employer_name: foundJob.sender_name || foundJob.factory_name || foundJob.employer_name || '',
+          container_checkpoint: foundJob.container_pickup_location || foundJob.container_checkpoint || foundJob.container_return_location || '',
+          start_date: foundJob.sender_pickup_date || foundJob.start_date || '',
+          start_time: foundJob.sender_pickup_time || foundJob.start_time || '',
+          bl_no: foundJob.bl_no || null,
+          booking_no: foundJob.booking_no || null,
+        };
         setJob({
           id: foundJob.order_number || foundJob.order_code || foundJob.id,
           order_code: foundJob.order_number || foundJob.order_code || jobId!,
@@ -285,7 +306,7 @@ export default function ContainerSummaryPage() {
       const jobUuid = foundJob?.id || null;
 
       // Fetch check-in data from external API
-      const { data: checkinResult, error: checkinError } = await getDriverCheckins(driverId, driverType, jobId);
+      const { data: checkinResult, error: checkinError } = await checkinPromise;
 
       let checkedInAt: string | null = null;
       let pickupConfirmedAt: string | null = null;
@@ -377,7 +398,7 @@ export default function ContainerSummaryPage() {
       }
 
       // Fetch SOP data from external API
-      const { data: sopResult, error: sopError } = await getDriverSop(driverId, driverType, jobId);
+      const { data: sopResult, error: sopError } = await sopPromise;
 
       let sopCompletedAt: string | null = null;
       let sopPhotoUrlVal: string | null = null;
@@ -398,6 +419,12 @@ export default function ContainerSummaryPage() {
         }
       }
 
+      cacheOut.sopData = {
+        checked_in_at: checkedInAt, sop_completed_at: sopCompletedAt, sop_photo_url: sopPhotoUrlVal,
+        pickup_confirmed_at: pickupConfirmedAt, pickup_photo_urls: pickupPhotoUrls, pickup_driver_id: pickupDriverId,
+        return_checked_in_at: returnCheckedInAt, return_confirmed_at: returnConfirmedAt, return_photo_url: returnPhotoUrl,
+        return_photo_urls: returnPhotoUrls, return_driver_id: returnDriverId,
+      };
       setSopData({
         checked_in_at: checkedInAt,
         sop_completed_at: sopCompletedAt,
@@ -414,17 +441,26 @@ export default function ContainerSummaryPage() {
 
       // Fetch OCR scan data for container/seal photos
       try {
-        const { data: ocrResult, error: ocrError } = await getOcrContainerScans(undefined, 10, jobId);
+        const { data: ocrResult, error: ocrError } = await ocrPromise as any;
         if (!ocrError && ocrResult) {
           const ocrArr = (ocrResult as any)?.data || ocrResult || [];
           const arr = Array.isArray(ocrArr) ? ocrArr : [];
-          setOcrScanData(getPickupOcrData(arr));
-          setReturnOcrRefs(getReturnOcrRefs(arr));
+          cacheOut.ocrScanData = getPickupOcrData(arr);
+          cacheOut.returnOcrRefs = getReturnOcrRefs(arr);
+          setOcrScanData(cacheOut.ocrScanData);
+          setReturnOcrRefs(cacheOut.returnOcrRefs);
         }
       } catch (e) {
         console.warn('OCR scan data fetch failed:', e);
       }
 
+      const prev = readPageCache<any>(summaryCacheKey) || {};
+      writePageCache(summaryCacheKey, {
+        job: cacheOut.job ?? prev.job ?? null,
+        sopData: cacheOut.sopData ?? null,
+        ocrScanData: cacheOut.ocrScanData ?? prev.ocrScanData ?? null,
+        returnOcrRefs: cacheOut.returnOcrRefs ?? prev.returnOcrRefs ?? { bl_no: null, booking_no: null },
+      });
     } catch (error) {
       console.error('Error loading container summary:', error);
       toast({

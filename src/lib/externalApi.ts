@@ -479,13 +479,26 @@ export async function getFactoryAssignedJobs(freelanceDriverId: string, limit = 
   });
 }
 
+// Short-lived cache + in-flight dedupe: job sub-pages each re-fetch this
+// (large) list just to find one job, which made opening/back navigation slow.
+const _freelanceJobsCache = new Map<string, { at: number; promise: Promise<any> }>();
+const FREELANCE_JOBS_TTL_MS = 30_000;
+
 export async function getFreelanceAcceptedJobs(freelanceDriverId: string, limit = 1000) {
-  return callExternalApi<{ data: any[] }>('get-freelance-accepted-jobs', {
+  const key = `${freelanceDriverId}:${limit}`;
+  const hit = _freelanceJobsCache.get(key);
+  if (hit && Date.now() - hit.at < FREELANCE_JOBS_TTL_MS) return hit.promise;
+  const promise = callExternalApi<{ data: any[] }>('get-freelance-accepted-jobs', {
     params: {
       freelance_driver_id: freelanceDriverId,
       limit: String(limit),
     },
+  }).then((res: any) => {
+    if (res?.error) _freelanceJobsCache.delete(key);
+    return res;
   });
+  _freelanceJobsCache.set(key, { at: Date.now(), promise });
+  return promise;
 }
 
 // Accept an express rent job (direct external API call)
