@@ -1,3 +1,4 @@
+import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Clock, CircleDot, MapPin, Calendar as CalendarIconLucide } from "lucide-react";
@@ -805,9 +806,6 @@ export default function JobHistoryPage() {
 
   // Show the same skeleton as the job detail pages while the history data loads
   // (must stay after all hooks to keep hook order stable)
-  if (loading) {
-    return <JobDetailLoadingState />;
-  }
 
 
   return <div className="min-h-screen bg-gray-50 pb-20">
@@ -872,7 +870,7 @@ export default function JobHistoryPage() {
         <TabsContent value={activeTab} className="m-0">
           <div className="p-4 space-y-4">
             {loading ? (
-              <div className="text-center py-8 text-gray-500">{t('jobHistory.loading')}</div>
+              <JobListSkeleton count={3} />
             ) : (filteredApplications.length === 0 && filteredCompletedJobs.length === 0) ? (
               <div className="text-center py-8 text-gray-500">{t('jobHistory.noData')}</div>
             ) : (
