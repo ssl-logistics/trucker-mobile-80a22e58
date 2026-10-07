@@ -38,8 +38,16 @@ export default function NotificationsPage() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<Notification[]>(() => {
+    try {
+      const raw = sessionStorage.getItem('notificationsCache');
+      if (raw) return (JSON.parse(raw)?.data as Notification[]) || [];
+    } catch { /* ignore */ }
+    return [];
+  });
+  const [loading, setLoading] = useState(() => {
+    try { return !sessionStorage.getItem('notificationsCache'); } catch { return true; }
+  });
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,16 +64,16 @@ export default function NotificationsPage() {
         return;
       }
       try {
-        setLoading(true);
         const { data: response, error } = await supabase.functions.invoke('get-notifications', {
           body: { action: 'list', user_id: driverId },
         });
         if (error) {
           console.error('Error fetching notifications:', error);
-          setNotifications([]);
           return;
         }
-        setNotifications(response?.data || []);
+        const list = response?.data || [];
+        setNotifications(list);
+        try { sessionStorage.setItem('notificationsCache', JSON.stringify({ user_id: driverId, data: list })); } catch { /* ignore */ }
       } catch (error) {
         console.error('Error fetching notifications:', error);
         setNotifications([]);
@@ -309,9 +317,17 @@ export default function NotificationsPage() {
       }}>
       <div className="bg-white">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="text-sm mt-3">{t('common.loading') || 'กำลังโหลด...'}</p>
+          <div className="divide-y animate-pulse">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-start gap-3 px-4 py-3">
+                <div className="w-10 h-10 rounded-full bg-muted shrink-0" />
+                <div className="flex-1 space-y-2 py-1">
+                  <div className="h-3.5 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+                <div className="h-3 w-10 bg-muted rounded" />
+              </div>
+            ))}
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
