@@ -87,6 +87,14 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
           </>
         )}
 
+        <button
+          className="flex flex-col items-center gap-1 text-primary"
+          onClick={() => setIsDocumentsSheetOpen(true)}
+        >
+          <img src={documentsIcon} alt="" className="w-8 h-8" />
+          <span className="text-xs font-medium">{t('jobActions.documents')}</span>
+        </button>
+
         {!hideNonExpenseButtons && (
           <button 
             className="flex flex-col items-center gap-1 text-primary"
@@ -96,14 +104,6 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
             <span className="text-xs font-medium">{t('jobActions.reportProblem')}</span>
           </button>
         )}
-
-        <button
-          className="flex flex-col items-center gap-1 text-primary"
-          onClick={() => setIsDocumentsSheetOpen(true)}
-        >
-          <img src={documentsIcon} alt="" className="w-8 h-8" />
-          <span className="text-xs font-medium">{t('jobActions.documents')}</span>
-        </button>
       </div>
 
       <ReportProblemDrawer
