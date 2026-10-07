@@ -872,7 +872,7 @@ export default function JobHistoryPage() {
         <TabsContent value={activeTab} className="m-0">
           <div className="p-4 space-y-4">
             {loading ? (
-              <div className="text-center py-8 text-gray-500">{t('jobHistory.loading')}</div>
+              <JobListSkeleton count={3} />
             ) : (filteredApplications.length === 0 && filteredCompletedJobs.length === 0) ? (
               <div className="text-center py-8 text-gray-500">{t('jobHistory.noData')}</div>
             ) : (
