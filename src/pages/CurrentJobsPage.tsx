@@ -85,6 +85,7 @@ interface AcceptedJob {
   freelance_accepted_at?: string | null;
   factory_name?: string | null;
   isFactoryJob?: boolean;
+  assigned_company_type?: string | null;
   isBidJob?: boolean; // Flag for bid jobs - navigate to /bid-job/:ticketNumber
   job_type?: string | null; // domestic or international
   transport_category?: string | null;
@@ -602,6 +603,7 @@ export default function CurrentJobsPage() {
             freelance_bidder_id: null,
             freelance_bidder_name: null,
             factory_name: job.factory_name,
+            assigned_company_type: job.assigned_company_type ?? null,
             isFactoryJob: true,
             job_type: (job.booking_no || job.booking_number || job.bl_no || job.bl_number || job.bill_of_lading || job.job_type === 'international' || (job.transport_mode && ['sea', 'air'].includes((job.transport_mode || '').toLowerCase())) || (job.transport_category && job.transport_category !== 'domestic')) ? 'international' : (job.job_type || job.transport_category || null),
             transport_category: job.transport_category || null,
@@ -1214,7 +1216,10 @@ export default function CurrentJobsPage() {
                   </div>
                   <div className="p-4 space-y-3">
                     <div className="text-sm">
-                      <span className="text-muted-foreground">{(isInternalDriver || isExternalDriver) ? t('job.factory') : t('job.employer')} : </span>
+                      <span className="text-muted-foreground">
+                        {job.assigned_company_type
+                          ? (job.assigned_company_type === 'factory' ? t('job.factory') : t('job.ownerCompany'))
+                          : ((isInternalDriver || isExternalDriver) ? t('job.factory') : t('job.employer'))} : </span>
                       <span className="font-medium">{job.sender_name}</span>
                     </div>
                     
