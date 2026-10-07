@@ -260,6 +260,12 @@ export default function VehicleInfoPage() {
           setRegistrationPhotos(resolvedRegistrationPhotos);
           setRegistrationPhoto(resolvedRegistrationPhotos[0]);
         }
+        try {
+          sessionStorage.setItem('vehicleInfoCache', JSON.stringify({
+            vehicleData: vehicleFromUser,
+            registrationPhotos: resolvedRegistrationPhotos,
+          }));
+        } catch { /* ignore */ }
         setLoading(false);
         return;
       }
@@ -275,6 +281,9 @@ export default function VehicleInfoPage() {
       
       if (data) {
         setVehicleData(data);
+        try {
+          sessionStorage.setItem('vehicleInfoCache', JSON.stringify({ vehicleData: data, registrationPhotos: [] }));
+        } catch { /* ignore */ }
       }
     } catch (error) {
       console.error('Error loading vehicle data:', error);
@@ -658,8 +667,29 @@ export default function VehicleInfoPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">{t('vehicle.loading')}</div>
+      <div className="min-h-screen bg-background animate-pulse">
+        <div className="bg-header" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+          <div className="h-6 w-24 bg-white/20 rounded mx-auto my-3" />
+        </div>
+        <div className="p-4 space-y-3">
+          <div className="flex gap-2">
+            <div className="h-9 flex-1 bg-muted rounded-lg" />
+            <div className="h-9 flex-1 bg-muted rounded-lg" />
+          </div>
+          <div className="bg-white rounded-xl p-4 space-y-3">
+            <div className="h-4 bg-muted rounded w-1/3" />
+            <div className="h-3.5 bg-muted rounded w-2/3" />
+            <div className="h-3.5 bg-muted rounded w-1/2" />
+            <div className="h-3.5 bg-muted rounded w-3/4" />
+          </div>
+          <div className="bg-white rounded-xl p-4 space-y-3">
+            <div className="h-4 bg-muted rounded w-1/4" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="h-24 bg-muted rounded-lg" />
+              <div className="h-24 bg-muted rounded-lg" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
