@@ -53,6 +53,7 @@ import checkInIcon from '@/assets/check-in-icon.png';
 import { ContainerReturnDeadlineBanner } from '@/components/job-detail/ContainerReturnDeadlineBanner';
 import { isHistoryContext } from '@/lib/historyMode';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
+import { readPageCache, writePageCache } from '@/lib/pageCache';
 
 interface DriverCheckin {
   order_number: string;
