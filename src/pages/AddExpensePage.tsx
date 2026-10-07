@@ -105,6 +105,17 @@ const AddExpensePage = () => {
   const { extractFromImage } = useOCR();
   const returnPath = location.state?.returnPath || `/job/${jobId}/route-expenses`;
   const isFromHistory = isHistoryContext(location.search, location.state);
+  const unlockBody = () => {
+    document.body.style.pointerEvents = '';
+    document.body.style.overflow = '';
+  };
+  useEffect(() => () => unlockBody(), []);
+  const handleBack = () => {
+    unlockBody();
+    const idx = (window.history.state as any)?.idx;
+    if (typeof idx === 'number' && idx > 0) navigate(-1);
+    else navigate(`/job/${encodeURIComponent(jobId || '')}`, { replace: true });
+  };
   
   // English names for API submission
   const expenseTypeEnglishMap: Record<string, string> = {
