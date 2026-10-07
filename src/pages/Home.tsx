@@ -306,10 +306,11 @@ const isValidName = (val: any): string => {
       if (categoryFilters.size === 0) return jobList;
       return jobList.filter((job: any) => {
         const destCount = Array.isArray(job.destinations) ? job.destinations.length : 0;
-        const isMulti = destCount > 1;
-        const isSingle = destCount <= 1;
         const hasBl = !!(job.bl_no || job.bl_number || job.bill_of_lading);
         const hasBooking = !!(job.booking_no || job.booking_number);
+        const isIntl = hasBl || hasBooking || job.job_type === 'international';
+        const isMulti = !isIntl && (destCount > 1 || /multi/i.test(String(job.transport_type || '')));
+        const isSingle = !isIntl && !isMulti;
         if (categoryFilters.has('bl') && hasBl) return true;
         if (categoryFilters.has('booking') && hasBooking) return true;
         if (categoryFilters.has('multi') && isMulti) return true;
