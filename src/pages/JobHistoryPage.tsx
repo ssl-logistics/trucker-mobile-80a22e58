@@ -1,3 +1,4 @@
+import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Clock, CircleDot, MapPin, Calendar as CalendarIconLucide } from "lucide-react";
