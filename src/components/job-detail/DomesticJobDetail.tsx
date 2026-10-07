@@ -666,8 +666,8 @@ export default function DomesticJobDetail({
 
       // Safety net (background, non-blocking): if driver-scoped fetch returned nothing,
       // retry with allDrivers; if it finds rows, re-run statuses silently in allDrivers mode.
-      const notStarted = !(jobApplication as any)?.job_started_at &&
-        ['pending', 'awaiting_response', 'awaiting'].includes(String((jobApplication as any)?.status || ''));
+      const notStarted = !(jobApplicationRef.current as any)?.job_started_at &&
+        ['pending', 'awaiting_response', 'awaiting'].includes(String((jobApplicationRef.current as any)?.status || ''));
       if (!useAllDrivers && apiCheckins.length === 0 && !notStarted) {
         const orderCode = job.order_code;
         getDriverCheckins(userId, driverType, orderCode, { allDrivers: true }).then((retry) => {
@@ -736,7 +736,7 @@ export default function DomesticJobDetail({
       ) as any) || (checkins.find((c: DriverCheckin) => c.checkin_type === 'container_pickup_confirmed') as any);
       setContainerPickupAt(pickupRecord?.checked_in_at || pickupRecord?.created_at || null);
 
-      const statusLower = String((job as any)?.status || jobApplication?.status || '').toLowerCase();
+      const statusLower = String((job as any)?.status || jobApplicationRef.current?.status || '').toLowerCase();
       const jobCompletedByStatus = ['completed', 'closed', 'container_returned'].includes(statusLower) || isFromHistory;
       const completedFallbackTime = (job as any)?.updated_at || job.destination_date || job.start_date || new Date().toISOString();
 
