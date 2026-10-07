@@ -866,12 +866,47 @@ export default function DomesticJobDetail({
         setIsLoadingCheckinStatus(false);
       }
     }
-  }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver, jobApplication]);
+  }, [userId, job.order_code, job.id, isInternalDriver, isExternalDriver]);
   fetchStatusesRef.current = fetchStatuses;
 
   useEffect(() => {
+    const orderCode = job.order_code;
+    if (!orderCode) return;
+    // Already loaded this order before (e.g. came back from a sub-page) —
+    // refresh silently so the cards never reset or flash the skeleton again.
+    if (loadedOrdersRef.current.has(orderCode)) {
+      void fetchStatuses(false);
+      return;
+    }
+    // First open of this order in the session: hydrate from the local cache if
+    // we have one, so the cards show instantly and the refresh runs silently.
+    const cached = readPageCache<{
+      pickupCheckedIn: boolean; pickupSopCompleted: boolean;
+      deliveryCheckedIn: boolean; deliverySopCompleted: boolean;
+      emptyContainerCheckedIn: boolean; containerReturnCheckedIn: boolean;
+      containerReturnConfirmed: boolean; containerPickupConfirmed: boolean;
+      containerPickupAt: string | null;
+      destinationCheckins: Record<number, { checked_in_at: string | null; sop_completed_at: string | null }>;
+    }>(`checkinStatus:${orderCode}`);
+    if (cached) {
+      setPickupCheckedIn(cached.pickupCheckedIn);
+      setPickupSopCompleted(cached.pickupSopCompleted);
+      setDeliveryCheckedIn(cached.deliveryCheckedIn);
+      setDeliverySopCompleted(cached.deliverySopCompleted);
+      setEmptyContainerCheckedIn(cached.emptyContainerCheckedIn);
+      setContainerReturnCheckedIn(cached.containerReturnCheckedIn);
+      setContainerReturnConfirmed(cached.containerReturnConfirmed);
+      setContainerPickupConfirmed(cached.containerPickupConfirmed);
+      setContainerPickupAt(cached.containerPickupAt);
+      setDestinationCheckins(cached.destinationCheckins || {});
+      setIsLoadingCheckinStatus(false);
+      loadedOrdersRef.current.add(orderCode);
+      void fetchStatuses(false);
+      return;
+    }
+    loadedOrdersRef.current.add(orderCode);
     void fetchStatuses(true);
-  }, [fetchStatuses]);
+  }, [job.order_code, fetchStatuses]);
 
   // Re-fetch on tab focus / page becoming visible — covers the case where the user
   // returns to job detail after performing a check-in / POD on a sub-page.
