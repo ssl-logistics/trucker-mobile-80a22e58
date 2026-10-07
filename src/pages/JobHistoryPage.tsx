@@ -806,9 +806,6 @@ export default function JobHistoryPage() {
 
   // Show the same skeleton as the job detail pages while the history data loads
   // (must stay after all hooks to keep hook order stable)
-  if (loading) {
-    return <JobDetailLoadingState />;
-  }
 
 
   return <div className="min-h-screen bg-gray-50 pb-20">
