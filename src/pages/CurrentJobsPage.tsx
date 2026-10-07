@@ -1,3 +1,4 @@
+import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide, ListOrdered, Container, Tag } from 'lucide-react';
@@ -1192,7 +1193,7 @@ export default function CurrentJobsPage() {
 
       {/* Content */}
       <div className="px-4 py-4">
-        {loading ? <div className="text-center py-12 text-muted-foreground">{t('common.loading')}</div> : filteredJobs.length === 0 ? <EmptyState /> : <div className="space-y-4">
+        {loading ? <JobListSkeleton count={3} /> : filteredJobs.length === 0 ? <EmptyState /> : <div className="space-y-4">
             {filteredJobs.map(job => {
           const pickupDate = job.sender_pickup_date || '';
           const pickupTime = job.sender_pickup_time || '';
