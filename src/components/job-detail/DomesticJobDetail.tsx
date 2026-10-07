@@ -1371,6 +1371,8 @@ export default function DomesticJobDetail({
     const orderKey = job.order_code || '';
     if (!orderKey || autoScrolledOrderRef.current === orderKey) return;
     autoScrolledOrderRef.current = orderKey;
+    // Always start at the top of the page first, then scroll to the current step.
+    window.scrollTo({ top: 0 });
     const timer = setTimeout(() => {
       let target: HTMLDivElement | null = null;
       // First-step jobs stay at the top of the page (no auto-scroll).
