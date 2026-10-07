@@ -634,6 +634,7 @@ export default function DomesticJobDetail({
     }
 
     try {
+      let pickupSopDone = false;
       // Fetch check-in status
       const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
 
