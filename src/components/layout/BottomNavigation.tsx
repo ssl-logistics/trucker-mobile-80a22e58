@@ -6,12 +6,12 @@ import { useCall } from "@/components/call/CallProvider";
 import { createPortal } from "react-dom";
 import { useState, useEffect, useRef } from "react";
 import { preloadTab } from "@/lib/tabPreload";
-import HomeIcon from "@/assets/home-icon.svg";
-import HomeIconActive from "@/assets/home-icon-active.svg";
-import DashboardIcon from "@/assets/dashboard-icon.svg";
-import DashboardIconActive from "@/assets/dashboard-icon-active.svg";
-import SettingsIcon from "@/assets/settings-icon.svg";
-import SettingsIconActive from "@/assets/settings-icon-active.svg";
+import HomeIcon from "@/assets/home-icon.svg?inline";
+import HomeIconActive from "@/assets/home-icon-active.svg?inline";
+import DashboardIcon from "@/assets/dashboard-icon.svg?inline";
+import DashboardIconActive from "@/assets/dashboard-icon-active.svg?inline";
+import SettingsIcon from "@/assets/settings-icon.svg?inline";
+import SettingsIconActive from "@/assets/settings-icon-active.svg?inline";
 
 export function BottomNavigation() {
   const navigate = useNavigate();
@@ -152,6 +152,8 @@ export function BottomNavigation() {
                 <img 
                   src={isActive(item.path) && item.customActiveIcon ? item.customActiveIcon : item.customIcon} 
                   alt={item.label}
+                  decoding="sync"
+                  draggable={false}
                   style={{
                     width: "20px",
                     height: "20px",
