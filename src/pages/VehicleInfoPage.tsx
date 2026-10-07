@@ -135,13 +135,33 @@ export default function VehicleInfoPage() {
   const { user, userType, refreshUser } = useAuth();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('data');
-  const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
+  const [vehicleData, setVehicleData] = useState<VehicleData | null>(() => {
+    try {
+      const raw = sessionStorage.getItem('vehicleInfoCache');
+      if (raw) return (JSON.parse(raw)?.vehicleData as VehicleData) || null;
+    } catch { /* ignore */ }
+    return null;
+  });
   const [photos, setPhotos] = useState<VehiclePhoto[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    try { return !sessionStorage.getItem('vehicleInfoCache'); } catch { return true; }
+  });
   const [isUploading, setIsUploading] = useState(false);
   const [isRegistrationDrawerOpen, setIsRegistrationDrawerOpen] = useState(false);
-  const [registrationPhoto, setRegistrationPhoto] = useState<string | null>(null);
-  const [registrationPhotos, setRegistrationPhotos] = useState<string[]>([]);
+  const [registrationPhoto, setRegistrationPhoto] = useState<string | null>(() => {
+    try {
+      const raw = sessionStorage.getItem('vehicleInfoCache');
+      if (raw) return (JSON.parse(raw)?.registrationPhotos?.[0] as string) || null;
+    } catch { /* ignore */ }
+    return null;
+  });
+  const [registrationPhotos, setRegistrationPhotos] = useState<string[]>(() => {
+    try {
+      const raw = sessionStorage.getItem('vehicleInfoCache');
+      if (raw) return (JSON.parse(raw)?.registrationPhotos as string[]) || [];
+    } catch { /* ignore */ }
+    return [];
+  });
   const [isVehiclePhotoDrawerOpen, setIsVehiclePhotoDrawerOpen] = useState(false);
   const [currentPhotoType, setCurrentPhotoType] = useState<string>('');
   const [photoTimestamp, setPhotoTimestamp] = useState<number>(Date.now());
