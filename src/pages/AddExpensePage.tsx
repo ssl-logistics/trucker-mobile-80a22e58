@@ -105,6 +105,17 @@ const AddExpensePage = () => {
   const { extractFromImage } = useOCR();
   const returnPath = location.state?.returnPath || `/job/${jobId}/route-expenses`;
   const isFromHistory = isHistoryContext(location.search, location.state);
+  const unlockBody = () => {
+    document.body.style.pointerEvents = '';
+    document.body.style.overflow = '';
+  };
+  useEffect(() => () => unlockBody(), []);
+  const handleBack = () => {
+    unlockBody();
+    const idx = (window.history.state as any)?.idx;
+    if (typeof idx === 'number' && idx > 0) navigate(-1);
+    else navigate(`/job/${encodeURIComponent(jobId || '')}`, { replace: true });
+  };
   
   // English names for API submission
   const expenseTypeEnglishMap: Record<string, string> = {
@@ -611,8 +622,9 @@ const AddExpensePage = () => {
       <header className="app-sticky-header bg-background border-b">
         <div className="px-4 py-4 flex items-center gap-3">
           <button
-            onClick={() => navigate(-1)}
-            className="p-2 hover:bg-muted rounded-full transition-colors"
+            onClick={handleBack}
+            aria-label="back"
+            className="relative z-10 w-10 h-10 flex items-center justify-center hover:bg-muted rounded-full transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
