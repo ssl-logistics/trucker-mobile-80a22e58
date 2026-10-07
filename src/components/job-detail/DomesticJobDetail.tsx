@@ -836,10 +836,25 @@ export default function DomesticJobDetail({
             : null;
 
           setPickupSopCompleted(!!pickupSOP);
+          pickupSopDone = !!pickupSOP;
           // Note: deliverySopCompleted is ONLY set from hasDeliveryConfirmed (delivery_confirmed checkin)
           // Do NOT set it from delivery SOP record existence - that doesn't mean POD is completed
         }
       }
+
+      // Remember the latest statuses so revisiting this order renders instantly.
+      writePageCache(`checkinStatus:${job.order_code}`, {
+        pickupCheckedIn: hasPickupCheckin,
+        pickupSopCompleted: pickupSopDone,
+        deliveryCheckedIn: hasDeliveryCheckin,
+        deliverySopCompleted: hasDeliveryConfirmed,
+        emptyContainerCheckedIn: hasContainerPickupCheckin,
+        containerReturnCheckedIn: hasContainerReturnCheckin,
+        containerReturnConfirmed: hasContainerReturnConfirmed,
+        containerPickupConfirmed: hasContainerPickupConfirmed,
+        containerPickupAt: pickupRecord?.checked_in_at || pickupRecord?.created_at || null,
+        destinationCheckins: destCheckins,
+      });
     } catch (error) {
       console.error('Error fetching statuses:', error);
       // Don't reset check-in states on error - they may have been set correctly before SOP fetch failed
