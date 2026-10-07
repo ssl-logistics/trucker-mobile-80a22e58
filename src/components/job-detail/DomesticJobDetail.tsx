@@ -1404,7 +1404,10 @@ export default function DomesticJobDetail({
             const last = displayDestinations[displayDestinations.length - 1];
             if (last) target = deliveryCardRefs.current.get(last.id) ?? null;
           }
-          if (!target) target = card1Ref.current;
+          if (!target) {
+            // All steps complete — stay at the top of the page.
+            isFirstStep = true;
+          }
         }
       }
       if (target && !isFirstStep) {
