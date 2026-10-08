@@ -62,7 +62,8 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
 
   const addPendingFiles = (files: PendingFile[]) => {
     if (files.length === 0) return;
-    setPendingFiles((prev) => [...prev, ...files]);
+    // One file at a time: a new selection replaces the pending one.
+    setPendingFiles(files.slice(0, 1));
     setShowPicker(false);
   };
 
@@ -307,7 +308,6 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
         ref={galleryInputRef}
         type="file"
         accept={ACCEPT_IMAGE_DOC}
-        multiple
         onChange={handleFileChange}
         className="hidden"
       />
@@ -315,7 +315,6 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
         ref={fileInputRef}
         type="file"
         accept={ACCEPT_IMAGE_DOC}
-        multiple
         onChange={handleFileChange}
         className="hidden"
       />
