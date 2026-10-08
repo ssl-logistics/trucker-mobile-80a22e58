@@ -66,6 +66,21 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
+  // Reset the dialog to a clean state (empty fields, no pending/attached files)
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setPendingFiles([]);
+    setUploaded([]);
+    setShowPicker(false);
+    setUploading(false);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) resetForm();
+    onOpenChange(nextOpen);
+  };
+
   // Strip destination suffix (e.g. OR20260929003/01 -> OR20260929003)
   const baseOrderNumber = (orderNumber || '').split('/')[0];
 
