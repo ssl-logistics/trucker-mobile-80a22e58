@@ -896,6 +896,7 @@ const thTranslations: Record<string, string> = {
   'docs.upload': 'อัปโหลดเอกสาร',
   'docs.pendingFiles': 'ไฟล์ที่เลือก (รออัปโหลด)',
   'docs.removeFile': 'ลบไฟล์นี้',
+  'docs.attachFile': 'แนบไฟล์จากเครื่อง',
   
   // Sign In Page
   'signIn.title': 'เข้าสู่ระบบ',
@@ -2624,6 +2625,7 @@ const enTranslations: Record<string, string> = {
   'docs.upload': 'Upload Documents',
   'docs.pendingFiles': 'Selected files (pending upload)',
   'docs.removeFile': 'Remove this file',
+  'docs.attachFile': 'Attach File from Device',
   
   // Sign In Page
   'signIn.title': 'Sign In',
@@ -5045,6 +5047,7 @@ const koTranslations: Record<string, string> = {
   'docs.upload': '문서 업로드',
   'docs.pendingFiles': '선택된 파일 (업로드 대기 중)',
   'docs.removeFile': '이 파일 삭제',
+  'docs.attachFile': '기기에서 파일 첨부',
   
   // Sign In Page
   'signIn.title': '로그인',
@@ -5911,6 +5914,7 @@ const zhTranslations: Record<string, string> = {
   'docs.upload': '上传文件',
   'docs.pendingFiles': '已选文件（待上传）',
   'docs.removeFile': '删除此文件',
+  'docs.attachFile': '从设备附加文件',
   
   // Pickup Detail Page
   'pickup.title': '取货点',

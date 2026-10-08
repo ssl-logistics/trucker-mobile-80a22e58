@@ -49,6 +49,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   const [description, setDescription] = useState('');
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
   // Strip destination suffix (e.g. OR20260929003/01 -> OR20260929003)
@@ -140,6 +141,13 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
         galleryInputRef.current.value = '';
         galleryInputRef.current.click();
       }
+    }
+  };
+
+  const handleAttachFile = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
     }
   };
 
@@ -274,6 +282,10 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
               <ImageIcon className="w-5 h-5 mr-2" />
               {t('docs.chooseFromGallery')}
             </Button>
+            <Button variant="outline" className="w-full h-12" onClick={handleAttachFile} disabled={uploading}>
+              <Paperclip className="w-5 h-5 mr-2" />
+              {t('docs.attachFile')}
+            </Button>
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
@@ -293,6 +305,14 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       />
       <input
         ref={galleryInputRef}
+        type="file"
+        accept={ACCEPT_IMAGE_DOC}
+        multiple
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <input
+        ref={fileInputRef}
         type="file"
         accept={ACCEPT_IMAGE_DOC}
         multiple
