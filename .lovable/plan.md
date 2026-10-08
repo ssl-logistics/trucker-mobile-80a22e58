@@ -24,9 +24,9 @@
 - หน้่าต่า່ງแนบเอกสารในแอป (frontend อยา่ງเดีียว)
 - ไม่มี API/ฐานข้้อมููล/flow เดิิม (เชັ็กอิ็น, SOP, POD, QTruck, OCR) ถู็กแก้
 
-##  technical
+## ข้้อมููลทางเท็คนิค
 
-- `src/components/job/JobDocumentsSheet.tsx`: add `resetForm()` clearing `title`, `description`, `pendingFiles`, `uploaded`, `showPicker`; call it on upload success (before toast) and in a wrapped `onOpenChange` when the sheet closes. `uploading` still handled in `finally`.
-- No new translation keys (`docs.emptyUploaded` reused for the empty state).
-- Verify with a temporary harness + Playwright: attach PDF, fill title/description, upload, assert all four are cleared; re-check unsupported-file toast still works. Remove harness afterwards.
-- `npx tsgo` + build must pass.
+- หน้่าต่า່ງแนบเอกสาร: เพิิ่ມ `resetForm()` ท่ีล้า้ງหั้ວข้้อ รายละเอีีຍด ไฟล์รอส่้ง รายการแนบแล้ວ และปິດชั่ນเลືອกไฟล์ เรືຍกตอนส່งสำเร็ຶจ (ก່อนแสดงຂ้ອความเตືອນ) และตอนປິດหน้ຳຕ່າງ `uploading` ยັງจັດการใน `finally` เป็็นเดືມ
+- ไม່เพิມຂ้ອความแปลໃหม่ ใช້ຂ້ອความ "ຍັງไม้ðຽแนบเอกสาร" ทີມືอยູ້แล້ວ
+- ตรวจด้วยหน้ຳทົดสอบชั่ວคราว + Playwright: แนบ PDF, กรอกຫັວຂ้ອ/ລາຍລະອຽດ, อັປโหลด, แล້ວยืนยันວ່າລ້างຫມົດທັງໝົດ; ตรวจຂ້ອความเตືອນไฟล์ไม่ຮັບຊັບແຟມยັງເຮັດວຽກ แລ້ວລຶบหน້າທົດສອບออก
+- ตรวจโค้ດ (tsgo) และ build ต້ອງຜ່ານ
