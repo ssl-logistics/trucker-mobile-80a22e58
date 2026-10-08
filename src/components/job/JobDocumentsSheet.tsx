@@ -327,7 +327,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       <input
         ref={cameraInputRef}
         type="file"
-        accept={ACCEPT_IMAGE_DOC}
+        accept={ACCEPT_DOC_ALLOWED}
         capture="environment"
         onChange={handleFileChange}
         className="hidden"
@@ -335,14 +335,14 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       <input
         ref={galleryInputRef}
         type="file"
-        accept={ACCEPT_IMAGE_DOC}
+        accept={ACCEPT_DOC_ALLOWED}
         onChange={handleFileChange}
         className="hidden"
       />
       <input
         ref={fileInputRef}
         type="file"
-        accept={ACCEPT_IMAGE_DOC}
+        accept={ACCEPT_DOC_ALLOWED}
         onChange={handleFileChange}
         className="hidden"
       />
