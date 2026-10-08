@@ -46,7 +46,6 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   const [uploaded, setUploaded] = useState<UploadedDoc[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const pendingFilesRef = useRef<PendingFile[]>([]);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
