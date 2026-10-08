@@ -893,6 +893,9 @@ const thTranslations: Record<string, string> = {
   'docs.docTitlePlaceholder': 'หัวข้อเอกสาร (บังคับ) เช่น ใบชั่งน้ำหนัก',
   'docs.descriptionPlaceholder': 'รายละเอียดเพิ่มเติม (ไม่บังคับ)',
   'docs.titleRequired': 'กรุณากรอกหัวข้อเอกสารก่อนแนบไฟล์',
+  'docs.upload': 'อัปโหลดเอกสาร',
+  'docs.pendingFiles': 'ไฟล์ที่เลือก (รออัปโหลด)',
+  'docs.removeFile': 'ลบไฟล์นี้',
   
   // Sign In Page
   'signIn.title': 'เข้าสู่ระบบ',
@@ -2618,6 +2621,9 @@ const enTranslations: Record<string, string> = {
   'docs.docTitlePlaceholder': 'Document title (required), e.g. Weight slip',
   'docs.descriptionPlaceholder': 'Additional details (optional)',
   'docs.titleRequired': 'Please enter a document title before attaching files',
+  'docs.upload': 'Upload Documents',
+  'docs.pendingFiles': 'Selected files (pending upload)',
+  'docs.removeFile': 'Remove this file',
   
   // Sign In Page
   'signIn.title': 'Sign In',
@@ -5033,6 +5039,12 @@ const koTranslations: Record<string, string> = {
   'docs.uploadSuccess': '문서가 첨부되었습니다',
   'docs.uploadFailed': '업로드에 실패했습니다. 다시 시도해 주세요.',
   'docs.emptyUploaded': '아직 첨부된 문서가 없습니다',
+  'docs.docTitlePlaceholder': '문서 제목 (필수) 예: 계근표',
+  'docs.descriptionPlaceholder': '추가 상세 정보 (선택 사항)',
+  'docs.titleRequired': '파일을 첨부하기 전에 문서 제목을 입력해 주세요',
+  'docs.upload': '문서 업로드',
+  'docs.pendingFiles': '선택된 파일 (업로드 대기 중)',
+  'docs.removeFile': '이 파일 삭제',
   
   // Sign In Page
   'signIn.title': '로그인',
@@ -5893,6 +5905,12 @@ const zhTranslations: Record<string, string> = {
   'docs.uploadSuccess': '文件附加成功',
   'docs.uploadFailed': '上传失败，请重试',
   'docs.emptyUploaded': '尚未附加文件',
+  'docs.docTitlePlaceholder': '文件标题（必填），例如：称重单',
+  'docs.descriptionPlaceholder': '补充说明（选填）',
+  'docs.titleRequired': '附加文件前请先填写文件标题',
+  'docs.upload': '上传文件',
+  'docs.pendingFiles': '已选文件（待上传）',
+  'docs.removeFile': '删除此文件',
   
   // Pickup Detail Page
   'pickup.title': '取货点',
