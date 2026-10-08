@@ -4,7 +4,7 @@ import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerT
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Camera, FileText, ImageIcon, Loader2, Paperclip } from 'lucide-react';
+import { Camera, FileText, ImageIcon, Loader2, Paperclip, Upload, X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNativeCamera } from '@/hooks/useNativeCamera';
@@ -44,6 +44,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   const [uploading, setUploading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [uploaded, setUploaded] = useState<UploadedDoc[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -58,17 +59,26 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       ? `${user.first_name} ${user.last_name}`
       : user?.full_name || user?.name || user?.username || '';
 
-  const sendFiles = async (files: PendingFile[]) => {
-    if (!baseOrderNumber || files.length === 0) return;
+  const addPendingFiles = (files: PendingFile[]) => {
+    if (files.length === 0) return;
+    setPendingFiles((prev) => [...prev, ...files]);
+    setShowPicker(false);
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpload = async () => {
+    if (!baseOrderNumber || pendingFiles.length === 0) return;
     if (!title.trim()) {
       toast({ title: t('docs.titleRequired'), variant: 'destructive' });
-      setShowPicker(false);
       return;
     }
     setUploading(true);
     try {
       const filesBase64: Array<string | { file_name: string; data: string }> = [];
-      for (const { file, isPdf } of files) {
+      for (const { file, isPdf } of pendingFiles) {
         if (isPdf) {
           const data = await readFileAsDataUrl(file);
           filesBase64.push({ file_name: file.name, data });
@@ -95,22 +105,22 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       const now = new Date();
       setUploaded((prev) => [
         ...prev,
-        ...files.map(({ file }) => ({ name: file.name, uploadedAt: now })),
+        ...pendingFiles.map(({ file }) => ({ name: file.name, uploadedAt: now })),
       ]);
+      setPendingFiles([]);
       toast({ title: t('docs.uploadSuccess') });
     } catch (err) {
       console.error('Document upload error:', err);
       toast({ title: t('docs.uploadFailed'), variant: 'destructive' });
     } finally {
       setUploading(false);
-      setShowPicker(false);
     }
   };
 
   const handleTakePhoto = async () => {
     if (isNative) {
       const file = await takePhoto();
-      if (file) await sendFiles([{ file, isPdf: false }]);
+      if (file) addPendingFiles([{ file, isPdf: false }]);
       else setShowPicker(false);
     } else {
       if (cameraInputRef.current) {
@@ -123,7 +133,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   const handleSelectFromGallery = async () => {
     if (isNative) {
       const file = await selectFromGallery();
-      if (file) await sendFiles([{ file, isPdf: false }]);
+      if (file) addPendingFiles([{ file, isPdf: false }]);
       else setShowPicker(false);
     } else {
       if (galleryInputRef.current) {
@@ -138,7 +148,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       file,
       isPdf: file.type === 'application/pdf' || /\.pdf$/i.test(file.name),
     }));
-    if (files.length > 0) await sendFiles(files);
+    addPendingFiles(files);
     if (e.target) e.target.value = '';
   };
 
@@ -171,17 +181,57 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
             </div>
 
             <Button
+              variant="outline"
               className="w-full h-12"
               onClick={() => setShowPicker(true)}
               disabled={uploading || !baseOrderNumber}
             >
-              {uploading ? (
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              ) : (
-                <Paperclip className="w-5 h-5 mr-2" />
-              )}
-              {uploading ? t('docs.uploading') : t('docs.attach')}
+              <Paperclip className="w-5 h-5 mr-2" />
+              {t('docs.attach')}
             </Button>
+
+            {pendingFiles.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">
+                  {t('docs.pendingFiles')}
+                </p>
+                <ul className="space-y-2">
+                  {pendingFiles.map((pending, index) => (
+                    <li
+                      key={`${pending.file.name}-${index}`}
+                      className="flex items-center gap-3 rounded-lg border px-3 py-2"
+                    >
+                      <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
+                      <p className="text-sm font-medium truncate flex-1 min-w-0">
+                        {pending.file.name}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => removePendingFile(index)}
+                        disabled={uploading}
+                        aria-label={t('docs.removeFile')}
+                        className="shrink-0 p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-50"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  className="w-full h-12"
+                  onClick={handleUpload}
+                  disabled={uploading || !title.trim()}
+                >
+                  {uploading ? (
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="w-5 h-5 mr-2" />
+                  )}
+                  {uploading ? t('docs.uploading') : t('docs.upload')}
+                </Button>
+              </div>
+            )}
 
             {uploaded.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-2 py-10 text-muted-foreground">
