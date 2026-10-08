@@ -642,6 +642,22 @@ export async function getReportProblems(orderNumber: string) {
   });
 }
 
+// ==================== Driver Documents API ====================
+
+export async function uploadDriverDocument(body: {
+  order_number: string;
+  title: string;
+  description?: string;
+  driver_name: string;
+  files_base64: Array<string | { file_name: string; data: string }>;
+}) {
+  return callExternalApi<{ success: boolean; data?: any }>('driver-documents', {
+    method: 'POST',
+    params: { order_number: body.order_number },
+    body,
+  });
+}
+
 // ==================== Expense APIs ====================
 
 export async function addExpense(body: {
