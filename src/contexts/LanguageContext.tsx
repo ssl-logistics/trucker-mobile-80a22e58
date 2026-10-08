@@ -890,6 +890,9 @@ const thTranslations: Record<string, string> = {
   'docs.uploadSuccess': 'แนบเอกสารเรียบร้อยแล้ว',
   'docs.uploadFailed': 'อัปโหลดไม่สำเร็จ กรุณาลองใหม่',
   'docs.emptyUploaded': 'ยังไม่ได้แนบเอกสาร',
+  'docs.docTitlePlaceholder': 'หัวข้อเอกสาร (บังคับ) เช่น ใบชั่งน้ำหนัก',
+  'docs.descriptionPlaceholder': 'รายละเอียดเพิ่มเติม (ไม่บังคับ)',
+  'docs.titleRequired': 'กรุณากรอกหัวข้อเอกสารก่อนแนบไฟล์',
   
   // Sign In Page
   'signIn.title': 'เข้าสู่ระบบ',
@@ -2612,6 +2615,9 @@ const enTranslations: Record<string, string> = {
   'docs.uploadSuccess': 'Document attached successfully',
   'docs.uploadFailed': 'Upload failed. Please try again.',
   'docs.emptyUploaded': 'No documents attached yet',
+  'docs.docTitlePlaceholder': 'Document title (required), e.g. Weight slip',
+  'docs.descriptionPlaceholder': 'Additional details (optional)',
+  'docs.titleRequired': 'Please enter a document title before attaching files',
   
   // Sign In Page
   'signIn.title': 'Sign In',
