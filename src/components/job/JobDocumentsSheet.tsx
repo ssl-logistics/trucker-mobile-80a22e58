@@ -66,6 +66,21 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
+  // Reset the dialog to a clean state (empty fields, no pending/attached files)
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setPendingFiles([]);
+    setUploaded([]);
+    setShowPicker(false);
+    setUploading(false);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) resetForm();
+    onOpenChange(nextOpen);
+  };
+
   // Strip destination suffix (e.g. OR20260929003/01 -> OR20260929003)
   const baseOrderNumber = (orderNumber || '').split('/')[0];
 
@@ -132,13 +147,8 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
         throw new Error('Upload failed');
       }
 
-      const now = new Date();
-      setUploaded((prev) => [
-        ...prev,
-        ...pendingFiles.map(({ file }) => ({ name: file.name, uploadedAt: now })),
-      ]);
-      setPendingFiles([]);
       toast({ title: t('docs.uploadSuccess') });
+      resetForm();
     } catch (err) {
       console.error('Document upload error:', err);
       toast({ title: t('docs.uploadFailed'), variant: 'destructive' });
@@ -191,7 +201,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
+      <Sheet open={open} onOpenChange={handleOpenChange}>
         <SheetContent side="bottom" className="h-[80vh] flex flex-col rounded-t-2xl p-0 max-w-[560px] mx-auto">
           <SheetHeader className="px-4 py-3 border-b space-y-0 text-left">
             <SheetTitle className="flex items-center gap-2 text-base">
