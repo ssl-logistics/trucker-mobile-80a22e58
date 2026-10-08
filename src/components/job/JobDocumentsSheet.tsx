@@ -2,13 +2,16 @@ import { useRef, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Camera, FileText, ImageIcon, Loader2, Paperclip } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNativeCamera } from '@/hooks/useNativeCamera';
 import { toast } from '@/hooks/use-toast';
 import { compressImage } from '@/utils/imageCompression';
 import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
+import { uploadDriverDocument } from '@/lib/externalApi';
 
 interface JobDocumentsSheetProps {
   open: boolean;
@@ -19,40 +22,82 @@ interface JobDocumentsSheetProps {
 
 interface UploadedDoc {
   name: string;
-  url: string;
   uploadedAt: Date;
 }
 
+interface PendingFile {
+  file: File;
+  isPdf: boolean;
+}
+
+const readFileAsDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
 export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: JobDocumentsSheetProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [uploaded, setUploaded] = useState<UploadedDoc[]>([]);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const pendingFilesRef = useRef<PendingFile[]>([]);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const { takePhoto, selectFromGallery, isNative } = useNativeCamera();
 
-  // Strip destination suffix (e.g. OR20260929003/01 -> OR20260929003) for the S3 folder
+  // Strip destination suffix (e.g. OR20260929003/01 -> OR20260929003)
   const baseOrderNumber = (orderNumber || '').split('/')[0];
 
-  const uploadFile = async (file: File) => {
-    if (!baseOrderNumber) return;
+  const driverName =
+    user?.first_name && user?.last_name
+      ? `${user.first_name} ${user.last_name}`
+      : user?.full_name || user?.name || user?.username || '';
+
+  const sendFiles = async (files: PendingFile[]) => {
+    if (!baseOrderNumber || files.length === 0) return;
+    if (!title.trim()) {
+      toast({ title: t('docs.titleRequired'), variant: 'destructive' });
+      setShowPicker(false);
+      return;
+    }
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', await compressImage(file));
-      formData.append('folder', `documents/${baseOrderNumber}`);
+      const filesBase64: Array<string | { file_name: string; data: string }> = [];
+      for (const { file, isPdf } of files) {
+        if (isPdf) {
+          const data = await readFileAsDataUrl(file);
+          filesBase64.push({ file_name: file.name, data });
+        } else {
+          const compressed = await compressImage(file);
+          const data = await readFileAsDataUrl(compressed);
+          filesBase64.push(data);
+        }
+      }
 
-      const { data, error } = await supabase.functions.invoke('upload-to-s3', {
-        body: formData,
+      const { data, error } = await uploadDriverDocument({
+        order_number: baseOrderNumber,
+        title: title.trim(),
+        description: description.trim() || undefined,
+        driver_name: driverName,
+        files_base64: filesBase64,
       });
 
-      if (error || !data?.url) {
+      if (error || !data?.success) {
         console.error('Document upload response:', { error, data });
         throw new Error('Upload failed');
       }
 
-      setUploaded((prev) => [...prev, { name: file.name, url: data.url, uploadedAt: new Date() }]);
+      const now = new Date();
+      setUploaded((prev) => [
+        ...prev,
+        ...files.map(({ file }) => ({ name: file.name, uploadedAt: now })),
+      ]);
       toast({ title: t('docs.uploadSuccess') });
     } catch (err) {
       console.error('Document upload error:', err);
@@ -66,7 +111,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   const handleTakePhoto = async () => {
     if (isNative) {
       const file = await takePhoto();
-      if (file) await uploadFile(file);
+      if (file) await sendFiles([{ file, isPdf: false }]);
       else setShowPicker(false);
     } else {
       if (cameraInputRef.current) {
@@ -79,7 +124,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   const handleSelectFromGallery = async () => {
     if (isNative) {
       const file = await selectFromGallery();
-      if (file) await uploadFile(file);
+      if (file) await sendFiles([{ file, isPdf: false }]);
       else setShowPicker(false);
     } else {
       if (galleryInputRef.current) {
@@ -90,8 +135,11 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) await uploadFile(file);
+    const files = Array.from(e.target.files || []).map((file) => ({
+      file,
+      isPdf: file.type === 'application/pdf' || /\.pdf$/i.test(file.name),
+    }));
+    if (files.length > 0) await sendFiles(files);
     if (e.target) e.target.value = '';
   };
 
@@ -107,6 +155,22 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+            <div className="space-y-2">
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={t('docs.docTitlePlaceholder')}
+                disabled={uploading}
+              />
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={t('docs.descriptionPlaceholder')}
+                rows={2}
+                disabled={uploading}
+              />
+            </div>
+
             <Button
               className="w-full h-12"
               onClick={() => setShowPicker(true)}
@@ -129,7 +193,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
               <ul className="space-y-2">
                 {uploaded.map((doc, index) => (
                   <li
-                    key={`${doc.url}-${index}`}
+                    key={`${doc.name}-${index}`}
                     className="flex items-center gap-3 rounded-lg border px-3 py-2"
                   >
                     <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
@@ -182,6 +246,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
         ref={galleryInputRef}
         type="file"
         accept={ACCEPT_IMAGE_DOC}
+        multiple
         onChange={handleFileChange}
         className="hidden"
       />
