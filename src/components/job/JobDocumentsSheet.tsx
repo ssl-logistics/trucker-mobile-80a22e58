@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNativeCamera } from '@/hooks/useNativeCamera';
 import { toast } from '@/hooks/use-toast';
 import { compressImage } from '@/utils/imageCompression';
-import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
+import { ACCEPT_DOC_ALLOWED } from '@/utils/uploadAccept';
 import { uploadDriverDocument } from '@/lib/externalApi';
 
 interface JobDocumentsSheetProps {
@@ -29,6 +29,20 @@ interface PendingFile {
   file: File;
   isPdf: boolean;
 }
+
+// ตรวจทั้ง MIME และนามสกุล (Safari/HEIC มักรายงาน MIME ว่าง)
+const ALLOWED_DOC_MIME = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+  'application/pdf',
+];
+const ALLOWED_DOC_EXT = /\.(jpe?g|png|webp|heic|heif|pdf)$/i;
+const isAllowedDocFile = (file: File) =>
+  ALLOWED_DOC_MIME.includes(file.type.toLowerCase()) || ALLOWED_DOC_EXT.test(file.name);
 
 const readFileAsDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -60,10 +74,24 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       ? `${user.first_name} ${user.last_name}`
       : user?.full_name || user?.name || user?.username || '';
 
+  // API driver-documents รับเฉพาะรูป JPG/PNG/WEBP/HEIC หรือ PDF — ไฟล์อื่นแจ้งเตือนและไม่เพิ่มเข้าลิสต์
   const addPendingFiles = (files: PendingFile[]) => {
     if (files.length === 0) return;
+    const allowed = files.filter(({ file }) => isAllowedDocFile(file));
+    const rejected = files.filter(({ file }) => !isAllowedDocFile(file));
+    if (rejected.length > 0) {
+      toast({
+        title: t('docs.unsupportedFile'),
+        description: rejected.map(({ file }) => file.name).join(', '),
+        variant: 'destructive',
+      });
+    }
+    if (allowed.length === 0) {
+      setShowPicker(false);
+      return;
+    }
     // One file at a time: a new selection replaces the pending one.
-    setPendingFiles(files.slice(0, 1));
+    setPendingFiles(allowed.slice(0, 1));
     setShowPicker(false);
   };
 
@@ -299,7 +327,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       <input
         ref={cameraInputRef}
         type="file"
-        accept={ACCEPT_IMAGE_DOC}
+        accept={ACCEPT_DOC_ALLOWED}
         capture="environment"
         onChange={handleFileChange}
         className="hidden"
@@ -307,14 +335,14 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       <input
         ref={galleryInputRef}
         type="file"
-        accept={ACCEPT_IMAGE_DOC}
+        accept={ACCEPT_DOC_ALLOWED}
         onChange={handleFileChange}
         className="hidden"
       />
       <input
         ref={fileInputRef}
         type="file"
-        accept={ACCEPT_IMAGE_DOC}
+        accept={ACCEPT_DOC_ALLOWED}
         onChange={handleFileChange}
         className="hidden"
       />

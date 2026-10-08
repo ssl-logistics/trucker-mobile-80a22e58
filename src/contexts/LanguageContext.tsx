@@ -897,6 +897,7 @@ const thTranslations: Record<string, string> = {
   'docs.pendingFiles': 'ไฟล์ที่เลือก (รออัปโหลด)',
   'docs.removeFile': 'ลบไฟล์นี้',
   'docs.attachFile': 'แนบไฟล์จากเครื่อง',
+  'docs.unsupportedFile': 'รองรับเฉพาะไฟล์รูป JPG/PNG/WEBP/HEIC หรือ PDF เท่านั้น',
   
   // Sign In Page
   'signIn.title': 'เข้าสู่ระบบ',
@@ -2626,6 +2627,7 @@ const enTranslations: Record<string, string> = {
   'docs.pendingFiles': 'Selected files (pending upload)',
   'docs.removeFile': 'Remove this file',
   'docs.attachFile': 'Attach File from Device',
+  'docs.unsupportedFile': 'Only JPG/PNG/WEBP/HEIC images or PDF files are supported',
   
   // Sign In Page
   'signIn.title': 'Sign In',
@@ -5048,6 +5050,7 @@ const koTranslations: Record<string, string> = {
   'docs.pendingFiles': '선택된 파일 (업로드 대기 중)',
   'docs.removeFile': '이 파일 삭제',
   'docs.attachFile': '기기에서 파일 첨부',
+  'docs.unsupportedFile': 'JPG/PNG/WEBP/HEIC 이미지 또는 PDF 파일만 지원됩니다',
   
   // Sign In Page
   'signIn.title': '로그인',
@@ -5915,6 +5918,7 @@ const zhTranslations: Record<string, string> = {
   'docs.pendingFiles': '已选文件（待上传）',
   'docs.removeFile': '删除此文件',
   'docs.attachFile': '从设备附加文件',
+  'docs.unsupportedFile': '仅支持 JPG/PNG/WEBP/HEIC 图片或 PDF 文件',
   
   // Pickup Detail Page
   'pickup.title': '取货点',
