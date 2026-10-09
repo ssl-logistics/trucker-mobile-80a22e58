@@ -35,6 +35,15 @@ export default function SignatureDialog({ open, onOpenChange, orderCode, pointKe
   const [hasInk, setHasInk] = useState(false);
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
+  // First-time intro card: shown once per account (every time on preview hosts).
+  const introUserId = String(localStorage.getItem('auth_driver_id') || '');
+  const introKey = introUserId ? `signature_intro_ack:${introUserId}` : '';
+  const isPreviewHost = typeof window !== 'undefined' && window.location.hostname.includes('id-preview--');
+  const [showIntro, setShowIntro] = useState(() => isPreviewHost || (!!introKey && localStorage.getItem(introKey) !== '1'));
+  const ackIntro = () => {
+    if (introKey) try { localStorage.setItem(introKey, '1'); } catch { /* noop */ }
+    setShowIntro(false);
+  };
 
   // Size canvas to its box once dialog opens
   useEffect(() => {
