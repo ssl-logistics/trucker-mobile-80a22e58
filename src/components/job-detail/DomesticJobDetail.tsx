@@ -261,7 +261,7 @@ export default function DomesticJobDetail({
       toast({ title: t('loadingQr.success') });
       // Fire-and-forget: notify the QTruck queue system of the station scan.
       // If the QR content is a URL, pull station_token out of it; otherwise send the raw value.
-      const baseOrder = String(job.order_code || '').split('/')[0];
+      const baseOrder = String(job.order_code || '');
       let stationToken = value;
       try {
         const u = new URL(value);
