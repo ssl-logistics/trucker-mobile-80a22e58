@@ -163,6 +163,7 @@ export default function SignatureDialog({ open, onOpenChange, orderCode, pointKe
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : tx.confirm}
             </Button>
           </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
