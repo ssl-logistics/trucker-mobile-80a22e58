@@ -241,6 +241,8 @@ export default function DomesticJobDetail({
     && (pickupCheckedIn || !!jobApplication?.checked_in_at)
     && !(pickupSopCompleted || !!jobApplication?.sop_completed_at);
   const handleLoadingQrDone = (value: string | null) => {
+    // Re-scan dialog: skipping must not wipe an earlier successful scan
+    if (value === null && loadingQr && !loadingQr.skipped) { setLoadingQrOpen(false); return; }
     const rec = { value, skipped: value === null, at: new Date().toISOString() };
     try { localStorage.setItem(loadingQrKey, JSON.stringify(rec)); } catch { /* noop */ }
     setLoadingQr(rec);
@@ -2134,6 +2136,12 @@ export default function DomesticJobDetail({
                             <span>{t('loadingQr.scanned')} {formatDateTime(loadingQr.at, language)}</span>
                           </div>
                         )}
+                        {!isFromHistory && !job.bl_no && !!loadingQr && (pickupCheckedIn || !!jobApplication?.checked_in_at) && !(pickupSopCompleted || !!jobApplication?.sop_completed_at) && (
+                          <Button type="button" variant="outline" size="sm" className="col-span-full h-9 flex items-center justify-center gap-1.5 border-[#225795]/30 text-[#225795]" onClick={() => setLoadingQrOpen(true)}>
+                            <Scan className="w-3.5 h-3.5" />
+                            <span className="text-xs">{t('loadingQr.rescan')}</span>
+                          </Button>
+                        )}
                         <Button size="sm" onClick={() => {
                         const queryString = isFromHistory ? '?from=history' : '';
                         if (needsLoadingQr) { setLoadingQrOpen(true); return; }
@@ -2577,6 +2585,12 @@ export default function DomesticJobDetail({
                           <CheckCircle className="w-3.5 h-3.5" />
                           <span>{t('loadingQr.scanned')} {formatDateTime(loadingQr.at, language)}</span>
                         </div>
+                      )}
+                      {!!job.bl_no && !isFromHistory && !!loadingQr && isCheckedIn && !isPodCompleted && (
+                        <Button type="button" variant="outline" size="sm" className="w-full mb-2 h-9 flex items-center justify-center gap-1.5 border-[#225795]/30 text-[#225795]" onClick={() => setLoadingQrOpen(true)}>
+                          <Scan className="w-3.5 h-3.5" />
+                          <span className="text-xs">{t('loadingQr.rescan')}</span>
+                        </Button>
                       )}
                       <div className={`grid gap-2 ${isFromHistory ? 'grid-cols-1' : 'grid-cols-3'}`}>
                         {!isFromHistory &&
