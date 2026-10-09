@@ -10,6 +10,11 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  build: {
+    // Emit every asset as a hashed file so the browser/PWA caches icons once
+    // instead of re-decoding inlined data URIs on every page mount.
+    assetsInlineLimit: 0,
+  },
   plugins: [
     react(), 
     mode === "development" && componentTagger(),
