@@ -321,6 +321,9 @@ function TabPreloader() {
     registerTabPreload("/change-password", ChangePasswordPage.preload);
     registerTabPreload("/profile", ProfilePage.preload);
     registerTabPreload("/notifications", NotificationsPage.preload);
+    registerTabPreload("/job", JobDetailPage.preload);
+    registerTabPreload("/bid-job", BidJobDetailPage.preload);
+    registerTabPreload("/job-route-expenses", JobRouteExpensesPage.preload);
 
     const warm = () => preloadAllTabs();
     const w = window as any;
