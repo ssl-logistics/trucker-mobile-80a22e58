@@ -115,6 +115,14 @@ const AddExpensePage = () => {
     if (advanceIntroKey) localStorage.setItem(advanceIntroKey, '1');
     setShowAdvanceIntro(false);
   };
+
+  // Fuel details intro card: shown once per account (every time on preview hosts)
+  const fuelIntroKey = advanceIntroUserId ? `fuel_details_intro_ack:${advanceIntroUserId}` : '';
+  const [showFuelIntro, setShowFuelIntro] = useState(() => isPreviewHost || (!!fuelIntroKey && localStorage.getItem(fuelIntroKey) !== '1'));
+  const ackFuelIntro = () => {
+    if (fuelIntroKey) localStorage.setItem(fuelIntroKey, '1');
+    setShowFuelIntro(false);
+  };
   const unlockBody = () => {
     document.body.style.pointerEvents = '';
     document.body.style.overflow = '';
