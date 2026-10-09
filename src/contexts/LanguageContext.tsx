@@ -83,6 +83,9 @@ const thTranslations: Record<string, string> = {
   'settings.repair_intro_title': 'เมนูใหม่! แจ้งซ่อมรถ',
   'settings.repair_intro_desc': 'แจ้งปัญหารถพร้อมแนบรูป/คลิปและตำแหน่ง ส่งถึงฝ่ายซ่อมได้ทันทีที่เมนูนี้',
   'settings.repair_intro_ack': 'รับทราบ',
+  'currentJobs.queue_intro_title': 'เมนูใหม่! ดูคิว',
+  'currentJobs.queue_intro_desc': 'กดปุ่มนี้เพื่อดูลำดับคิว คิวปัจจุบัน และเวลาโดยประมาณของงานนี้',
+  'currentJobs.queue_intro_ack': 'รับทราบ',
   'settings.sign_out': 'ออกจากระบบ',
 
   // App Problem Report
@@ -1787,6 +1790,9 @@ const enTranslations: Record<string, string> = {
   'settings.repair_intro_title': 'New menu! Vehicle repair',
   'settings.repair_intro_desc': 'Report vehicle problems with photos/videos and location, sent straight to the maintenance team.',
   'settings.repair_intro_ack': 'Got it',
+  'currentJobs.queue_intro_title': 'New! View queue',
+  'currentJobs.queue_intro_desc': 'Tap this button to see your queue position, current queue, and estimated time for this job.',
+  'currentJobs.queue_intro_ack': 'Got it',
   'settings.sign_out': 'Sign Out',
 
   // App Problem Report
@@ -3489,6 +3495,9 @@ const koTranslations: Record<string, string> = {
   'settings.repair_intro_title': '새 메뉴! 차량 수리 신청',
   'settings.repair_intro_desc': '사진/영상과 위치를 첨부해 차량 문제를 정비팀에 바로 신고할 수 있습니다.',
   'settings.repair_intro_ack': '확인',
+  'currentJobs.queue_intro_title': '새 기능! 대기열 보기',
+  'currentJobs.queue_intro_desc': '이 버튼을 눌러 이 작업의 대기 순번, 현재 대기열, 예상 시간을 확인하세요.',
+  'currentJobs.queue_intro_ack': '확인',
   'settings.sign_out': '로그아웃',
 
   // App Problem Report
@@ -5263,6 +5272,9 @@ const zhTranslations: Record<string, string> = {
   'settings.repair_intro_title': '新菜单！车辆报修',
   'settings.repair_intro_desc': '可附上照片/视频和位置报告车辆问题，直接发送给维修团队。',
   'settings.repair_intro_ack': '知道了',
+  'currentJobs.queue_intro_title': '新功能！查看队列',
+  'currentJobs.queue_intro_desc': '点击此按钮可查看该任务的排队序号、当前队列和预计时间。',
+  'currentJobs.queue_intro_ack': '知道了',
   'settings.sign_out': '退出登录',
 
   // App Problem Report
