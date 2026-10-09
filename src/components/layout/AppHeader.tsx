@@ -7,7 +7,6 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import coverHeader from "@/assets/cover-header.webp";
 import currentJobIcon from "@/assets/current-job-icon.svg?inline";
 import biddingIcon from "@/assets/bidding-icon.svg?inline";
 import incomeIcon from "@/assets/income-icon.svg?inline";
@@ -16,7 +15,7 @@ import marketIcon from "@/assets/market-icon-new.webp?inline";
 
 // Warm the browser image cache as soon as this module loads
 if (typeof window !== "undefined") {
-  [coverHeader, currentJobIcon, biddingIcon, incomeIcon, jobHistoryIcon, marketIcon].forEach((src) => { const i = new Image(); i.decoding = "async"; i.src = src; });
+  ["/cover-header.webp", currentJobIcon, biddingIcon, incomeIcon, jobHistoryIcon, marketIcon].forEach((src) => { const i = new Image(); i.decoding = "async"; i.src = src; });
 }
 interface AppHeaderProps {
   userName?: string;
@@ -107,7 +106,7 @@ export function AppHeader({
       paddingTop: "env(safe-area-inset-top, 0px)"
     }}>
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{
-        backgroundImage: `url(${coverHeader})`
+        backgroundImage: `url(/cover-header.webp)`
       }} />
         {/* Content */}
         <div className="relative z-10 px-4 py-2">
