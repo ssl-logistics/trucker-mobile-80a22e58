@@ -7,11 +7,11 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import currentJobIcon from "@/assets/current-job-icon.svg?inline";
-import biddingIcon from "@/assets/bidding-icon.svg?inline";
-import incomeIcon from "@/assets/income-icon.svg?inline";
-import jobHistoryIcon from "@/assets/job-history-icon.svg?inline";
-import marketIcon from "@/assets/market-icon-new.webp?inline";
+import currentJobIcon from "@/assets/current-job-icon.svg";
+import biddingIcon from "@/assets/bidding-icon.svg";
+import incomeIcon from "@/assets/income-icon.svg";
+import jobHistoryIcon from "@/assets/job-history-icon.svg";
+import marketIcon from "@/assets/market-icon-new.webp";
 
 // Warm the browser image cache as soon as this module loads
 if (typeof window !== "undefined") {
