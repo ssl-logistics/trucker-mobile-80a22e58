@@ -20,6 +20,7 @@ export function BottomNavigation() {
   const { canAccessDashboard } = useUserRole();
   const { callState } = useCall();
   const [mounted, setMounted] = useState(false);
+  const [pressedPath, setPressedPath] = useState<string | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
   
   useEffect(() => {
@@ -121,7 +122,10 @@ export function BottomNavigation() {
         {navItems.map((item) => (
           <button
             key={item.path}
-            onPointerDown={() => preloadTab(item.path)}
+            onPointerDown={() => { preloadTab(item.path); setPressedPath(item.path); }}
+            onPointerUp={() => setPressedPath(null)}
+            onPointerLeave={() => setPressedPath(null)}
+            onPointerCancel={() => setPressedPath(null)}
             onTouchStart={() => preloadTab(item.path)}
             onClick={() => {
               if (isActive(item.path)) return;
@@ -137,6 +141,9 @@ export function BottomNavigation() {
               border: "none",
               cursor: "pointer",
               padding: "2px 6px",
+              transition: "transform 150ms ease-out",
+              transform: pressedPath === item.path ? "scale(0.93)" : "scale(1)",
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             <div
@@ -146,6 +153,8 @@ export function BottomNavigation() {
                 background: isActive(item.path) 
                   ? "linear-gradient(135deg, #00D4AA 0%, #00B4E6 100%)" 
                   : "transparent",
+                transition: "background 200ms ease-out, box-shadow 200ms ease-out",
+                boxShadow: isActive(item.path) ? "0 2px 8px rgba(0, 180, 230, 0.35)" : "none",
               }}
             >
               {item.customIcon ? (
@@ -157,6 +166,7 @@ export function BottomNavigation() {
                   style={{
                     width: "20px",
                     height: "20px",
+                    transition: "filter 200ms ease-out",
                     filter: isActive(item.path) 
                       ? "brightness(0) saturate(100%) invert(100%)" 
                       : "brightness(0) saturate(100%) invert(90%) sepia(10%) saturate(200%) hue-rotate(180deg)",
@@ -174,9 +184,10 @@ export function BottomNavigation() {
             </div>
             <span 
               style={{ 
-                fontSize: "12px", 
+                fontSize: "12px",
                 fontWeight: isActive(item.path) ? "600" : "500",
                 color: isActive(item.path) ? "#ffffff" : "#a8c5e0",
+                transition: "color 200ms ease-out",
               }}
             >
               {item.label}
