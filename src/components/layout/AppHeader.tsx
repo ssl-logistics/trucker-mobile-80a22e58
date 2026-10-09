@@ -7,7 +7,6 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { usePresignedImageUrl } from "@/hooks/usePresignedImageUrl";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import coverHeader from "@/assets/cover-header.webp";
 import currentJobIcon from "@/assets/current-job-icon.svg?inline";
 import biddingIcon from "@/assets/bidding-icon.svg?inline";
 import incomeIcon from "@/assets/income-icon.svg?inline";
