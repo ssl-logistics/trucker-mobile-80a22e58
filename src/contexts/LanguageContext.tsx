@@ -905,6 +905,7 @@ const thTranslations: Record<string, string> = {
   'docs.removeFile': 'ลบไฟล์นี้',
   'docs.attachFile': 'แนบไฟล์จากเครื่อง',
   'docs.unsupportedFile': 'รองรับเฉพาะไฟล์รูป JPG/PNG/WEBP/HEIC หรือ PDF เท่านั้น',
+  'docs.maxFiles': 'แนบได้สูงสุด 10 ไฟล์ต่อครั้ง',
   
   // Sign In Page
   'signIn.title': 'เข้าสู่ระบบ',
@@ -2642,6 +2643,7 @@ const enTranslations: Record<string, string> = {
   'docs.removeFile': 'Remove this file',
   'docs.attachFile': 'Attach File from Device',
   'docs.unsupportedFile': 'Only JPG/PNG/WEBP/HEIC images or PDF files are supported',
+  'docs.maxFiles': 'Up to 10 files per upload',
   
   // Sign In Page
   'signIn.title': 'Sign In',
@@ -5072,6 +5074,7 @@ const koTranslations: Record<string, string> = {
   'docs.removeFile': '이 파일 삭제',
   'docs.attachFile': '기기에서 파일 첨부',
   'docs.unsupportedFile': 'JPG/PNG/WEBP/HEIC 이미지 또는 PDF 파일만 지원됩니다',
+  'docs.maxFiles': '한 번에 최대 10개 파일까지 첨부할 수 있습니다',
   
   // Sign In Page
   'signIn.title': '로그인',
@@ -5947,6 +5950,7 @@ const zhTranslations: Record<string, string> = {
   'docs.removeFile': '删除此文件',
   'docs.attachFile': '从设备附加文件',
   'docs.unsupportedFile': '仅支持 JPG/PNG/WEBP/HEIC 图片或 PDF 文件',
+  'docs.maxFiles': '每次最多上传 10 个文件',
   
   // Pickup Detail Page
   'pickup.title': '取货点',

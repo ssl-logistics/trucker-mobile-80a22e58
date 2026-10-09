@@ -41,6 +41,7 @@ const ALLOWED_DOC_MIME = [
   'application/pdf',
 ];
 const ALLOWED_DOC_EXT = /\.(jpe?g|png|webp|heic|heif|pdf)$/i;
+const MAX_DOC_FILES = 10;
 const isAllowedDocFile = (file: File) =>
   ALLOWED_DOC_MIME.includes(file.type.toLowerCase()) || ALLOWED_DOC_EXT.test(file.name);
 
@@ -105,8 +106,10 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       setShowPicker(false);
       return;
     }
-    // One file at a time: a new selection replaces the pending one.
-    setPendingFiles(allowed.slice(0, 1));
+    if (pendingFiles.length + allowed.length > MAX_DOC_FILES) {
+      toast({ title: t('docs.maxFiles'), variant: 'destructive' });
+    }
+    setPendingFiles((prev) => [...prev, ...allowed].slice(0, MAX_DOC_FILES));
     setShowPicker(false);
   };
 
@@ -346,6 +349,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
         ref={galleryInputRef}
         type="file"
         accept={ACCEPT_DOC_ALLOWED}
+        multiple
         onChange={handleFileChange}
         className="hidden"
       />
@@ -353,6 +357,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
         ref={fileInputRef}
         type="file"
         accept={ACCEPT_DOC_ALLOWED}
+        multiple
         onChange={handleFileChange}
         className="hidden"
       />
