@@ -13,10 +13,10 @@ export interface SignatureResult {
 }
 
 const TEXT: Record<string, Record<string, string>> = {
-  th: { title: 'ลายเซ็นผู้รับ/ผู้ส่ง', name: 'ชื่อผู้เซ็น', hint: 'เซ็นชื่อในกรอบด้านล่าง', clear: 'ล้าง', cancel: 'ยกเลิก', confirm: 'ยืนยัน', required: 'กรุณาให้ผู้รับ/ผู้ส่งเซ็นชื่อก่อนยืนยัน', failed: 'อัปโหลดลายเซ็นไม่สำเร็จ กรุณาลองใหม่' },
-  en: { title: 'Sender/Receiver signature', name: 'Signer name', hint: 'Sign inside the box below', clear: 'Clear', cancel: 'Cancel', confirm: 'Confirm', required: 'Please get a signature before confirming', failed: 'Signature upload failed, please try again' },
-  ko: { title: '수령인/발송인 서명', name: '서명자 이름', hint: '아래 상자에 서명하세요', clear: '지우기', cancel: '취소', confirm: '확인', required: '확인 전에 서명을 받아주세요', failed: '서명 업로드 실패, 다시 시도하세요' },
-  zh: { title: '收货人/发货人签名', name: '签名人姓名', hint: '请在下方框内签名', clear: '清除', cancel: '取消', confirm: '确认', required: '确认前请先签名', failed: '签名上传失败，请重试' },
+  th: { title: 'ลายเซ็นผู้รับ/ผู้ส่ง', name: 'ชื่อผู้เซ็น', hint: 'เซ็นชื่อในกรอบด้านล่าง', clear: 'ล้าง', cancel: 'ยกเลิก', confirm: 'ยืนยัน', required: 'กรุณาให้ผู้รับ/ผู้ส่งเซ็นชื่อก่อนยืนยัน', failed: 'อัปโหลดลายเซ็นไม่สำเร็จ กรุณาลองใหม่', intro_title: 'เซ็นลายเซ็นตรงนี้', intro_desc: 'ให้ผู้รับ/ผู้ส่งกรอกชื่อและเซ็นชื่อในกรอบด้านล่าง แล้วกดยืนยัน', intro_ack: 'รับทราบ' },
+  en: { title: 'Sender/Receiver signature', name: 'Signer name', hint: 'Sign inside the box below', clear: 'Clear', cancel: 'Cancel', confirm: 'Confirm', required: 'Please get a signature before confirming', failed: 'Signature upload failed, please try again', intro_title: 'Sign here', intro_desc: 'Have the sender/receiver enter their name and sign in the box below, then tap Confirm', intro_ack: 'Got it' },
+  ko: { title: '수령인/발송인 서명', name: '서명자 이름', hint: '아래 상자에 서명하세요', clear: '지우기', cancel: '취소', confirm: '확인', required: '확인 전에 서명을 받아주세요', failed: '서명 업로드 실패, 다시 시도하세요', intro_title: '여기에 서명하세요', intro_desc: '수령인/발송인이 이름을 입력하고 아래 상자에 서명한 후 확인을 누르세요', intro_ack: '확인했습니다' },
+  zh: { title: '收货人/发货人签名', name: '签名人姓名', hint: '请在下方框内签名', clear: '清除', cancel: '取消', confirm: '确认', required: '确认前请先签名', failed: '签名上传失败，请重试', intro_title: '在此签名', intro_desc: '请收货人/发货人填写姓名并在下方框内签名，然后点击确认', intro_ack: '知道了' },
 };
 
 interface Props {
@@ -35,6 +35,15 @@ export default function SignatureDialog({ open, onOpenChange, orderCode, pointKe
   const [hasInk, setHasInk] = useState(false);
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
+  // First-time intro card: shown once per account (every time on preview hosts).
+  const introUserId = String(localStorage.getItem('auth_driver_id') || '');
+  const introKey = introUserId ? `signature_intro_ack:${introUserId}` : '';
+  const isPreviewHost = typeof window !== 'undefined' && window.location.hostname.includes('id-preview--');
+  const [showIntro, setShowIntro] = useState(() => isPreviewHost || (!!introKey && localStorage.getItem(introKey) !== '1'));
+  const ackIntro = () => {
+    if (introKey) try { localStorage.setItem(introKey, '1'); } catch { /* noop */ }
+    setShowIntro(false);
+  };
 
   // Size canvas to its box once dialog opens
   useEffect(() => {
@@ -63,6 +72,7 @@ export default function SignatureDialog({ open, onOpenChange, orderCode, pointKe
   };
 
   const down = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (showIntro) ackIntro();
     e.currentTarget.setPointerCapture(e.pointerId);
     drawing.current = true;
     const ctx = e.currentTarget.getContext('2d')!;
@@ -125,6 +135,16 @@ export default function SignatureDialog({ open, onOpenChange, orderCode, pointKe
           <DialogTitle>{tx.title}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
+          {showIntro && (
+            <div className="rounded-xl border-2 border-orange-500 bg-orange-50 dark:bg-orange-500/10 p-3 space-y-2">
+              <p className="text-sm font-semibold text-orange-600 dark:text-orange-400">{tx.intro_title}</p>
+              <p className="text-sm text-muted-foreground">{tx.intro_desc}</p>
+              <Button size="sm" className="w-full bg-orange-500 hover:bg-orange-600 text-white" onClick={ackIntro}>
+                {tx.intro_ack}
+              </Button>
+            </div>
+          )}
+          <div className={showIntro ? 'rounded-xl ring-2 ring-orange-500 ring-offset-2 p-2 space-y-3' : 'space-y-3'}>
           <Input placeholder={tx.name} value={name} onChange={(e) => setName(e.target.value)} />
           <p className="text-sm text-muted-foreground">{tx.hint}</p>
           <canvas
@@ -142,6 +162,7 @@ export default function SignatureDialog({ open, onOpenChange, orderCode, pointKe
             <Button onClick={confirm} disabled={!hasInk || busy}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : tx.confirm}
             </Button>
+          </div>
           </div>
         </div>
       </DialogContent>
