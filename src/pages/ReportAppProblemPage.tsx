@@ -148,7 +148,7 @@ export default function ReportAppProblemPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-header text-header-foreground" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
-        <div className="flex items-center px-4 py-3">
+        <div className="flex items-center px-4 pt-5 pb-3">
           <button onClick={() => navigate(-1)} className="mr-3">
             <ArrowLeft className="w-6 h-6" />
           </button>
