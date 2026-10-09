@@ -12,10 +12,10 @@ import {
 
 export interface JobQueueInfo {
   orderNumber?: string;
-  myQueue: string;
-  currentQueue: string;
-  remainingQueues: number;
-  estimatedTime: string;
+  myQueue?: string;
+  currentQueue?: string;
+  remainingQueues?: number;
+  estimatedTime?: string;
   status?: string;
   gate?: string;
 }
@@ -110,7 +110,7 @@ export default function JobQueueDialog({ open, onOpenChange, queue }: JobQueueDi
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card">
               <ListOrdered className="h-7 w-7 text-secondary" />
             </div>
-            <p className="text-sm">{t('currentJobs.queueNotFound')}</p>
+            <p className="text-sm">{t('currentJobs.queueNoBooking')}</p>
           </div>
         ) : (
           <>
