@@ -28,6 +28,23 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
   
   const isFromHistory = isHistoryContext(location.search, location.state);
 
+  // Documents menu intro card: shown once per account (every time on preview hosts)
+  const docIntroUserId = String(localStorage.getItem('auth_driver_id') || '');
+  const docIntroKey = docIntroUserId ? `documents_menu_intro_ack:${docIntroUserId}` : '';
+  const isPreviewHost = typeof window !== 'undefined' && window.location.hostname.includes('id-preview--');
+  const [showDocsIntro, setShowDocsIntro] = useState(() => !isPreviewHost && !isFromHistory && !!docIntroKey && localStorage.getItem(docIntroKey) !== '1');
+  const docsIntroRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (showDocsIntro) {
+      const timer = setTimeout(() => docsIntroRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [showDocsIntro]);
+  const ackDocumentsIntro = () => {
+    if (docIntroKey) localStorage.setItem(docIntroKey, '1');
+    setShowDocsIntro(false);
+  };
+
   // Hide non-expense buttons when POD is completed, but still show expense buttons from history
   const hideNonExpenseButtons = isPodCompleted || isFromHistory;
   
