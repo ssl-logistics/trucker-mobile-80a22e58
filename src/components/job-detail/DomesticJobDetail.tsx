@@ -3017,7 +3017,7 @@ export default function DomesticJobDetail({
       </div>
 
 
-      <LoadingQrScanDialog open={loadingQrOpen} onOpenChange={setLoadingQrOpen} onDone={handleLoadingQrDone} />
+      <LoadingQrScanDialog open={loadingQrOpen} onOpenChange={handleLoadingQrOpenChange} onDone={handleLoadingQrDone} />
       <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={job.id} orderNumber={job.order_code} />
 
       {/* Accident Evidence — auto-opened when job is locked */}
