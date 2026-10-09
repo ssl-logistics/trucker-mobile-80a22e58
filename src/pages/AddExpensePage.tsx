@@ -115,6 +115,14 @@ const AddExpensePage = () => {
     if (advanceIntroKey) localStorage.setItem(advanceIntroKey, '1');
     setShowAdvanceIntro(false);
   };
+
+  // Fuel details intro card: shown once per account (every time on preview hosts)
+  const fuelIntroKey = advanceIntroUserId ? `fuel_details_intro_ack:${advanceIntroUserId}` : '';
+  const [showFuelIntro, setShowFuelIntro] = useState(() => isPreviewHost || (!!fuelIntroKey && localStorage.getItem(fuelIntroKey) !== '1'));
+  const ackFuelIntro = () => {
+    if (fuelIntroKey) localStorage.setItem(fuelIntroKey, '1');
+    setShowFuelIntro(false);
+  };
   const unlockBody = () => {
     document.body.style.pointerEvents = '';
     document.body.style.overflow = '';
@@ -982,49 +990,66 @@ const AddExpensePage = () => {
             </div>
 
             {isFuelType(expense.type) && (
-              <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Fuel className="w-4 h-4 text-primary" />
-                  {t('expense.fuelDetails')}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor={`mileage-${expense.id}`} className="flex items-center gap-1.5">
-                      <Gauge className="w-3.5 h-3.5 text-muted-foreground" />
-                      {t('expense.mileage')}
-                    </Label>
-                    <Input
-                      id={`mileage-${expense.id}`}
-                      inputMode="numeric"
-                      placeholder={t('expense.mileagePlaceholder')}
-                      value={expense.mileage ? Number(expense.mileage).toLocaleString() : ''}
-                      onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
-                        handleExpenseChange(expense.id, 'mileage', raw);
-                      }}
-                      className="text-right bg-background"
-                    />
+              <div className="relative">
+                <div className={`rounded-lg border bg-muted/30 p-3 space-y-3 ${showFuelIntro ? 'border-orange-500 ring-2 ring-orange-500' : 'border-border'}`}>
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <Fuel className="w-4 h-4 text-primary" />
+                    {t('expense.fuelDetails')}
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`liters-${expense.id}`} className="flex items-center gap-1.5">
-                      <Fuel className="w-3.5 h-3.5 text-muted-foreground" />
-                      {t('expense.fuelLiters')}
-                    </Label>
-                    <Input
-                      id={`liters-${expense.id}`}
-                      inputMode="decimal"
-                      placeholder={t('expense.fuelLitersPlaceholder')}
-                      value={expense.fuelLiters}
-                      onChange={(e) => {
-                        let v = e.target.value.replace(/[^\d.]/g, '');
-                        const [i, ...rest] = v.split('.');
-                        if (rest.length) v = `${i}.${rest.join('').slice(0, 2)}`;
-                        handleExpenseChange(expense.id, 'fuelLiters', v);
-                      }}
-                      className="text-right bg-background"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor={`mileage-${expense.id}`} className="flex items-center gap-1.5">
+                        <Gauge className="w-3.5 h-3.5 text-muted-foreground" />
+                        {t('expense.mileage')}
+                      </Label>
+                      <Input
+                        id={`mileage-${expense.id}`}
+                        inputMode="numeric"
+                        placeholder={t('expense.mileagePlaceholder')}
+                        value={expense.mileage ? Number(expense.mileage).toLocaleString() : ''}
+                        onChange={(e) => {
+                          ackFuelIntro();
+                          const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+                          handleExpenseChange(expense.id, 'mileage', raw);
+                        }}
+                        className="text-right bg-background"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`liters-${expense.id}`} className="flex items-center gap-1.5">
+                        <Fuel className="w-3.5 h-3.5 text-muted-foreground" />
+                        {t('expense.fuelLiters')}
+                      </Label>
+                      <Input
+                        id={`liters-${expense.id}`}
+                        inputMode="decimal"
+                        placeholder={t('expense.fuelLitersPlaceholder')}
+                        value={expense.fuelLiters}
+                        onChange={(e) => {
+                          ackFuelIntro();
+                          let v = e.target.value.replace(/[^\d.]/g, '');
+                          const [i, ...rest] = v.split('.');
+                          if (rest.length) v = `${i}.${rest.join('').slice(0, 2)}`;
+                          handleExpenseChange(expense.id, 'fuelLiters', v);
+                        }}
+                        className="text-right bg-background"
+                      />
+                    </div>
                   </div>
                 </div>
+                {showFuelIntro && (
+                  <div
+                    className="absolute left-0 top-full mt-3 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl bg-card border border-orange-300 shadow-xl p-4"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="absolute -top-2 left-6 w-4 h-4 rotate-45 bg-card border-l border-t border-orange-300" />
+                    <p className="font-semibold text-orange-700 mb-1">{t('expense.fuel_intro_title')}</p>
+                    <p className="text-sm text-muted-foreground mb-3">{t('expense.fuel_intro_desc')}</p>
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600" onClick={ackFuelIntro}>
+                      {t('expense.fuel_intro_ack')}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
