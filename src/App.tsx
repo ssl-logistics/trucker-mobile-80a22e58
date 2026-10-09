@@ -305,6 +305,9 @@ function TabLayout() {
     registerTabPreload("/dashboard", DashboardPage.preload);
     registerTabPreload("/chat", ChatListPage.preload);
     registerTabPreload("/settings", SettingsPage.preload);
+    // Quick-menu pages: warm up so the first tap never shows a full-page loader
+    registerTabPreload("/current-jobs", CurrentJobsPage.preload);
+    registerTabPreload("/job-history", JobHistoryPage.preload);
 
     const warm = () => preloadAllTabs();
     const w = window as any;
