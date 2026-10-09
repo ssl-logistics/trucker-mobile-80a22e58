@@ -177,8 +177,13 @@ export default function CurrentJobsPage() {
     isExternalDriver,
     canViewPrice
   } = useUserRole();
-  const [acceptedJobs, setAcceptedJobs] = useState<AcceptedJob[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Initialize from cache so returning to this page shows the list instantly
+  // (no skeleton flash); the background refresh still runs and updates quietly.
+  const [acceptedJobs, setAcceptedJobs] = useState<AcceptedJob[]>(() => {
+    const id = user?.id;
+    return id ? readJobsCache(id) ?? [] : [];
+  });
+  const [loading, setLoading] = useState(() => acceptedJobs.length === 0);
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedQueue, setSelectedQueue] = useState<JobQueueInfo | null>(null);
