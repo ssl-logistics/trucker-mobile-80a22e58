@@ -41,6 +41,7 @@ const ALLOWED_DOC_MIME = [
   'application/pdf',
 ];
 const ALLOWED_DOC_EXT = /\.(jpe?g|png|webp|heic|heif|pdf)$/i;
+const MAX_DOC_FILES = 10;
 const isAllowedDocFile = (file: File) =>
   ALLOWED_DOC_MIME.includes(file.type.toLowerCase()) || ALLOWED_DOC_EXT.test(file.name);
 
