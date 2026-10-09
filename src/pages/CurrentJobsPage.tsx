@@ -1453,7 +1453,7 @@ export default function CurrentJobsPage() {
 
                     <div className="grid grid-cols-2 gap-2">
                       <Button
-                        variant="outline"
+                        variant="default"
                         className="w-full h-11 text-base font-medium"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1464,6 +1464,7 @@ export default function CurrentJobsPage() {
                       </Button>
                       <div ref={job.id === firstQueueJobId ? queueIntroRowRef : undefined} className={job.id === firstQueueJobId ? 'relative' : ''}>
                         <Button
+                          variant="outline"
                           className={`h-11 w-full gap-2 text-base font-medium ${job.id === firstQueueJobId ? 'ring-2 ring-orange-500 ring-offset-2' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation();
