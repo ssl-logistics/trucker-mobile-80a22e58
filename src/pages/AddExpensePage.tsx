@@ -105,6 +105,16 @@ const AddExpensePage = () => {
   const { extractFromImage } = useOCR();
   const returnPath = location.state?.returnPath || `/job/${jobId}/route-expenses`;
   const isFromHistory = isHistoryContext(location.search, location.state);
+
+  // Advance payment intro card: shown once per account (every time on preview hosts)
+  const advanceIntroUserId = String(localStorage.getItem('auth_driver_id') || '');
+  const advanceIntroKey = advanceIntroUserId ? `advance_payment_intro_ack:${advanceIntroUserId}` : '';
+  const isPreviewHost = typeof window !== 'undefined' && window.location.hostname.includes('id-preview--');
+  const [showAdvanceIntro, setShowAdvanceIntro] = useState(() => isPreviewHost || (!!advanceIntroKey && localStorage.getItem(advanceIntroKey) !== '1'));
+  const ackAdvanceIntro = () => {
+    if (advanceIntroKey) localStorage.setItem(advanceIntroKey, '1');
+    setShowAdvanceIntro(false);
+  };
   const unlockBody = () => {
     document.body.style.pointerEvents = '';
     document.body.style.overflow = '';
@@ -929,15 +939,33 @@ const AddExpensePage = () => {
                 <Label htmlFor={`amount-${expense.id}`}>
                   {t('expense.price')} <span className="text-destructive">*</span>
                 </Label>
-                <div className="flex items-center gap-2">
-                  <Label htmlFor={`advance-${expense.id}`} className="font-normal cursor-pointer text-sm">
-                    {t('expense.advancePayment')}
-                  </Label>
-                  <Switch
-                    id={`advance-${expense.id}`}
-                    checked={expense.isAdvance}
-                    onCheckedChange={(checked) => handleExpenseChange(expense.id, 'isAdvance', checked === true)}
-                  />
+                <div className="relative flex items-center gap-2">
+                  <div className={`flex items-center gap-2 ${showAdvanceIntro ? 'ring-2 ring-orange-500 rounded-lg p-1' : ''}`}>
+                    <Label htmlFor={`advance-${expense.id}`} className="font-normal cursor-pointer text-sm">
+                      {t('expense.advancePayment')}
+                    </Label>
+                    <Switch
+                      id={`advance-${expense.id}`}
+                      checked={expense.isAdvance}
+                      onCheckedChange={(checked) => {
+                        ackAdvanceIntro();
+                        handleExpenseChange(expense.id, 'isAdvance', checked === true);
+                      }}
+                    />
+                  </div>
+                  {showAdvanceIntro && (
+                    <div
+                      className="absolute right-0 top-full mt-3 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl bg-card border border-orange-300 shadow-xl p-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="absolute -top-2 right-6 w-4 h-4 rotate-45 bg-card border-l border-t border-orange-300" />
+                      <p className="font-semibold text-orange-700 mb-1">{t('expense.advance_intro_title')}</p>
+                      <p className="text-sm text-muted-foreground mb-3">{t('expense.advance_intro_desc')}</p>
+                      <Button className="w-full bg-orange-500 hover:bg-orange-600" onClick={ackAdvanceIntro}>
+                        {t('expense.advance_intro_ack')}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
               <Input
