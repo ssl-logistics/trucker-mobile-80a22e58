@@ -237,14 +237,26 @@ export default function DomesticJobDetail({
   useEffect(() => {
     try { const raw = localStorage.getItem(loadingQrKey); setLoadingQr(raw ? JSON.parse(raw) : null); } catch { setLoadingQr(null); }
   }, [loadingQrKey]);
-  const needsLoadingQr = !isFromHistory && !job.bl_no && !loadingQr
+  // QR scan prompt opens on every press until the step completes; skipping is never remembered.
+  const needsLoadingQr = !isFromHistory && !job.bl_no
     && (pickupCheckedIn || !!jobApplication?.checked_in_at)
     && !(pickupSopCompleted || !!jobApplication?.sop_completed_at);
+  const pendingQrActionRef = useRef<(() => void) | null>(null);
+  const openLoadingQr = (next: () => void) => {
+    pendingQrActionRef.current = next;
+    setLoadingQrOpen(true);
+  };
   const handleLoadingQrDone = (value: string | null) => {
-    const rec = { value, skipped: value === null, at: new Date().toISOString() };
-    try { localStorage.setItem(loadingQrKey, JSON.stringify(rec)); } catch { /* noop */ }
-    setLoadingQr(rec);
+    // Skip keeps any earlier successful scan record.
+    if (value !== null || !loadingQr || loadingQr.skipped) {
+      const rec = { value, skipped: value === null, at: new Date().toISOString() };
+      try { localStorage.setItem(loadingQrKey, JSON.stringify(rec)); } catch { /* noop */ }
+      setLoadingQr(rec);
+    }
     setLoadingQrOpen(false);
+    const next = pendingQrActionRef.current;
+    pendingQrActionRef.current = null;
+    if (next) setTimeout(next, 0);
     if (value !== null) {
       toast({ title: t('loadingQr.success') });
       // Fire-and-forget: notify the QTruck queue system of the station scan.
@@ -1372,8 +1384,12 @@ export default function DomesticJobDetail({
     if (!orderKey || autoScrolledOrderRef.current === orderKey) return;
     autoScrolledOrderRef.current = orderKey;
     // Always start at the top of the page first, then scroll to the current step.
+    document.getElementById('root')?.scrollTo({ top: 0 });
     window.scrollTo({ top: 0 });
-    const timer = setTimeout(() => {
+    let tries = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const attempt = () => {
+      tries += 1;
       let target: HTMLDivElement | null = null;
       // First-step jobs stay at the top of the page (no auto-scroll).
       let isFirstStep = false;
@@ -1412,10 +1428,15 @@ export default function DomesticJobDetail({
           }
         }
       }
-      if (target && !isFirstStep) {
+      if (isFirstStep) return;
+      if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (tries < 14) {
+        // Card not rendered yet — retry briefly.
+        timer = setTimeout(attempt, 150);
       }
-    }, 200);
+    };
+    timer = setTimeout(attempt, 200);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoadingCheckinStatus, job.order_code]);
@@ -2136,7 +2157,7 @@ export default function DomesticJobDetail({
                         )}
                         <Button size="sm" onClick={() => {
                         const queryString = isFromHistory ? '?from=history' : '';
-                        if (needsLoadingQr) { setLoadingQrOpen(true); return; }
+                        if (needsLoadingQr) { openLoadingQr(() => navigate(`/job/${encodeURIComponent(job.order_code)}/sop${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob, fromHistory: isFromHistory } })); return; }
                         if (pickupSopCompleted || jobApplication?.sop_completed_at) {
                           navigate(`/job/${encodeURIComponent(job.order_code)}/pickup-summary${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob, fromHistory: isFromHistory } });
                         } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
@@ -2166,7 +2187,7 @@ export default function DomesticJobDetail({
               const isPodCompleted = !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
               const isCheckedIn = !!destCheckin?.checked_in_at || !!dest.checked_in_at;
               // BL (inbound): after delivery check-in, offer the loading QR scan step before upload/POD
-              const needsLoadingQrDelivery = !!job.bl_no && !isFromHistory && !loadingQr && isCheckedIn && !isPodCompleted;
+              const needsLoadingQrDelivery = !!job.bl_no && !isFromHistory && isCheckedIn && !isPodCompleted;
 
               // Check if previous destination is completed (for sequential locking)
               // First destination requires pickup SOP to be completed
@@ -2619,7 +2640,7 @@ export default function DomesticJobDetail({
                           </>
                       }
                         <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
-                        if (needsLoadingQrDelivery) { setLoadingQrOpen(true); return; }
+                        if (needsLoadingQrDelivery) { openLoadingQr(() => navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob, fromHistory: isFromHistory } })); return; }
                         navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob, fromHistory: isFromHistory } });
                       }} disabled={isDestinationLocked || (isFromHistory && !isCheckedIn && !isPodCompleted)}>
                           <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
