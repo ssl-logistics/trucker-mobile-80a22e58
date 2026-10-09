@@ -118,7 +118,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
           </button>
           {showDocsIntro && (
             <div
-              className="absolute left-0 right-0 top-full mt-3 z-30 rounded-xl bg-card border border-orange-300 shadow-xl p-4"
+              className="absolute left-1/2 -translate-x-1/2 top-full mt-3 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl bg-card border border-orange-300 shadow-xl p-4"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-card border-l border-t border-orange-300" />
