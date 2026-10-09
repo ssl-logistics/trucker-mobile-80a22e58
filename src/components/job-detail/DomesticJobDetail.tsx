@@ -2178,7 +2178,7 @@ export default function DomesticJobDetail({
               const isPodCompleted = !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
               const isCheckedIn = !!destCheckin?.checked_in_at || !!dest.checked_in_at;
               // BL (inbound): after delivery check-in, offer the loading QR scan step before upload/POD
-              const needsLoadingQrDelivery = !!job.bl_no && !isFromHistory && !loadingQr && isCheckedIn && !isPodCompleted;
+              const needsLoadingQrDelivery = !!job.bl_no && !isFromHistory && isCheckedIn && !isPodCompleted;
 
               // Check if previous destination is completed (for sequential locking)
               // First destination requires pickup SOP to be completed
@@ -2631,7 +2631,7 @@ export default function DomesticJobDetail({
                           </>
                       }
                         <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
-                        if (needsLoadingQrDelivery) { setLoadingQrOpen(true); return; }
+                        if (needsLoadingQrDelivery) { openLoadingQr(() => navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob, fromHistory: isFromHistory } })); return; }
                         navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob, fromHistory: isFromHistory } });
                       }} disabled={isDestinationLocked || (isFromHistory && !isCheckedIn && !isPodCompleted)}>
                           <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
