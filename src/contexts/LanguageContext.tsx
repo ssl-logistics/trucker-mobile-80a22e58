@@ -80,6 +80,9 @@ const thTranslations: Record<string, string> = {
   'settings.contact': 'ติดต่อศูนย์',
   'settings.report_app_problem': 'แจ้งปัญหาการใช้แอป',
   'settings.repair_report': 'แจ้งซ่อม',
+  'settings.repair_intro_title': 'เมนูใหม่! แจ้งซ่อมรถ',
+  'settings.repair_intro_desc': 'แจ้งปัญหารถพร้อมแนบรูป/คลิปและตำแหน่ง ส่งถึงฝ่ายซ่อมได้ทันทีที่เมนูนี้',
+  'settings.repair_intro_ack': 'รับทราบ',
   'settings.sign_out': 'ออกจากระบบ',
 
   // App Problem Report
@@ -1781,6 +1784,9 @@ const enTranslations: Record<string, string> = {
   'settings.contact': 'Contact Center',
   'settings.report_app_problem': 'Report App Problem',
   'settings.repair_report': 'Repair Request',
+  'settings.repair_intro_title': 'New menu! Vehicle repair',
+  'settings.repair_intro_desc': 'Report vehicle problems with photos/videos and location, sent straight to the maintenance team.',
+  'settings.repair_intro_ack': 'Got it',
   'settings.sign_out': 'Sign Out',
 
   // App Problem Report
@@ -3480,6 +3486,9 @@ const koTranslations: Record<string, string> = {
   'settings.contact': '고객센터',
   'settings.report_app_problem': '앱 문제 신고',
   'settings.repair_report': '수리 신청',
+  'settings.repair_intro_title': '새 메뉴! 차량 수리 신청',
+  'settings.repair_intro_desc': '사진/영상과 위치를 첨부해 차량 문제를 정비팀에 바로 신고할 수 있습니다.',
+  'settings.repair_intro_ack': '확인',
   'settings.sign_out': '로그아웃',
 
   // App Problem Report
@@ -5251,6 +5260,9 @@ const zhTranslations: Record<string, string> = {
   'settings.contact': '联系我们',
   'settings.report_app_problem': '报告应用问题',
   'settings.repair_report': '报修申请',
+  'settings.repair_intro_title': '新菜单！车辆报修',
+  'settings.repair_intro_desc': '可附上照片/视频和位置报告车辆问题，直接发送给维修团队。',
+  'settings.repair_intro_ack': '知道了',
   'settings.sign_out': '退出登录',
 
   // App Problem Report
