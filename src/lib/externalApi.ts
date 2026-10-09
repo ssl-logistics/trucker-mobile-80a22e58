@@ -20,6 +20,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'login': 'LOGIN_API_KEY',
   'logout': 'LOGIN_API_KEY',
   'driver-checkin': 'EXPRESS_RENT_API_KEY',
+  'driver-signatures': 'EXPRESS_RENT_API_KEY',
   'driver-sop': 'FREELANCE_DRIVER_API_KEY',
   'get-driver-assigned-jobs': 'EXPRESS_RENT_API_KEY',
   'get-driver-checkins': 'DRIVER_API_KEY',
@@ -896,4 +897,19 @@ export async function submitAccidentEvidence(body: {
     method: 'POST',
     body,
   });
+}
+
+// Signatures go to their own endpoint, one point per request (separate from check-in/SOP).
+export async function submitDriverSignature(payload: {
+  order_number: string;
+  checkin_type: 'pickup' | 'delivery';
+  signer_name: string;
+  signature_base64: string;
+  destination_sequence_number?: number | null;
+  latitude?: number;
+  longitude?: number;
+  signed_at?: string;
+  driver_id?: string;
+}) {
+  return callExternalApi<{ success: boolean; data?: any }>('driver-signatures', { method: 'POST', body: payload });
 }

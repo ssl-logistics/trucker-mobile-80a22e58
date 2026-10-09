@@ -282,7 +282,6 @@ export default function DeliverySOPCheckInPage() {
            notes: 'ยืนยัน POD จากหน้า Delivery SOP',
            photo_url: publicUrl,
            destination_sequence_number: sequenceNumber,
-            ...(signatureRef.current || {}),
          };
          
          console.log('Sending POD from DeliverySOPCheckInPage:', {
