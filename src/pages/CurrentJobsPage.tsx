@@ -183,6 +183,17 @@ export default function CurrentJobsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedQueue, setSelectedQueue] = useState<JobQueueInfo | null>(null);
 
+  // Queue button intro card: shown once per account (every time on preview hosts)
+  const queueIntroUserId = String((user as any)?.id || (user as any)?.driver_id || localStorage.getItem('auth_driver_id') || '');
+  const queueIntroKey = queueIntroUserId ? `queue_button_intro_ack:${queueIntroUserId}` : '';
+  const isPreviewHost = typeof window !== 'undefined' && window.location.hostname.includes('id-preview--');
+  const [queueIntroAcked, setQueueIntroAcked] = useState(() => !isPreviewHost && queueIntroKey ? localStorage.getItem(queueIntroKey) === '1' : false);
+  const queueIntroRowRef = useRef<HTMLDivElement>(null);
+  const ackQueueIntro = () => {
+    if (queueIntroKey) localStorage.setItem(queueIntroKey, '1');
+    setQueueIntroAcked(true);
+  };
+
   // Store justStartedOrder in a ref so it persists across async re-renders
   const justStartedOrderRef = useRef<string | null>(location.state?.justStartedOrder || null);
   if (location.state?.justStartedOrder && !justStartedOrderRef.current) {
