@@ -71,7 +71,7 @@ const PageLoader = () => (
 // bottom navigation instead of covering the whole screen.
 const TabContentLoader = () => (
   <div
-    className="flex items-center justify-center bg-background"
+    className="flex items-center justify-center bg-background animate-page-enter"
     style={{ minHeight: "calc(100vh - var(--bottom-nav-height, 64px))" }}
   >
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -323,11 +323,14 @@ function TabPreloader() {
 }
 
 function TabLayout() {
+  const location = useLocation();
 
   return (
     <>
       <Suspense fallback={<TabContentLoader />}>
-        <Outlet />
+        <div key={location.pathname} className="animate-page-enter">
+          <Outlet />
+        </div>
       </Suspense>
       <BottomNavigation />
     </>
