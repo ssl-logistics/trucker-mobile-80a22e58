@@ -20,6 +20,7 @@ export function BottomNavigation() {
   const { canAccessDashboard } = useUserRole();
   const { callState } = useCall();
   const [mounted, setMounted] = useState(false);
+  const [pressedPath, setPressedPath] = useState<string | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
   
   useEffect(() => {
@@ -121,7 +122,10 @@ export function BottomNavigation() {
         {navItems.map((item) => (
           <button
             key={item.path}
-            onPointerDown={() => preloadTab(item.path)}
+            onPointerDown={() => { preloadTab(item.path); setPressedPath(item.path); }}
+            onPointerUp={() => setPressedPath(null)}
+            onPointerLeave={() => setPressedPath(null)}
+            onPointerCancel={() => setPressedPath(null)}
             onTouchStart={() => preloadTab(item.path)}
             onClick={() => {
               if (isActive(item.path)) return;

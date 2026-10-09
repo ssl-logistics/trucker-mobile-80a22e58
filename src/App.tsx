@@ -62,7 +62,7 @@ function lazyWithPreload<T extends React.ComponentType<any>>(factory: () => Prom
 
 // Loading fallback component
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
+  <div className="min-h-screen flex items-center justify-center bg-background animate-page-enter">
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
   </div>
 );
