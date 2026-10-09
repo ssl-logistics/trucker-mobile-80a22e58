@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { AUTH_KEYS, removeAuthItem, setAuthItem, getAuthItem } from '@/utils/authStorage';
@@ -228,7 +229,24 @@ export default function AccountPage() {
           </div>
         </div>
 
-        {/* Bank Info - Freelance only */}
+        {/* Bank Info - Freelance only: gray placeholder while loading */}
+        {isFreelanceDriver && !bankLoaded && (
+          <div className="bg-white rounded-lg p-4 space-y-4" aria-busy="true">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <Skeleton className="h-10 w-full" />
+          </div>
+        )}
         {isFreelanceDriver && bankLoaded && (
           <div className="bg-white rounded-lg p-4 space-y-4">
             <div>
