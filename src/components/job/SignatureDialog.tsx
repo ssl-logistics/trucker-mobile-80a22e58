@@ -72,6 +72,7 @@ export default function SignatureDialog({ open, onOpenChange, orderCode, pointKe
   };
 
   const down = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (showIntro) ackIntro();
     e.currentTarget.setPointerCapture(e.pointerId);
     drawing.current = true;
     const ctx = e.currentTarget.getContext('2d')!;
@@ -134,6 +135,16 @@ export default function SignatureDialog({ open, onOpenChange, orderCode, pointKe
           <DialogTitle>{tx.title}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
+          {showIntro && (
+            <div className="rounded-xl border-2 border-orange-500 bg-orange-50 dark:bg-orange-500/10 p-3 space-y-2">
+              <p className="text-sm font-semibold text-orange-600 dark:text-orange-400">{tx.intro_title}</p>
+              <p className="text-sm text-muted-foreground">{tx.intro_desc}</p>
+              <Button size="sm" className="w-full bg-orange-500 hover:bg-orange-600 text-white" onClick={ackIntro}>
+                {tx.intro_ack}
+              </Button>
+            </div>
+          )}
+          <div className={showIntro ? 'rounded-xl ring-2 ring-orange-500 ring-offset-2 p-2 space-y-3' : 'space-y-3'}>
           <Input placeholder={tx.name} value={name} onChange={(e) => setName(e.target.value)} />
           <p className="text-sm text-muted-foreground">{tx.hint}</p>
           <canvas
