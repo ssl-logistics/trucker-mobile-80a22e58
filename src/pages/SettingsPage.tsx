@@ -306,6 +306,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24 overscroll-none">
+      {showRepairIntro && <div className="fixed inset-0 z-40 bg-foreground/50" onClick={ackRepairIntro} />}
       {/* Header */}
       <header className="bg-header text-header-foreground text-center" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <h1 className="text-xl font-semibold px-4 py-3">{t('settings.title')}</h1>
