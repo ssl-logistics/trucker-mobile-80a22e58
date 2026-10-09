@@ -118,7 +118,7 @@ export default function LoadingQrScanDialog({ open, onOpenChange, onDone }: Prop
             {t('loadingQr.openCamera')}
           </Button>
         )}
-        <Button variant="outline" className="w-full h-11 rounded-xl" onClick={() => { doneRef.current = true; onDone(null); }}>
+        <Button variant="outline" className="w-full h-11 rounded-xl" onClick={() => { doneRef.current = true; onOpenChange(false); }}>
           {t('loadingQr.skip')}
         </Button>
       </DialogContent>
