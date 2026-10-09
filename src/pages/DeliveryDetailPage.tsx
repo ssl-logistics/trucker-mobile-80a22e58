@@ -709,7 +709,6 @@ export default function DeliveryDetailPage() {
         notes: 'จัดส่งสำเร็จ',
         photo_url: photoUrl,
         payment_method: selectedPaymentMethod,
-        ...(signatureRef.current || {}),
       };
       
       // Only include destination_sequence_number for multi-destination jobs

@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/integrations/supabase/client';
+import { submitDriverSignature } from '@/lib/externalApi';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 
@@ -106,18 +106,30 @@ export default function SignatureDialog({ open, onOpenChange, orderCode, pointKe
     setBusy(true);
     try {
       const dataUrl = c.toDataURL('image/png');
-      const blob = await (await fetch(dataUrl)).blob();
-      const fileName = `signature_${orderCode}_${pointKey}_${Date.now()}.png`;
-      const fd = new FormData();
-      fd.append('file', new File([blob], fileName, { type: 'image/png' }));
-      fd.append('folder', 'mobile/signatures');
-      fd.append('fileName', fileName);
-      fd.append('filename', fileName);
-      const { data, error } = await supabase.functions.invoke('upload-to-s3', { body: fd });
-      const url = (data as any)?.url;
-      if (error || !url) throw error || new Error('no url');
-      const result = { signature_url: url, signer_name: name.trim() };
-      try { localStorage.setItem(`signature_${orderCode}_${pointKey}`, JSON.stringify({ ...result, signed_at: new Date().toISOString() })); } catch { /* noop */ }
+      const signerName = name.trim();
+      const isDelivery = pointKey.startsWith('delivery') || pointKey === 'container_return';
+      const seqMatch = pointKey.match(/^delivery_(\d+)$/);
+      const signedAt = new Date().toISOString();
+      const result = { signature_url: '', signer_name: signerName };
+      try { localStorage.setItem(`signature_${orderCode}_${pointKey}`, JSON.stringify({ signer_name: signerName, signed_at: signedAt })); } catch { /* noop */ }
+      // Fire-and-forget: never blocks the check-in/SOP/POD flow.
+      const send = (lat?: number, lng?: number) => {
+        submitDriverSignature({
+          order_number: orderCode,
+          checkin_type: isDelivery ? 'delivery' : 'pickup',
+          destination_sequence_number: seqMatch ? Number(seqMatch[1]) : null,
+          signer_name: signerName || '-',
+          signature_base64: dataUrl,
+          signed_at: signedAt,
+          ...(lat != null && lng != null ? { latitude: lat, longitude: lng } : {}),
+          ...(localStorage.getItem('auth_driver_id') ? { driver_id: String(localStorage.getItem('auth_driver_id')) } : {}),
+        }).then(({ error }) => {
+          if (error) { console.warn('[signature] send failed', error); toast({ title: tx.failed, variant: 'destructive' }); }
+        });
+      };
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((p) => send(p.coords.latitude, p.coords.longitude), () => send(), { timeout: 3000, maximumAge: 60000 });
+      } else send();
       onOpenChange(false);
       onSigned(result);
     } catch (err) {

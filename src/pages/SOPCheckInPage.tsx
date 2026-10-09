@@ -513,7 +513,6 @@ export default function SOPCheckInPage() {
         sop_type: 'pickup',
         product_images: productImageUrls,
         document_images: documentImageUrls,
-            ...(signatureRef.current || {}),
       };
 
       // Build weight_slips array with image_url per slip

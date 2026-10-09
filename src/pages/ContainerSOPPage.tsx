@@ -1343,7 +1343,6 @@ const ContainerSOPPage = () => {
             ...(returnSlipYardName && { return_yard_name: returnSlipYardName }),
             ...(eirUrls.length > 0 && { photo_urls: eirUrls }),
             ...(publicUrl && { photo_url: publicUrl }),
-            ...(signatureRef.current || {}),
           };
           const { error: checkinError } = await driverCheckin(checkinPayload);
           if (checkinError) {
@@ -1407,7 +1406,6 @@ const ContainerSOPPage = () => {
             notes: 'ยืนยันรับตู้หนัก',
             container_number: finalContainerNumber,
             seal_number: finalSealNumber,
-            ...(signatureRef.current || {}),
           };
           console.log('[ContainerSOP] driverCheckin payload (pickup):', checkinPayload);
           const { data: checkinData, error: checkinError } = await driverCheckin(checkinPayload);
