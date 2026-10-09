@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send, Bug, Bot, Wrench } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,6 +49,21 @@ export default function SettingsPage() {
   const [chatbotEnabled, setChatbotEnabled] = useState(() => {
     return localStorage.getItem('chatbot_enabled') !== 'false';
   });
+
+  const introUserId = String((user as any)?.id || (user as any)?.driver_id || localStorage.getItem('auth_driver_id') || '');
+  const introKey = introUserId ? `repair_menu_intro_ack:${introUserId}` : '';
+  const [showRepairIntro, setShowRepairIntro] = useState(false);
+  const repairRowRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (introKey && localStorage.getItem(introKey) !== '1') setShowRepairIntro(true);
+  }, [introKey]);
+  useEffect(() => {
+    if (showRepairIntro) setTimeout(() => repairRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+  }, [showRepairIntro]);
+  const ackRepairIntro = () => {
+    if (introKey) localStorage.setItem(introKey, '1');
+    setShowRepairIntro(false);
+  };
 
   useEffect(() => {
     if (user) {
@@ -291,6 +306,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24 overscroll-none">
+      {showRepairIntro && <div className="fixed inset-0 z-40 bg-foreground/50" onClick={ackRepairIntro} />}
       {/* Header */}
       <header className="bg-header text-header-foreground text-center" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <h1 className="text-xl font-semibold px-4 py-3">{t('settings.title')}</h1>
@@ -415,9 +431,10 @@ export default function SettingsPage() {
                     )}
                   </button>
                 ) : item.isRepairReport ? (
+                  <div ref={repairRowRef} className={showRepairIntro ? 'relative z-50' : ''}>
                   <button
-                    onClick={() => item.path && navigate(item.path)}
-                    className="flex items-center justify-between w-full px-4 py-3 bg-orange-50/60 hover:bg-orange-100/60 transition-colors"
+                    onClick={() => { if (showRepairIntro) ackRepairIntro(); item.path && navigate(item.path); }}
+                    className={`flex items-center justify-between w-full px-4 py-3 bg-orange-50 hover:bg-orange-100/60 transition-colors ${showRepairIntro ? 'ring-2 ring-orange-500 rounded-lg' : ''}`}
                   >
                     <div className="flex items-center gap-3">
                       <Wrench className="w-5 h-5 text-orange-600" />
@@ -425,6 +442,17 @@ export default function SettingsPage() {
                     </div>
                     <ChevronRight className="w-5 h-5 text-orange-500" />
                   </button>
+                  {showRepairIntro && (
+                    <div className="absolute left-2 right-2 top-full mt-3 rounded-xl bg-card border border-orange-300 shadow-xl p-4">
+                      <div className="absolute -top-2 left-8 w-4 h-4 rotate-45 bg-card border-l border-t border-orange-300" />
+                      <p className="font-semibold text-orange-700 mb-1">{t('settings.repair_intro_title')}</p>
+                      <p className="text-sm text-muted-foreground mb-3">{t('settings.repair_intro_desc')}</p>
+                      <Button className="w-full bg-orange-500 hover:bg-orange-600" onClick={ackRepairIntro}>
+                        {t('settings.repair_intro_ack')}
+                      </Button>
+                    </div>
+                  )}
+                  </div>
                 ) : (
                   <button
                     onClick={() => item.path && navigate(item.path)}
