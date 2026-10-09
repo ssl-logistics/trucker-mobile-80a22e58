@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ReportProblemDrawer from "./ReportProblemDrawer";
 import JobDocumentsSheet from "./JobDocumentsSheet";
