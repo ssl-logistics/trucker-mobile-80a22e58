@@ -324,6 +324,10 @@ function TabPreloader() {
     registerTabPreload("/job", JobDetailPage.preload);
     registerTabPreload("/bid-job", BidJobDetailPage.preload);
     registerTabPreload("/job-route-expenses", JobRouteExpensesPage.preload);
+    // Job-flow step pages: warm up so proceeding after QR scan/skip never shows a full-page loader
+    registerTabPreload("/job-sop", SOPCheckInPage.preload);
+    registerTabPreload("/job-delivery", DeliveryDetailPage.preload);
+    registerTabPreload("/job-delivery-sop", DeliverySOPCheckInPage.preload);
 
     const warm = () => preloadAllTabs();
     const w = window as any;

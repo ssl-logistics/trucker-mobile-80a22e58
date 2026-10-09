@@ -252,8 +252,8 @@ export default function DomesticJobDetail({
     setLoadingQrOpen(open);
     if (!open) pendingQrActionRef.current = null;
   };
-  // Called only on a successful scan. Closing/skipping the dialog goes through
-  // handleLoadingQrOpenChange below and never runs the pending next-step action.
+  // Skip (value === null) is never remembered — only successful scans are stored.
+  // Both skip and a successful scan proceed to the pending next step.
   const handleLoadingQrDone = (value: string | null) => {
     if (value !== null) {
       const rec = { value, skipped: false, at: new Date().toISOString() };
