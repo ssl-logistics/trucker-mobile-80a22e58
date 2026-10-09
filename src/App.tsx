@@ -311,6 +311,16 @@ function TabPreloader() {
     registerTabPreload("/current-jobs", CurrentJobsPage.preload);
     registerTabPreload("/job-history", JobHistoryPage.preload);
     registerTabPreload("/account", AccountPage.preload);
+    // Settings sub-pages: warm up so the first tap never shows a full-page loader
+    registerTabPreload("/language", LanguagePage.preload);
+    registerTabPreload("/terms", TermsPage.preload);
+    registerTabPreload("/contact", ContactPage.preload);
+    registerTabPreload("/report-app-problem", ReportAppProblemPage.preload);
+    registerTabPreload("/repair-report", RepairReportPage.preload);
+    registerTabPreload("/vehicle-info", VehicleInfoPage.preload);
+    registerTabPreload("/change-password", ChangePasswordPage.preload);
+    registerTabPreload("/profile", ProfilePage.preload);
+    registerTabPreload("/notifications", NotificationsPage.preload);
 
     const warm = () => preloadAllTabs();
     const w = window as any;
