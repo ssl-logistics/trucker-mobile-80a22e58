@@ -1446,7 +1446,7 @@ export default function CurrentJobsPage() {
                     </div>
                     )}
 
-                    <div className={queueInfo ? 'grid grid-cols-2 gap-2' : ''}>
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
                         variant="outline"
                         className="w-full h-11 text-base font-medium"
@@ -1457,14 +1457,13 @@ export default function CurrentJobsPage() {
                       >
                         {t('currentJobs.viewDetails')}
                       </Button>
-                      {queueInfo && (
-                        <div ref={job.id === firstQueueJobId ? queueIntroRowRef : undefined} className={job.id === firstQueueJobId ? 'relative' : ''}>
+                      <div ref={job.id === firstQueueJobId ? queueIntroRowRef : undefined} className={job.id === firstQueueJobId ? 'relative' : ''}>
                         <Button
                           className={`h-11 w-full gap-2 text-base font-medium ${job.id === firstQueueJobId ? 'ring-2 ring-orange-500 ring-offset-2' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (job.id === firstQueueJobId) ackQueueIntro();
-                            setSelectedQueue(queueInfo);
+                            setSelectedQueue(queueInfo ?? { orderNumber: job.order_number });
                           }}
                         >
                           <ListOrdered className="h-4 w-4" />
@@ -1480,8 +1479,7 @@ export default function CurrentJobsPage() {
                             </Button>
                           </div>
                         )}
-                        </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </Card>;
