@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ReportProblemDrawer from "./ReportProblemDrawer";
 import JobDocumentsSheet from "./JobDocumentsSheet";
@@ -26,6 +27,23 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
   const [isDocumentsSheetOpen, setIsDocumentsSheetOpen] = useState(false);
   
   const isFromHistory = isHistoryContext(location.search, location.state);
+
+  // Documents menu intro card: shown once per account (every time on preview hosts)
+  const docIntroUserId = String(localStorage.getItem('auth_driver_id') || '');
+  const docIntroKey = docIntroUserId ? `documents_menu_intro_ack:${docIntroUserId}` : '';
+  const isPreviewHost = typeof window !== 'undefined' && window.location.hostname.includes('id-preview--');
+  const [showDocsIntro, setShowDocsIntro] = useState(() => !isPreviewHost && !isFromHistory && !!docIntroKey && localStorage.getItem(docIntroKey) !== '1');
+  const docsIntroRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (showDocsIntro) {
+      const timer = setTimeout(() => docsIntroRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [showDocsIntro]);
+  const ackDocumentsIntro = () => {
+    if (docIntroKey) localStorage.setItem(docIntroKey, '1');
+    setShowDocsIntro(false);
+  };
 
   // Hide non-expense buttons when POD is completed, but still show expense buttons from history
   const hideNonExpenseButtons = isPodCompleted || isFromHistory;
@@ -87,13 +105,31 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
           </>
         )}
 
-        <button
-          className="flex flex-col items-center gap-1 text-primary"
-          onClick={() => setIsDocumentsSheetOpen(true)}
-        >
-          <img src={documentsIcon} alt="" className="w-8 h-8" />
-          <span className="text-xs font-medium">{t('jobActions.documents')}</span>
-        </button>
+        <div ref={docsIntroRef} className="relative">
+          <button
+            className={`flex flex-col items-center gap-1 text-primary w-full ${showDocsIntro ? 'ring-2 ring-orange-500 rounded-lg' : ''}`}
+            onClick={() => {
+              ackDocumentsIntro();
+              setIsDocumentsSheetOpen(true);
+            }}
+          >
+            <img src={documentsIcon} alt="" className="w-8 h-8" />
+            <span className="text-xs font-medium">{t('jobActions.documents')}</span>
+          </button>
+          {showDocsIntro && (
+            <div
+              className="absolute left-0 right-0 top-full mt-3 z-30 rounded-xl bg-card border border-orange-300 shadow-xl p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-card border-l border-t border-orange-300" />
+              <p className="font-semibold text-orange-700 mb-1">{t('jobActions.documents_intro_title')}</p>
+              <p className="text-sm text-muted-foreground mb-3">{t('jobActions.documents_intro_desc')}</p>
+              <Button className="w-full bg-orange-500 hover:bg-orange-600" onClick={ackDocumentsIntro}>
+                {t('jobActions.documents_intro_ack')}
+              </Button>
+            </div>
+          )}
+        </div>
 
         {!hideNonExpenseButtons && (
           <button 

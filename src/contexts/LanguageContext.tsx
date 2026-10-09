@@ -86,6 +86,9 @@ const thTranslations: Record<string, string> = {
   'currentJobs.queue_intro_title': 'เมนูใหม่! ดูคิว',
   'currentJobs.queue_intro_desc': 'กดปุ่มนี้เพื่อดูลำดับคิว คิวปัจจุบัน และเวลาโดยประมาณของงานนี้',
   'currentJobs.queue_intro_ack': 'รับทราบ',
+  'jobActions.documents_intro_title': 'เมนูใหม่! เอกสาร',
+  'jobActions.documents_intro_desc': 'ส่งเอกสารหรือใบชั่งพร้อมไฟล์แนบให้ทีมงานได้จากหน้างานนี้',
+  'jobActions.documents_intro_ack': 'รับทราบ',
   'settings.sign_out': 'ออกจากระบบ',
 
   // App Problem Report
@@ -1795,6 +1798,9 @@ const enTranslations: Record<string, string> = {
   'currentJobs.queue_intro_title': 'New! View queue',
   'currentJobs.queue_intro_desc': 'Tap this button to see your queue position, current queue, and estimated time for this job.',
   'currentJobs.queue_intro_ack': 'Got it',
+  'jobActions.documents_intro_title': 'New! Documents',
+  'jobActions.documents_intro_desc': 'Send documents or weight slips with attachments to the team from this job page.',
+  'jobActions.documents_intro_ack': 'Got it',
   'settings.sign_out': 'Sign Out',
 
   // App Problem Report
@@ -3502,6 +3508,9 @@ const koTranslations: Record<string, string> = {
   'currentJobs.queue_intro_title': '새 기능! 대기열 보기',
   'currentJobs.queue_intro_desc': '이 버튼을 눌러 이 작업의 대기 순번, 현재 대기열, 예상 시간을 확인하세요.',
   'currentJobs.queue_intro_ack': '확인',
+  'jobActions.documents_intro_title': '새 메뉴! 서류',
+  'jobActions.documents_intro_desc': '이 화면에서 서류나 계량표를 첨부파일과 함께 팀에 바로 보낼 수 있습니다.',
+  'jobActions.documents_intro_ack': '확인',
   'settings.sign_out': '로그아웃',
 
   // App Problem Report
@@ -5281,6 +5290,9 @@ const zhTranslations: Record<string, string> = {
   'currentJobs.queue_intro_title': '新功能！查看队列',
   'currentJobs.queue_intro_desc': '点击此按钮可查看该任务的排队序号、当前队列和预计时间。',
   'currentJobs.queue_intro_ack': '知道了',
+  'jobActions.documents_intro_title': '新菜单！文件',
+  'jobActions.documents_intro_desc': '可在此页面将文件或磅单连同附件发送给工作人员。',
+  'jobActions.documents_intro_ack': '知道了',
   'settings.sign_out': '退出登录',
 
   // App Problem Report
