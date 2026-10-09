@@ -299,7 +299,9 @@ export const preloadablePages = {
 
 // Persistent shell for the four bottom-nav tabs.
 // The nav stays mounted; only the tab content suspends while its chunk loads.
-function TabLayout() {
+// Mounted for every route so tab chunks are warm even when the app opens on a
+// job detail page; going back to a tab never shows the full-screen loader.
+function TabPreloader() {
   useEffect(() => {
     registerTabPreload("/home", Home.preload);
     registerTabPreload("/dashboard", DashboardPage.preload);
@@ -317,6 +319,10 @@ function TabLayout() {
       else window.clearTimeout(id);
     };
   }, []);
+  return null;
+}
+
+function TabLayout() {
 
   return (
     <>
@@ -346,6 +352,7 @@ const App = () => (
                   <PushNotificationPrompt />
                   <GlobalProximityAlert />
                   <QueueAlertPopup />
+                  <TabPreloader />
                   <FloatingChatbot />
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
