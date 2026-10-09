@@ -1458,16 +1458,29 @@ export default function CurrentJobsPage() {
                         {t('currentJobs.viewDetails')}
                       </Button>
                       {queueInfo && (
+                        <div ref={job.id === firstQueueJobId ? queueIntroRowRef : undefined} className={job.id === firstQueueJobId ? 'relative' : ''}>
                         <Button
-                          className="h-11 w-full gap-2 text-base font-medium"
+                          className={`h-11 w-full gap-2 text-base font-medium ${job.id === firstQueueJobId ? 'ring-2 ring-orange-500 ring-offset-2' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (job.id === firstQueueJobId) ackQueueIntro();
                             setSelectedQueue(queueInfo);
                           }}
                         >
                           <ListOrdered className="h-4 w-4" />
                           {t('currentJobs.queue')}
                         </Button>
+                        {job.id === firstQueueJobId && (
+                          <div className="absolute left-0 right-0 top-full mt-3 z-30 rounded-xl bg-card border border-orange-300 shadow-xl p-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-card border-l border-t border-orange-300" />
+                            <p className="font-semibold text-orange-700 mb-1">{t('currentJobs.queue_intro_title')}</p>
+                            <p className="text-sm text-muted-foreground mb-3">{t('currentJobs.queue_intro_desc')}</p>
+                            <Button className="w-full bg-orange-500 hover:bg-orange-600" onClick={ackQueueIntro}>
+                              {t('currentJobs.queue_intro_ack')}
+                            </Button>
+                          </div>
+                        )}
+                        </div>
                       )}
                     </div>
                   </div>
