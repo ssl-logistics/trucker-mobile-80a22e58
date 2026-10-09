@@ -246,6 +246,12 @@ export default function DomesticJobDetail({
     pendingQrActionRef.current = next;
     setLoadingQrOpen(true);
   };
+  // Closing the dialog without a successful scan (skip button, backdrop, X) just
+  // closes it — the pending next-step action is dropped so the page never navigates.
+  const handleLoadingQrOpenChange = (open: boolean) => {
+    setLoadingQrOpen(open);
+    if (!open) pendingQrActionRef.current = null;
+  };
   // Called only on a successful scan. Closing/skipping the dialog goes through
   // handleLoadingQrOpenChange below and never runs the pending next-step action.
   const handleLoadingQrDone = (value: string | null) => {
