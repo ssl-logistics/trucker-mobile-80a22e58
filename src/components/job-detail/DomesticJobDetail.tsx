@@ -237,14 +237,26 @@ export default function DomesticJobDetail({
   useEffect(() => {
     try { const raw = localStorage.getItem(loadingQrKey); setLoadingQr(raw ? JSON.parse(raw) : null); } catch { setLoadingQr(null); }
   }, [loadingQrKey]);
-  const needsLoadingQr = !isFromHistory && !job.bl_no && !loadingQr
+  // QR scan prompt opens on every press until the step completes; skipping is never remembered.
+  const needsLoadingQr = !isFromHistory && !job.bl_no
     && (pickupCheckedIn || !!jobApplication?.checked_in_at)
     && !(pickupSopCompleted || !!jobApplication?.sop_completed_at);
+  const pendingQrActionRef = useRef<(() => void) | null>(null);
+  const openLoadingQr = (next: () => void) => {
+    pendingQrActionRef.current = next;
+    setLoadingQrOpen(true);
+  };
   const handleLoadingQrDone = (value: string | null) => {
-    const rec = { value, skipped: value === null, at: new Date().toISOString() };
-    try { localStorage.setItem(loadingQrKey, JSON.stringify(rec)); } catch { /* noop */ }
-    setLoadingQr(rec);
+    // Skip keeps any earlier successful scan record.
+    if (value !== null || !loadingQr || loadingQr.skipped) {
+      const rec = { value, skipped: value === null, at: new Date().toISOString() };
+      try { localStorage.setItem(loadingQrKey, JSON.stringify(rec)); } catch { /* noop */ }
+      setLoadingQr(rec);
+    }
     setLoadingQrOpen(false);
+    const next = pendingQrActionRef.current;
+    pendingQrActionRef.current = null;
+    if (next) setTimeout(next, 0);
     if (value !== null) {
       toast({ title: t('loadingQr.success') });
       // Fire-and-forget: notify the QTruck queue system of the station scan.
@@ -2136,7 +2148,7 @@ export default function DomesticJobDetail({
                         )}
                         <Button size="sm" onClick={() => {
                         const queryString = isFromHistory ? '?from=history' : '';
-                        if (needsLoadingQr) { setLoadingQrOpen(true); return; }
+                        if (needsLoadingQr) { openLoadingQr(() => navigate(`/job/${encodeURIComponent(job.order_code)}/sop${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob, fromHistory: isFromHistory } })); return; }
                         if (pickupSopCompleted || jobApplication?.sop_completed_at) {
                           navigate(`/job/${encodeURIComponent(job.order_code)}/pickup-summary${queryString}`, { state: { jobData: jobWithTransferFlag, isBidJob, fromHistory: isFromHistory } });
                         } else if (pickupCheckedIn || jobApplication?.checked_in_at) {
