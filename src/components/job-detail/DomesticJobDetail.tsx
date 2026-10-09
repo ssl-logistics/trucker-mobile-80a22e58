@@ -1384,8 +1384,12 @@ export default function DomesticJobDetail({
     if (!orderKey || autoScrolledOrderRef.current === orderKey) return;
     autoScrolledOrderRef.current = orderKey;
     // Always start at the top of the page first, then scroll to the current step.
+    document.getElementById('root')?.scrollTo({ top: 0 });
     window.scrollTo({ top: 0 });
-    const timer = setTimeout(() => {
+    let tries = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const attempt = () => {
+      tries += 1;
       let target: HTMLDivElement | null = null;
       // First-step jobs stay at the top of the page (no auto-scroll).
       let isFirstStep = false;
@@ -1424,10 +1428,15 @@ export default function DomesticJobDetail({
           }
         }
       }
-      if (target && !isFirstStep) {
+      if (isFirstStep) return;
+      if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (tries < 14) {
+        // Card not rendered yet — retry briefly.
+        timer = setTimeout(attempt, 150);
       }
-    }, 200);
+    };
+    timer = setTimeout(attempt, 200);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoadingCheckinStatus, job.order_code]);
