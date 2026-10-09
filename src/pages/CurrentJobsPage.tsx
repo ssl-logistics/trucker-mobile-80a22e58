@@ -1170,6 +1170,15 @@ export default function CurrentJobsPage() {
     const dateB = parseDate(b.sender_pickup_date || b.created_at, b.sender_pickup_time);
     return dateB - dateA;
   });
+
+  // First job that has a queue button — target of the intro card
+  const firstQueueJobId = !queueIntroAcked
+    ? (filteredJobs.find(job => getQueueInfo(job) !== null)?.id ?? null)
+    : null;
+  useEffect(() => {
+    if (firstQueueJobId) setTimeout(() => queueIntroRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+  }, [firstQueueJobId]);
+
   const EmptyState = () => <div className="flex flex-col items-center justify-center py-20 px-4">
       <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center mb-4">
         <MapPin className="w-16 h-16 text-muted-foreground" />
