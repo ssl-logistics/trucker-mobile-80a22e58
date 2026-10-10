@@ -1176,9 +1176,9 @@ export default function CurrentJobsPage() {
     return dateB - dateA;
   });
 
-  // First job that has a queue button — target of the intro card
+  // First visible job — target of the intro card (queue button shows on every card)
   const firstQueueJobId = !queueIntroAcked
-    ? (filteredJobs.find(job => getQueueInfo(job) !== null)?.id ?? null)
+    ? (filteredJobs[0]?.id ?? null)
     : null;
   useEffect(() => {
     if (firstQueueJobId) setTimeout(() => queueIntroRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
