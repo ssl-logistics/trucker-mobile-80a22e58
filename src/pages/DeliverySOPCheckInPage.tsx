@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import SignatureDialog, { type SignatureResult } from '@/components/job/SignatureDialog';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle } from 'lucide-react';
+import { ChevronLeft, Camera, Image as ImageIcon, CheckCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -435,7 +435,12 @@ export default function DeliverySOPCheckInPage() {
           onClick={handleConfirmClick}
           disabled={uploading || !photoFile}
         >
-          {t('deliverySop.confirmSOP')}
+          {uploading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t('common.saving')}
+            </span>
+          ) : t('deliverySop.confirmSOP')}
         </Button>
       </div>
       )}

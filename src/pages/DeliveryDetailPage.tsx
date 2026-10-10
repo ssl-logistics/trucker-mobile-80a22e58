@@ -1,7 +1,7 @@
 import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Phone, MapPin, Camera, Check, CheckCircle } from "lucide-react";
+import { ChevronLeft, Phone, MapPin, Camera, Check, CheckCircle, Loader2 } from "lucide-react";
 import { EditablePhoto } from "@/components/photo/EditablePhoto";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -1324,9 +1324,14 @@ export default function DeliveryDetailPage() {
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
             onClick={() => setShowSignature(true)}
-            disabled={!podPhoto}
+            disabled={!podPhoto || isSubmittingPod}
           >
-            {t('delivery.confirmPod')}
+            {isSubmittingPod ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {t('common.saving')}
+              </span>
+            ) : t('delivery.confirmPod')}
           </Button>
         </div>
       )}
