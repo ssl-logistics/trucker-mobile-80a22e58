@@ -30,3 +30,4 @@
 - [x] ปรับ qtruck-webhook ตามเอกสาร QTruck v2: หาคนขับด้วย driver_phone เมื่อไม่มี external_ref, เพิ่มแจ้ง processing, แสดง queues_ahead — แก้เฉพาะ supabase/functions/qtruck-webhook/index.ts ไฟล์เดียว ไม่แตะ flow อื่น (deploy แล้ว รอผู้ใช้เทสยิงจริง)
 - [x] ลายเซ็นครบทุกจุดยืนยัน: POD จากหน้าจุดส่งโดยตรงเด้งหน้าต่างเซ็นก่อนส่ง แนบ signature_url + signer_name ไปพร้อม photo_url (DeliveryDetailPage) — รวมกับหน้า SOP ทั้ง 3 หน้าที่มีอยู่แล้ว ครบทุกจุดรับ/จุดส่ง ใน+ต่างประเทศ
 - [x] หน้าแรก: คำหน้าชื่อบริษัทเช็คจาก assigned_company_type (factory → โรงงาน, logistics/อื่น → บริษัท, ไม่มีค่า fallback เดิม) เฉพาะ JobCard — i18n job.ownerCompany 4 ภาษา; หน้าอื่นยังใช้ ผู้จ้าง เดิม
+- [x] UI หลังเซ็นลายเซ็น: ปุ่มหลักแสดงไอคอน + “กำลังบันทึก...” ตามภาษาและปิดการกดซ้ำ โดยไม่เปลี่ยน API หรือ flow
