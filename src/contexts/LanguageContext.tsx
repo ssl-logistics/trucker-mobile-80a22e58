@@ -434,6 +434,7 @@ const thTranslations: Record<string, string> = {
   'common.copied': 'คัดลอกแล้ว',
   'common.cancel': 'ยกเลิก',
   'common.confirm': 'ยืนยัน',
+  'common.saving': 'กำลังบันทึก...',
   'common.previous': 'ก่อนหน้า',
   'history.readOnlyTitle': 'งานนี้ปิดแล้ว',
   'history.readOnlyDesc': 'งานในประวัติดูได้อย่างเดียว ไม่สามารถแก้ไขหรืออัปเดตได้',
@@ -1948,6 +1949,7 @@ const enTranslations: Record<string, string> = {
   'home.company_contractor': 'Company Contractor',
   'home.subcontractor_employee': 'Subcontractor / Subhaul Company',
   'common.loading': 'Loading...',
+  'common.saving': 'Saving...',
   'common.pleaseWait': 'Please wait...',
   'common.checking': 'Checking...',
   
@@ -3665,6 +3667,7 @@ const koTranslations: Record<string, string> = {
   'home.company_contractor': '회사 계약자',
   'home.subcontractor_employee': '하청업체/운송 협력사',
   'common.loading': '로딩 중...',
+  'common.saving': '저장 중...',
   'common.pleaseWait': '잠시만 기다려주세요...',
   'common.checking': '확인 중...',
   
@@ -6565,6 +6568,7 @@ const zhTranslations: Record<string, string> = {
   'common.filter': '筛选',
   'common.sort': '排序',
   'common.loading': '加载中...',
+  'common.saving': '保存中...',
   'common.pleaseWait': '请稍候...',
   'common.checking': '检查中...',
   'common.error': '错误',

@@ -810,7 +810,12 @@ export default function SOPCheckInPage() {
           onClick={handleConfirmClick}
           disabled={uploading || photoFiles.length === 0 || docPhotoFiles.length === 0 || ocrExtracting || (weightSlips.length > 0 && weightSlips.some(ws => ws.ocrData === null))}
         >
-          {t('sop.confirmSOP')}
+          {uploading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t('common.saving')}
+            </span>
+          ) : t('sop.confirmSOP')}
         </Button>
       </div>
       )}

@@ -2380,7 +2380,12 @@ const ContainerSOPPage = () => {
           onClick={handleConfirmClick}
           disabled={isConfirmDisabled}
         >
-          {checkingExpenses ? t('common.loading') : uploading ? t('sop.saving') : confirmButtonText}
+          {checkingExpenses || uploading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {checkingExpenses ? t('common.loading') : t('common.saving')}
+            </span>
+          ) : confirmButtonText}
         </Button>
       </div>
       )}
