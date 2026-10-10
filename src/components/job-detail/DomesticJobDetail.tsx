@@ -2483,13 +2483,11 @@ export default function DomesticJobDetail({
                             <span>{formatDateTime((job as any).closing_time, language)}</span>
                           </div>
                         )}
-                        {dest.invoice_number && (
                         <div className="flex items-start gap-2">
                           <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                           <span className="font-medium text-[#454545] min-w-[50px]">{t('job.invoice') || 'INV'}</span>
-                          <span>{dest.invoice_number}</span>
+                          <span>{dest.invoice_number || '-'}</span>
                         </div>
-                        )}
                         {(dest as any).customer && (() => {
                           const c: any = (dest as any).customer;
                           const addressLine = [c.province, c.district].filter(Boolean).join(' ');
@@ -2704,12 +2702,10 @@ export default function DomesticJobDetail({
                         <Phone className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.phone')}:</strong> {job.destination_contact_phone || '-'}</span>
                       </div>
-                      {job.destination_bill_of_lading && job.destination_bill_of_lading !== '-' && (
-                        <div className="flex items-start gap-2">
-                          <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span><strong className="text-foreground">{t('job.invoice') || 'ใบแจ้งหนี้'}:</strong> {job.destination_bill_of_lading}</span>
-                        </div>
-                      )}
+                      <div className="flex items-start gap-2">
+                        <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                        <span><strong className="text-foreground">{t('job.invoice') || 'ใบแจ้งหนี้'}:</strong> {job.destination_bill_of_lading || '-'}</span>
+                      </div>
                       <div className="flex items-start gap-2">
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
                         <span><strong className="text-foreground">{t('jobDetail.dateTime')}:</strong> {job.destination_date ? formatDate(job.destination_date, language) : formatDate(job.start_date, language)} | {job.destination_time ? job.destination_time.substring(0, 5) : '-'}</span>
