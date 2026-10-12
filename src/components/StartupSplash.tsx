@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import truckerIcon from "@/assets/trucker-icon.png";
+import truckerIcon from "@/assets/trucker-icon-mark.png";
 import { preloadAllTabs } from "@/lib/tabPreload";
 
 const DISPLAY_DURATION_MS = 3000;
