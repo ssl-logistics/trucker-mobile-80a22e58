@@ -1,14 +1,12 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import truckerIcon from "@/assets/trucker-icon.png";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { preloadAllTabs } from "@/lib/tabPreload";
 
 const DISPLAY_DURATION_MS = 3000;
 const EXIT_DURATION_MS = 300;
 
 export function StartupSplash() {
-  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -38,32 +36,41 @@ export function StartupSplash() {
     <div
       role="status"
       aria-live="polite"
-      aria-label={t("common.loading")}
-      className={`fixed inset-0 z-[2147483647] flex items-center justify-center bg-background transition-opacity duration-300 motion-reduce:transition-none ${
+      aria-label="Loading"
+      className={`fixed inset-0 z-[2147483647] flex items-center justify-center overflow-hidden bg-background transition-opacity duration-300 motion-reduce:transition-none ${
         isExiting ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
     >
-      <div className="flex flex-col items-center gap-6 px-6">
-        <div className="h-36 w-36 overflow-hidden rounded-lg bg-card shadow-lg sm:h-40 sm:w-40">
-          <img
-            src={truckerIcon}
-            alt="The Truckers"
-            className="h-full w-full object-contain"
-            draggable={false}
-          />
+      {/* Soft ambient glows behind the logo */}
+      <div
+        aria-hidden="true"
+        className="splash-glow pointer-events-none absolute h-64 w-64 rounded-full bg-primary/10 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="splash-glow pointer-events-none absolute -translate-x-24 translate-y-28 h-40 w-40 rounded-full bg-accent/10 blur-3xl"
+        style={{ animationDelay: "-1s" }}
+      />
+
+      <div className="relative flex flex-col items-center gap-8 px-6">
+        <div className="splash-float relative">
+          <div className="h-36 w-36 overflow-hidden rounded-3xl bg-card p-3 shadow-xl ring-1 ring-black/5 sm:h-40 sm:w-40">
+            <img
+              src={truckerIcon}
+              alt="The Truckers"
+              className="h-full w-full object-contain"
+              draggable={false}
+            />
+          </div>
         </div>
 
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex gap-2" aria-hidden="true">
-            {[0, 1, 2].map((index) => (
-              <span
-                key={index}
-                className="h-2 w-2 animate-pulse rounded-full bg-primary motion-reduce:animate-none"
-                style={{ animationDelay: `${index * 180}ms` }}
-              />
-            ))}
-          </div>
-          <p className="text-sm font-medium text-muted-foreground">{t("common.loading")}</p>
+        {/* Brand-colored spinner ring */}
+        <div
+          aria-hidden="true"
+          className="splash-ring relative h-10 w-10"
+        >
+          <div className="absolute inset-0 rounded-full border-2 border-muted" />
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary border-r-primary/40 animate-spin motion-reduce:animate-none [animation-duration:1.1s]" />
         </div>
       </div>
     </div>,
