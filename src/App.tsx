@@ -17,6 +17,7 @@ import { FloatingChatbot } from "@/components/chatbot/FloatingChatbot";
 import { GlobalProximityAlert } from "@/components/GlobalProximityAlert";
 import QueueAlertPopup from "@/components/job/QueueAlertPopup";
 import { PreviewDebugFab } from "@/components/debug/PreviewDebugFab";
+import { StartupSplash } from "@/components/StartupSplash";
 import { CallProvider } from "@/components/call/CallProvider";
 import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -89,7 +90,7 @@ function VersionBadge() {
 
   const badge = (
     <div
-      className="fixed text-[10px] font-medium text-foreground pointer-events-none select-none"
+      className="startup-hideable fixed text-[10px] font-medium text-foreground pointer-events-none select-none"
       style={{
         opacity: 0.55,
         bottom: isLoginPage ? "calc(env(safe-area-inset-bottom, 0px) + 4px)" : undefined,
@@ -383,6 +384,7 @@ const App = () => (
                   <GlobalProximityAlert />
                   <QueueAlertPopup />
                   <TabPreloader />
+                  <StartupSplash />
                   <FloatingChatbot />
                   <PreviewDebugFab />
                   <Suspense fallback={<PageLoader />}>
