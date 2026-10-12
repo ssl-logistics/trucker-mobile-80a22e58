@@ -57,7 +57,7 @@ export function StartupSplash() {
           <img
             src={truckerIcon}
             alt="The Truckers"
-            className="h-36 w-36 object-contain sm:h-40 sm:w-40"
+            className="h-auto w-56 object-contain sm:w-64"
             draggable={false}
           />
         </div>
