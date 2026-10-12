@@ -64,8 +64,31 @@ export function StartupSplash() {
 
         {/* Brand-colored spinner ring: thick track + smooth fading arc */}
         <div aria-hidden="true" className="splash-ring relative h-10 w-10">
-          <div className="splash-ring-track absolute inset-0" />
-          <div className="splash-ring-arc absolute inset-0 motion-reduce:animate-none" />
+          <svg viewBox="0 0 40 40" fill="none" className="splash-ring-arc h-10 w-10 motion-reduce:animate-none">
+            <defs>
+              <linearGradient id="splashArcFade" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" style={{ stopColor: "hsl(var(--primary))", stopOpacity: 0.06 }} />
+                <stop offset="45%" style={{ stopColor: "hsl(var(--primary))", stopOpacity: 0.45 }} />
+                <stop offset="100%" style={{ stopColor: "hsl(var(--primary))", stopOpacity: 1 }} />
+              </linearGradient>
+            </defs>
+            <circle
+              cx="20"
+              cy="20"
+              r="16"
+              strokeWidth="5"
+              style={{ stroke: "hsl(var(--primary))", strokeOpacity: 0.15 }}
+            />
+            <circle
+              cx="20"
+              cy="20"
+              r="16"
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeDasharray="66 100.6"
+              stroke="url(#splashArcFade)"
+            />
+          </svg>
         </div>
       </div>
     </div>,
