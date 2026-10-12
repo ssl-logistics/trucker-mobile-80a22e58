@@ -16,6 +16,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { FloatingChatbot } from "@/components/chatbot/FloatingChatbot";
 import { GlobalProximityAlert } from "@/components/GlobalProximityAlert";
 import QueueAlertPopup from "@/components/job/QueueAlertPopup";
+import { PreviewDebugFab } from "@/components/debug/PreviewDebugFab";
 import { CallProvider } from "@/components/call/CallProvider";
 import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -383,6 +384,7 @@ const App = () => (
                   <QueueAlertPopup />
                   <TabPreloader />
                   <FloatingChatbot />
+                  <PreviewDebugFab />
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<StartPage />} />
