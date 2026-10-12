@@ -33,7 +33,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
   const docIntroUserId = String(localStorage.getItem('auth_driver_id') || '');
   const docIntroKey = docIntroUserId ? `documents_menu_intro_ack:${docIntroUserId}` : '';
   const previewHost = isPreviewHost();
-  const [showDocsIntro, setShowDocsIntro] = useState(() => !previewHost && !isFromHistory && !!docIntroKey && localStorage.getItem(docIntroKey) !== '1');
+  const [showDocsIntro, setShowDocsIntro] = useState(() => (previewHost && !isFromHistory) || (!isFromHistory && !!docIntroKey && localStorage.getItem(docIntroKey) !== '1'));
   const docsIntroRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (showDocsIntro) {
