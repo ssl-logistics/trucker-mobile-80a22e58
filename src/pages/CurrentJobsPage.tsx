@@ -1231,7 +1231,7 @@ export default function CurrentJobsPage() {
                 >
                   <div className="flex items-center justify-between px-3 py-2 bg-white">
                     <div className="bg-[#E0FFEA] text-sm font-medium px-3 py-1 rounded-br-xl -ml-3 -mt-2 text-[#30503b]">
-                      {job.bl_no ? `BL ${job.bl_no}` : job.booking_no ? `Booking ${job.booking_no}` : `${t('job.order_code')} ${job.order_number}`}
+                      {job.bl_no ? `BL ${job.bl_no}` : job.booking_no ? `Booking ${job.booking_no}` : job.order_number}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Clock className="w-3.5 h-3.5" />
