@@ -2485,7 +2485,7 @@ export default function DomesticJobDetail({
                         )}
                         <div className="flex items-start gap-2">
                           <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span className="font-medium text-[#454545] min-w-[50px]">{t('job.invoice') || 'INV'}</span>
+                          <span className="font-medium text-[#454545] min-w-[50px]">Invoice</span>
                           <span>{dest.invoice_number || '-'}</span>
                         </div>
                         {(dest as any).customer && (() => {
@@ -2704,7 +2704,7 @@ export default function DomesticJobDetail({
                       </div>
                       <div className="flex items-start gap-2">
                         <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                        <span><strong className="text-foreground">{t('job.invoice') || 'ใบแจ้งหนี้'}:</strong> {job.destination_bill_of_lading || '-'}</span>
+                        <span><strong className="text-foreground">Invoice:</strong> {job.destination_bill_of_lading || '-'}</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
