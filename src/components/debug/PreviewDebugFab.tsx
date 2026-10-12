@@ -3,6 +3,11 @@ import { useLocation } from "react-router-dom";
 import { Bug, X, RefreshCw } from "lucide-react";
 import { isPreviewHost } from "@/utils/previewHost";
 
+// Real mobile devices (phones/tablets) never show the debug FAB,
+// even on preview hosts. Desktop preview (incl. narrow viewport) keeps it.
+const isMobileDevice = () =>
+  /Android|iPhone|iPad|iPod|Mobile|Mobi/i.test(navigator.userAgent);
+
 interface IntroCheck {
   label: string;
   ackKey: string;
@@ -33,7 +38,7 @@ export const PreviewDebugFab = () => {
     if (open) setTick((t) => t + 1);
   }, [open, location.pathname]);
 
-  if (!isPreviewHost()) return null;
+  if (!isPreviewHost() || isMobileDevice()) return null;
 
   const driverId = localStorage.getItem("auth_driver_id") || "(ไม่มี)";
   const route = location.pathname;
