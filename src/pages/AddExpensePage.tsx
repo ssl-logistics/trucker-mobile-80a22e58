@@ -1,4 +1,5 @@
 import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
+import { isPreviewHost } from '@/utils/previewHost';
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Camera, Image, Pencil, Plus, Trash2, Scan, Loader2, X, Check, ChevronDown, Gauge, Fuel } from "lucide-react";
@@ -110,7 +111,7 @@ const AddExpensePage = () => {
   const advanceIntroUserId = String(localStorage.getItem('auth_driver_id') || '');
   const advanceIntroKey = advanceIntroUserId ? `advance_payment_intro_ack:${advanceIntroUserId}` : '';
   const previewHost = isPreviewHost();
-  const [showAdvanceIntro, setShowAdvanceIntro] = useState(() => isPreviewHost || (!!advanceIntroKey && localStorage.getItem(advanceIntroKey) !== '1'));
+  const [showAdvanceIntro, setShowAdvanceIntro] = useState(() => previewHost || (!!advanceIntroKey && localStorage.getItem(advanceIntroKey) !== '1'));
   const ackAdvanceIntro = () => {
     if (advanceIntroKey) localStorage.setItem(advanceIntroKey, '1');
     setShowAdvanceIntro(false);
@@ -118,7 +119,7 @@ const AddExpensePage = () => {
 
   // Fuel details intro card: shown once per account (every time on preview hosts)
   const fuelIntroKey = advanceIntroUserId ? `fuel_details_intro_ack:${advanceIntroUserId}` : '';
-  const [showFuelIntro, setShowFuelIntro] = useState(() => isPreviewHost || (!!fuelIntroKey && localStorage.getItem(fuelIntroKey) !== '1'));
+  const [showFuelIntro, setShowFuelIntro] = useState(() => previewHost || (!!fuelIntroKey && localStorage.getItem(fuelIntroKey) !== '1'));
   const ackFuelIntro = () => {
     if (fuelIntroKey) localStorage.setItem(fuelIntroKey, '1');
     setShowFuelIntro(false);
