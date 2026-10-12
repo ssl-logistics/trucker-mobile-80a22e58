@@ -398,9 +398,37 @@ body::after {
   }
 }
 
+/* Smooth spinner: conic arc masked into a ring (no corner seams) */
+.splash-ring-track,
+.splash-ring-arc {
+  border-radius: 9999px;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 5px));
+}
+
+.splash-ring-track {
+  background: hsl(var(--muted));
+}
+
+.splash-ring-arc {
+  background: conic-gradient(
+    from 0deg,
+    hsl(var(--primary) / 0) 0deg,
+    hsl(var(--primary) / 0.06) 55deg,
+    hsl(var(--primary) / 0.22) 140deg,
+    hsl(var(--primary) / 0.5) 235deg,
+    hsl(var(--primary) / 0.85) 320deg,
+    hsl(var(--primary)) 352deg,
+    hsl(var(--primary) / 0) 360deg
+  );
+  animation: splashRingSpin 1.1s linear infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .splash-float,
   .splash-ring,
+  .splash-ring-arc,
   .splash-glow {
     animation: none !important;
   }

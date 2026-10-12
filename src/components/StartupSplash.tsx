@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { SPLASH_LOGO_DATA_URI } from "@/assets/splashLogo";
 import { preloadAllTabs } from "@/lib/tabPreload";
 
-const DISPLAY_DURATION_MS = 3000;
+const DISPLAY_DURATION_MS = 4000;
 const EXIT_DURATION_MS = 300;
 
 export function StartupSplash() {
