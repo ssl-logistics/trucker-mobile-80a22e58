@@ -5,3 +5,4 @@
 - Keep the startup splash as an overlay above the mounted application, so authentication, route data, and tab preloads run during its fixed display time instead of waiting for it to finish.
 
 - Verify CDN asset pointers (`src/assets/*.asset.json`) in Playwright by routing `**/__l5e/**` to the local file, because the raw sandbox dev server answers that path with the SPA fallback (text/html) while the preview and published hosts serve the real bytes — a blank image locally is a serving artifact, not a broken asset.
+- Images shown in the installed (Capacitor) app must be bundled imports from src/assets, never /__l5e CDN pointers — the native app loads from local files where that relative path has no server.
