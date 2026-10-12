@@ -639,7 +639,7 @@ const AddExpensePage = () => {
     <div className="min-h-screen bg-muted pb-20">
       {/* Header */}
       <header className="app-sticky-header bg-background border-b">
-        <div className="px-4 py-4 flex items-center gap-3">
+        <div className="px-4 py-[11px] flex items-center gap-3">
           <button
             onClick={handleBack}
             aria-label="back"
