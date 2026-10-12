@@ -339,7 +339,7 @@ const SignIn = () => {
       setIsLoggingIn(false);
     }
   };
-  return <div className="h-screen bg-background flex flex-col overflow-hidden" style={{
+  return <div className="min-h-[100dvh] bg-background flex flex-col overflow-x-hidden" style={{
     paddingTop: "env(safe-area-inset-top, 0px)"
   }}>
       {/* Hero Section with Truck Image */}
@@ -348,10 +348,10 @@ const SignIn = () => {
       </div>
 
       {/* Login Form */}
-      <div className="flex-1 rounded-t-[3rem] -mt-8 px-6 pt-12 pb-2 bg-white overflow-hidden flex flex-col">
+      <div className="flex-1 rounded-t-[3rem] -mt-8 px-6 pt-12 pb-2 bg-white flex flex-col">
         <h1 className="text-lg font-bold text-center mb-2 text-foreground">{t('signIn.title')}</h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 w-full mx-auto flex-1 flex flex-col overflow-hidden">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 w-full mx-auto flex-1 flex flex-col">
           {/* Email Field */}
           <div className="space-y-1">
             <Label htmlFor="email" className="text-foreground">
