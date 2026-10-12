@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import truckerLogo from "@/assets/trucker-logo.png";
+import { createPortal } from "react-dom";
+import truckerIcon from "@/assets/trucker-icon.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { preloadAllTabs } from "@/lib/tabPreload";
 
@@ -28,7 +29,7 @@ export function StartupSplash() {
 
   if (!isVisible) return null;
 
-  return (
+  return createPortal(
     <div
       role="status"
       aria-live="polite"
@@ -40,9 +41,9 @@ export function StartupSplash() {
       <div className="flex flex-col items-center gap-6 px-6">
         <div className="h-36 w-36 overflow-hidden rounded-lg bg-card shadow-lg sm:h-40 sm:w-40">
           <img
-            src={truckerLogo}
+            src={truckerIcon}
             alt="The Truckers"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
             draggable={false}
           />
         </div>
@@ -60,6 +61,7 @@ export function StartupSplash() {
           <p className="text-sm font-medium text-muted-foreground">{t("common.loading")}</p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
