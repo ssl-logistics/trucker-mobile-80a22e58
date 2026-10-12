@@ -1240,7 +1240,7 @@ export default function DeliveryDetailPage() {
 
         {job.invoice_number && (
           <div className="border-b border-gray-200 pb-4">
-            <div className="text-sm text-muted-foreground mb-1">{t('job.invoice')}</div>
+            <div className="text-sm text-muted-foreground mb-1">Invoice</div>
             <div className="text-base">{job.invoice_number}</div>
           </div>
         )}
