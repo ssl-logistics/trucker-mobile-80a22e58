@@ -344,12 +344,12 @@ const SignIn = () => {
     paddingTop: "env(safe-area-inset-top, 0px)"
   }}>
       {/* Hero Section with Truck Image */}
-      <div className="relative flex-shrink-0" style={{ height: "min(229px, max(72px, calc(100dvh - 450px)))" }}>
-        <img alt="The Truckers" className="absolute inset-0 w-full h-full object-cover object-right" src={loginHeroAsset.url} />
+      <div className="relative flex-shrink-0" style={{ aspectRatio: "1200 / 700" }}>
+        <img alt="The Truckers" className="absolute inset-0 w-full h-full object-contain" src={loginHeroAsset.url} />
       </div>
 
       {/* Login Form */}
-      <div className="flex-1 rounded-t-[3rem] -mt-8 px-6 pt-12 pb-2 bg-white flex flex-col">
+      <div className="flex-1 px-6 pt-12 pb-2 bg-white flex flex-col">
         <h1 className="text-lg font-bold text-center mb-2 text-foreground">{t('signIn.title')}</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 w-full mx-auto flex-1 flex flex-col">
