@@ -704,7 +704,7 @@ const SignIn = () => {
           <div className="flex justify-center">
             <div className="relative">
               <button type="button" onClick={() => setShowLanguageMenu(!showLanguageMenu)} className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-4 object-cover rounded-sm" />
+                <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-5 rounded-full object-cover" />
                 {currentLang.label}
               </button>
               
