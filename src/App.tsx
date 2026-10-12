@@ -343,6 +343,14 @@ function TabPreloader() {
 function TabLayout() {
   const location = useLocation();
 
+  // Reset the app scroll container to top whenever a tab page opens,
+  // so every newly opened page always starts at the top (no visible scrolling).
+  useEffect(() => {
+    const root = document.getElementById('root');
+    if (root) root.scrollTop = 0;
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
     <>
       <Suspense fallback={<TabContentLoader />}>
