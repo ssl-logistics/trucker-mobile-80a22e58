@@ -1180,9 +1180,6 @@ export default function CurrentJobsPage() {
   const firstQueueJobId = !queueIntroAcked
     ? (filteredJobs[0]?.id ?? null)
     : null;
-  useEffect(() => {
-    if (firstQueueJobId) setTimeout(() => queueIntroRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
-  }, [firstQueueJobId]);
 
   const EmptyState = () => <div className="flex flex-col items-center justify-center py-20 px-4">
       <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center mb-4">
