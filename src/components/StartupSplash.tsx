@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { SPLASH_LOGO_DATA_URI } from "@/assets/splashLogo";
 import { preloadAllTabs } from "@/lib/tabPreload";
-import loginHeroAsset from "@/assets/login-hero.webp.asset.json";
+import loginHeroImg from "@/assets/login-hero.webp";
 
 const DISPLAY_DURATION_MS = 4000;
 const EXIT_DURATION_MS = 300;
@@ -19,7 +19,7 @@ export function StartupSplash() {
   useEffect(() => {
     const preloadTimer = window.setTimeout(() => preloadAllTabs(), 0);
     const heroPreload = new Image();
-    heroPreload.src = loginHeroAsset.url;
+    heroPreload.src = loginHeroImg;
     const exitTimer = window.setTimeout(() => setIsExiting(true), DISPLAY_DURATION_MS);
     const removeTimer = window.setTimeout(() => {
       document.body.classList.remove("startup-splash-active");

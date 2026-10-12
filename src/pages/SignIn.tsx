@@ -18,7 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { login as loginExternal } from "@/lib/externalApi";
 import { setAuthItem } from "@/utils/authStorage";
 import loginBackground from "@/assets/login-background.png";
-import loginHeroAsset from "@/assets/login-hero.webp.asset.json";
+import loginHeroImg from "@/assets/login-hero.webp";
 import flagTh from "@/assets/flag-th.png";
 import flagEn from "@/assets/flag-en.png";
 import flagKo from "@/assets/flag-ko.png";
@@ -345,7 +345,7 @@ const SignIn = () => {
   }}>
       {/* Hero Section with Truck Image */}
       <div className="relative flex-shrink-0 bg-white" style={{ aspectRatio: "1200 / 700" }}>
-        <img alt="The Truckers" className="absolute inset-0 w-full h-full object-contain" src={loginHeroAsset.url} />
+        <img alt="The Truckers" className="absolute inset-0 w-full h-full object-contain" src={loginHeroImg} />
       </div>
 
       {/* Login Form */}
