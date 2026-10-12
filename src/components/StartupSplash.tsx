@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { SPLASH_LOGO_DATA_URI } from "@/assets/splashLogo";
 import { preloadAllTabs } from "@/lib/tabPreload";
 
-const DISPLAY_DURATION_MS = 3000;
+const DISPLAY_DURATION_MS = 4000;
 const EXIT_DURATION_MS = 300;
 
 export function StartupSplash() {
@@ -62,13 +62,33 @@ export function StartupSplash() {
           />
         </div>
 
-        {/* Brand-colored spinner ring */}
-        <div
-          aria-hidden="true"
-          className="splash-ring relative h-10 w-10"
-        >
-          <div className="absolute inset-0 rounded-full border-2 border-muted" />
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary border-r-primary/40 animate-spin motion-reduce:animate-none [animation-duration:1.1s]" />
+        {/* Brand-colored spinner ring: thick track + smooth fading arc */}
+        <div aria-hidden="true" className="splash-ring relative h-10 w-10">
+          <svg viewBox="0 0 40 40" fill="none" className="splash-ring-arc h-10 w-10 motion-reduce:animate-none">
+            <defs>
+              <linearGradient id="splashArcFade" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" style={{ stopColor: "hsl(var(--primary))", stopOpacity: 0.06 }} />
+                <stop offset="45%" style={{ stopColor: "hsl(var(--primary))", stopOpacity: 0.45 }} />
+                <stop offset="100%" style={{ stopColor: "hsl(var(--primary))", stopOpacity: 1 }} />
+              </linearGradient>
+            </defs>
+            <circle
+              cx="20"
+              cy="20"
+              r="16"
+              strokeWidth="5"
+              style={{ stroke: "hsl(var(--primary))", strokeOpacity: 0.15 }}
+            />
+            <circle
+              cx="20"
+              cy="20"
+              r="16"
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeDasharray="66 100.6"
+              stroke="url(#splashArcFade)"
+            />
+          </svg>
         </div>
       </div>
     </div>,
