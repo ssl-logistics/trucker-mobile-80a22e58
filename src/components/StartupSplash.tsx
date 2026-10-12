@@ -62,13 +62,10 @@ export function StartupSplash() {
           />
         </div>
 
-        {/* Brand-colored spinner ring */}
-        <div
-          aria-hidden="true"
-          className="splash-ring relative h-10 w-10"
-        >
-          <div className="absolute inset-0 rounded-full border-2 border-muted" />
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary border-r-primary/40 animate-spin motion-reduce:animate-none [animation-duration:1.1s]" />
+        {/* Brand-colored spinner ring: thick track + smooth fading arc */}
+        <div aria-hidden="true" className="splash-ring relative h-10 w-10">
+          <div className="splash-ring-track absolute inset-0" />
+          <div className="splash-ring-arc absolute inset-0 motion-reduce:animate-none" />
         </div>
       </div>
     </div>,
