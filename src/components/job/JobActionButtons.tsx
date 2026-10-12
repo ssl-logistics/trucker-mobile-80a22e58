@@ -31,7 +31,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
   // Documents menu intro card: shown once per account (every time on preview hosts)
   const docIntroUserId = String(localStorage.getItem('auth_driver_id') || '');
   const docIntroKey = docIntroUserId ? `documents_menu_intro_ack:${docIntroUserId}` : '';
-  const isPreviewHost = typeof window !== 'undefined' && window.location.hostname.includes('id-preview--');
+  const previewHost = isPreviewHost();
   const [showDocsIntro, setShowDocsIntro] = useState(() => !isPreviewHost && !isFromHistory && !!docIntroKey && localStorage.getItem(docIntroKey) !== '1');
   const docsIntroRef = useRef<HTMLDivElement>(null);
   useEffect(() => {

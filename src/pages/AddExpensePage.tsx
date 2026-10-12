@@ -109,7 +109,7 @@ const AddExpensePage = () => {
   // Advance payment intro card: shown once per account (every time on preview hosts)
   const advanceIntroUserId = String(localStorage.getItem('auth_driver_id') || '');
   const advanceIntroKey = advanceIntroUserId ? `advance_payment_intro_ack:${advanceIntroUserId}` : '';
-  const isPreviewHost = typeof window !== 'undefined' && window.location.hostname.includes('id-preview--');
+  const previewHost = isPreviewHost();
   const [showAdvanceIntro, setShowAdvanceIntro] = useState(() => isPreviewHost || (!!advanceIntroKey && localStorage.getItem(advanceIntroKey) !== '1'));
   const ackAdvanceIntro = () => {
     if (advanceIntroKey) localStorage.setItem(advanceIntroKey, '1');
