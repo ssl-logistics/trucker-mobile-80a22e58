@@ -55,7 +55,7 @@ export function StartupSplash() {
       <div className="relative flex flex-col items-center gap-8 px-6">
         <div className="splash-float relative">
           <img
-            src={truckerIcon}
+            src={SPLASH_LOGO_DATA_URI}
             alt="The Truckers"
             className="h-auto w-56 object-contain sm:w-64"
             draggable={false}
