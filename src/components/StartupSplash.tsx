@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import truckerIcon from "@/assets/trucker-icon.png";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -12,13 +12,18 @@ export function StartupSplash() {
   const [isVisible, setIsVisible] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
 
+  useLayoutEffect(() => {
+    document.body.classList.add("startup-splash-active");
+    return () => document.body.classList.remove("startup-splash-active");
+  }, []);
+
   useEffect(() => {
     const preloadTimer = window.setTimeout(() => preloadAllTabs(), 0);
     const exitTimer = window.setTimeout(() => setIsExiting(true), DISPLAY_DURATION_MS);
-    const removeTimer = window.setTimeout(
-      () => setIsVisible(false),
-      DISPLAY_DURATION_MS + EXIT_DURATION_MS,
-    );
+    const removeTimer = window.setTimeout(() => {
+      document.body.classList.remove("startup-splash-active");
+      setIsVisible(false);
+    }, DISPLAY_DURATION_MS + EXIT_DURATION_MS);
 
     return () => {
       window.clearTimeout(preloadTimer);

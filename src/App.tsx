@@ -90,7 +90,7 @@ function VersionBadge() {
 
   const badge = (
     <div
-      className="fixed text-[10px] font-medium text-foreground pointer-events-none select-none"
+      className="startup-hideable fixed text-[10px] font-medium text-foreground pointer-events-none select-none"
       style={{
         opacity: 0.55,
         bottom: isLoginPage ? "calc(env(safe-area-inset-bottom, 0px) + 4px)" : undefined,

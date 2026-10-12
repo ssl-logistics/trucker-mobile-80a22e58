@@ -241,6 +241,12 @@ All colors MUST be HSL.
   contain: layout style paint !important;
 }
 
+/* Keep the first three seconds visually dedicated to the startup screen. */
+body.startup-splash-active #bottom-navigation,
+body.startup-splash-active .startup-hideable {
+  visibility: hidden !important;
+}
+
 /* Responsive bottom navigation - hide on large screens if sidebar is used */
 @media (min-width: 1024px) {
   #bottom-navigation.hide-on-desktop {
