@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import truckerIcon from "@/assets/trucker-icon.png";
+import truckerIcon from "@/assets/trucker-icon-mark.png";
 import { preloadAllTabs } from "@/lib/tabPreload";
 
 const DISPLAY_DURATION_MS = 3000;
@@ -54,14 +54,12 @@ export function StartupSplash() {
 
       <div className="relative flex flex-col items-center gap-8 px-6">
         <div className="splash-float relative">
-          <div className="h-36 w-36 overflow-hidden rounded-3xl bg-card p-3 shadow-xl ring-1 ring-black/5 sm:h-40 sm:w-40">
-            <img
-              src={truckerIcon}
-              alt="The Truckers"
-              className="h-full w-full object-contain"
-              draggable={false}
-            />
-          </div>
+          <img
+            src={truckerIcon}
+            alt="The Truckers"
+            className="h-auto w-56 object-contain sm:w-64"
+            draggable={false}
+          />
         </div>
 
         {/* Brand-colored spinner ring */}
