@@ -26,6 +26,7 @@ import { getTranslatedVehicleType } from '@/utils/vehicleTypeTranslation';
 import { translateJobType, translateUnit } from '@/utils/apiDataTranslations';
 import { deduplicateJobs } from '@/utils/jobDeduplication';
 import { getOptimisticCheckins } from '@/utils/optimisticCheckins';
+import { isPreviewHost } from '@/utils/previewHost';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import JobQueueDialog, { type JobQueueInfo } from '@/components/job/JobQueueDialog';
@@ -191,12 +192,8 @@ export default function CurrentJobsPage() {
   // Queue button intro card: shown once per account (every time on preview hosts)
   const queueIntroUserId = String((user as any)?.id || (user as any)?.driver_id || localStorage.getItem('auth_driver_id') || '');
   const queueIntroKey = queueIntroUserId ? `queue_button_intro_ack:${queueIntroUserId}` : '';
-  const isPreviewHost = typeof window !== 'undefined' && (
-    window.location.hostname.includes('id-preview--') ||
-    window.location.hostname.endsWith('.lovable.app') ||
-    window.location.hostname === 'localhost'
-  );
-  const [queueIntroAcked, setQueueIntroAcked] = useState(() => !isPreviewHost && queueIntroKey ? localStorage.getItem(queueIntroKey) === '1' : false);
+  const previewHost = isPreviewHost();
+  const [queueIntroAcked, setQueueIntroAcked] = useState(() => !previewHost && queueIntroKey ? localStorage.getItem(queueIntroKey) === '1' : false);
   const queueIntroRowRef = useRef<HTMLDivElement>(null);
   const ackQueueIntro = () => {
     if (queueIntroKey) localStorage.setItem(queueIntroKey, '1');

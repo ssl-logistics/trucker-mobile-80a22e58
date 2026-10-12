@@ -20,6 +20,7 @@ import {
   getPushPermissionStatus,
   openNotificationSettings,
 } from '@/utils/unifiedPushNotifications';
+import { isPreviewHost } from '@/utils/previewHost';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,10 +57,10 @@ export default function SettingsPage() {
   const repairRowRef = useRef<HTMLDivElement>(null);
   // Preview environment (id-preview--*.lovable.app): always show the intro for testing.
   // Production: show once per account until acknowledged.
-  const isPreviewHost = typeof window !== 'undefined' && window.location.hostname.includes('id-preview--');
+  const previewHost = isPreviewHost();
   useEffect(() => {
-    if (isPreviewHost || (introKey && localStorage.getItem(introKey) !== '1')) setShowRepairIntro(true);
-  }, [introKey, isPreviewHost]);
+    if (previewHost || (introKey && localStorage.getItem(introKey) !== '1')) setShowRepairIntro(true);
+  }, [introKey, previewHost]);
   useEffect(() => {
     if (showRepairIntro) setTimeout(() => repairRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
   }, [showRepairIntro]);

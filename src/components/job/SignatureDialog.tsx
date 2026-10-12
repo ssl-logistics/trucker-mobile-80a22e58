@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { submitDriverSignature } from '@/lib/externalApi';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
+import { isPreviewHost } from '@/utils/previewHost';
 
 export interface SignatureResult {
   signature_url: string;
@@ -38,8 +39,8 @@ export default function SignatureDialog({ open, onOpenChange, orderCode, pointKe
   // First-time intro card: shown once per account (every time on preview hosts).
   const introUserId = String(localStorage.getItem('auth_driver_id') || '');
   const introKey = introUserId ? `signature_intro_ack:${introUserId}` : '';
-  const isPreviewHost = typeof window !== 'undefined' && window.location.hostname.includes('id-preview--');
-  const [showIntro, setShowIntro] = useState(() => isPreviewHost || (!!introKey && localStorage.getItem(introKey) !== '1'));
+  const previewHost = isPreviewHost();
+  const [showIntro, setShowIntro] = useState(() => previewHost || (!!introKey && localStorage.getItem(introKey) !== '1'));
   const ackIntro = () => {
     if (introKey) try { localStorage.setItem(introKey, '1'); } catch { /* noop */ }
     setShowIntro(false);
