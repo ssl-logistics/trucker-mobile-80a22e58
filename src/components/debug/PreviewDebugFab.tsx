@@ -38,7 +38,7 @@ export const PreviewDebugFab = () => {
     if (open) setTick((t) => t + 1);
   }, [open, location.pathname]);
 
-  if (!isPreviewHost()) return null;
+  if (!isPreviewHost() || isMobileDevice()) return null;
 
   const driverId = localStorage.getItem("auth_driver_id") || "(ไม่มี)";
   const route = location.pathname;
