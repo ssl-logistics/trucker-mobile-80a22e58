@@ -7,13 +7,12 @@
 window.location.hostname.includes('id-preview--')
 ```
 
-- เปิดผ่านลิงก์ preview ของ Lovable (`id-preview--...lovable.app`) → แสดงทุกครั้ง ถูกต้อง
-- แต่ถ้าเปิดผ่านลิงก์ที่เผยแพร่แล้ว (`thetrucker-mobile.lovable.app`) หรือโดเมนจริง (`mobile.thetroob.com`, `mobile.the-trucker.com`) → ระบบถือว่าเป็น production จำการกด "รับทราบ" ไว้ในเครื่อง การ์ดจึงไม่ขึ้นอีก
+ตรรกะการแสดงการ์ดอื่นถูกต้อง (การ์ดผูกกับงานใบแรกของลิสต์เดียวกับที่แสดงจริง) แต่เงื่อนไขนี้ครอบคลุมเฉพาะลิงก์ preview แบบ `id-preview--...lovable.app` เท่านั้น ถ้าเปิดผ่านลิงก์อื่นของ Lovable เช่นลิงก์ที่เผยแพร่ (`thetrucker-mobile.lovable.app`) หรือลิงก์แชร์ preview ระบบจะถือว่าเป็น production และจำการกด "รับทราบ" ไว้ในเครื่อง การ์ดจึงไม่ขึ้นอีก
 
 ## สิ่งที่จะแก้
 1. ขยายเงื่อนไขการตรวจ preview ให้ครอบคลุม:
    - hostname มี `id-preview--` (เดิม)
-   - hostname ลงท้ายด้วย `.lovable.app` (ลิงก์ที่เผยแพร่ของ Lovable)
+   - hostname ลงท้ายด้วย `.lovable.app` (ลิงก์เผยแพร่/แชร์ของ Lovable)
    - `localhost` (ตอนพัฒนา)
 2. โดเมนจริง (`mobile.thetroob.com`, `mobile.the-trucker.com`) ยังคงเป็น production — แสดงครั้งเดียวต่อบัญชีตามเดิม
 3. บน preview: กด "รับทราบ" แล้วการ์ดหายเฉพาะรอบนั้น เปิดหน้าใหม่จะขึ้นอีก (ไม่เขียนจำถาวร)
