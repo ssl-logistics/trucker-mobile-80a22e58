@@ -402,23 +402,25 @@ body::after {
 .splash-ring-track,
 .splash-ring-arc {
   border-radius: 9999px;
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 5px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 5px));
+  /* 1px soft edge on the mask band keeps the ring from aliasing */
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5.5px), #000 calc(100% - 4.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5.5px), #000 calc(100% - 4.5px));
 }
 
 .splash-ring-track {
-  background: hsl(var(--muted));
+  background: hsl(var(--primary) / 0.15);
 }
 
 .splash-ring-arc {
+  /* seamless comet: both ends fade to transparent so there is no hard cap */
   background: conic-gradient(
     from 0deg,
     hsl(var(--primary) / 0) 0deg,
-    hsl(var(--primary) / 0.06) 55deg,
-    hsl(var(--primary) / 0.22) 140deg,
-    hsl(var(--primary) / 0.5) 235deg,
-    hsl(var(--primary) / 0.85) 320deg,
-    hsl(var(--primary)) 352deg,
+    hsl(var(--primary) / 0.12) 70deg,
+    hsl(var(--primary) / 0.4) 170deg,
+    hsl(var(--primary)) 250deg,
+    hsl(var(--primary) / 0.4) 300deg,
+    hsl(var(--primary) / 0.1) 340deg,
     hsl(var(--primary) / 0) 360deg
   );
   animation: splashRingSpin 1.1s linear infinite;
