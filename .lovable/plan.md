@@ -19,7 +19,7 @@
 ## รายละเอียดทางเทคนิิค
 
 - ไฟลร์ูป: `public/lovable-uploads/login-background-2.png` (เดิม 375x380 px RGBA PNG, 177KB) — วางไฟล์ใหมท่ับชื่อเดิม
-- ขนาดแนะนำ: 1200x480 px (2.5:1), อย้่้ในชว่่ง 2.2:1 ถิง 3:1 ก็ได,้ PNG/WebP <= ~300KB
+- ขนาดแนะนำ: **กว້าง 1200 x ส้้ง 480 px** (แนวนอน, 2.5:1) — ภาพต້องกว້างกว่่าส้้ง เพราะกรอบแสดงเต็็มกว້างจอแตส้้่งแค่ ~118–177px; อย้่้ในชว่่ง 2.2:1 ถิง 3:1 ก็ได,้ PNG/WebP <= ~300KB
 - จุ้ดแกไ้ค้โค้ด: `src/pages/SignIn.tsx` บรรทัด 346-348
   - `<div className="relative h-[40vh] flex-shrink-0">` → `<div className="relative flex-shrink-0" style={{ height: "max(72px, min(22vh, calc(100dvh - 450px)))" }}>`
   - `<img ... className="absolute inset-0 w-full h-full object-cover" ... />` คงไว้
