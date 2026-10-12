@@ -17,6 +17,7 @@ import { FloatingChatbot } from "@/components/chatbot/FloatingChatbot";
 import { GlobalProximityAlert } from "@/components/GlobalProximityAlert";
 import QueueAlertPopup from "@/components/job/QueueAlertPopup";
 import { PreviewDebugFab } from "@/components/debug/PreviewDebugFab";
+import { StartupSplash } from "@/components/StartupSplash";
 import { CallProvider } from "@/components/call/CallProvider";
 import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -383,6 +384,7 @@ const App = () => (
                   <GlobalProximityAlert />
                   <QueueAlertPopup />
                   <TabPreloader />
+                  <StartupSplash />
                   <FloatingChatbot />
                   <PreviewDebugFab />
                   <Suspense fallback={<PageLoader />}>
