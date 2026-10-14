@@ -151,7 +151,7 @@ export function HistoryJobCard({ job, onClick, getTranslatedVehicleType }: Histo
       <div className="absolute top-0 left-0 px-3 py-1 rounded-br-xl bg-green-100 text-green-800 text-sm font-medium">
         {!isDomestic && (job.bl_no || job.booking_no)
           ? `${job.bl_no ? 'BL' : 'Booking'} ${job.bl_no || job.booking_no}`
-          : `${t('job.order_code')} ${job.order_number}`
+          : job.order_number
         }
       </div>
 
