@@ -46,3 +46,4 @@
 - [x] เมนูเอกสารแยก 2 แท็บ (แนบเอกสาร default / เอกสารที่แนบแล้ว) และหน้าประวัติแนบเอกสารได้
 - [x] ดูรูปเอกสาร: แสดงกำลังโหลดตามภาษาตรงรายการ และรอรูปพร้อมก่อนเปิดหน้าต่าง — ตรวจรูปจริง โหลดช้า ล้มเหลวและปิดระหว่างรอผ่านแล้ว
 - [x] แนบเอกสารงานต่างประเทศ: ส่ง order_number เต็มรวม /NN ตามตู้ (เอาการตัด suffix ออกจาก JobDocumentsSheet)
+- [x] ปิดโหมด debug ของแอปติดตัง: capacitor.config.ts webContentsDebuggingEnabled=false และ ios/debug.xcconfig CAPACITOR_DEBUG=false
