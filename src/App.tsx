@@ -241,6 +241,7 @@ const ContactPage = lazyWithPreload(() => import("./pages/ContactPage"));
 const NotFound = lazyWithPreload(() => import("./pages/NotFound"));
 const SearchPage = lazyWithPreload(() => import("./pages/SearchPage"));
 const ApiTestPage = lazyWithPreload(() => import("./pages/ApiTestPage"));
+const DocsSheetTestPage = lazyWithPreload(() => import("./pages/DocsSheetTestPage"));
 const LineCallbackPage = lazyWithPreload(() => import("./pages/LineCallbackPage"));
 const PushDebugPage = lazyWithPreload(() => import("./pages/PushDebugPage"));
 const BidJobDetailPage = lazyWithPreload(() => import("./pages/BidJobDetailPage"));
