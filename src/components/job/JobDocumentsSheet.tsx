@@ -195,8 +195,8 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
     onOpenChange(nextOpen);
   };
 
-  // Strip destination suffix (e.g. OR20260929003/01 -> OR20260929003)
-  const baseOrderNumber = (orderNumber || '').split('/')[0];
+  // ส่งรหัสออเดอร์เต็มรวม suffix ตู้ (เช่น OR20260929003/01) เพื่อผูกเอกสารกับตู้ย่อย
+  const fullOrderNumber = (orderNumber || '').trim();
 
   const driverName =
     user?.first_name && user?.last_name
@@ -231,7 +231,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   };
 
   const handleUpload = async () => {
-    if (!baseOrderNumber || pendingFiles.length === 0) return;
+    if (!fullOrderNumber || pendingFiles.length === 0) return;
     if (!title.trim()) {
       toast({ title: t('docs.titleRequired'), variant: 'destructive' });
       return;
@@ -251,7 +251,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       }
 
       const { data, error } = await uploadDriverDocument({
-        order_number: baseOrderNumber,
+        order_number: fullOrderNumber,
         title: title.trim(),
         description: description.trim() || undefined,
         driver_name: driverName,
@@ -558,7 +558,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
                   variant="outline"
                   className="w-full h-12"
                   onClick={() => setShowPicker(true)}
-                  disabled={uploading || !baseOrderNumber}
+                  disabled={uploading || !fullOrderNumber}
                 >
                   <Paperclip className="w-5 h-5 mr-2" />
                   {t('docs.attach')}
