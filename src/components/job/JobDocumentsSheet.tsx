@@ -13,7 +13,6 @@ import { toast } from '@/hooks/use-toast';
 import { compressImage } from '@/utils/imageCompression';
 import { ACCEPT_DOC_ALLOWED } from '@/utils/uploadAccept';
 import { uploadDriverDocument } from '@/lib/externalApi';
-import { supabase } from '@/integrations/supabase/client';
 
 interface JobDocumentsSheetProps {
   open: boolean;
@@ -84,6 +83,10 @@ const ALLOWED_DOC_MIME = [
 ];
 const ALLOWED_DOC_EXT = /\.(jpe?g|png|webp|heic|heif|pdf)$/i;
 const MAX_DOC_FILES = 10;
+// Document proxy (get-order-documents). Called with a direct fetch + apikey because the app
+// uses custom auth: supabase.functions.invoke() can reject before the request goes out.
+const DOC_PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-order-documents`;
+const APP_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 const isAllowedDocFile = (file: File) =>
   ALLOWED_DOC_MIME.includes(file.type.toLowerCase()) || ALLOWED_DOC_EXT.test(file.name);
 
@@ -124,10 +127,20 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber, rea
     setDocsLoading(true);
     setDocsError(false);
     try {
-      const { data, error } = await supabase.functions.invoke('get-order-documents', {
-        body: { order_number: order },
+      const response = await fetch(DOC_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: APP_ANON_KEY },
+        body: JSON.stringify({ order_number: order }),
       });
-      if (error || !data?.success) throw new Error(error?.message || data?.error || 'load failed');
+      const data = await response.json().catch(() => null);
+      // 404 = order not found -> treat as "no documents" rather than a failed load
+      if (response.status === 404 || data?.found === false) {
+        setDocuments({ signatures: [], driver_documents: [], bl_booking: null });
+        return;
+      }
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || `load failed (${response.status})`);
+      }
       setDocuments({
         signatures: Array.isArray(data.signatures) ? data.signatures : [],
         driver_documents: Array.isArray(data.driver_documents) ? data.driver_documents : [],
@@ -357,7 +370,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber, rea
               ) : !hasAnyDocuments ? (
                 <div className="flex flex-col items-center justify-center gap-2 py-6 text-muted-foreground">
                   <ImageIcon className="w-8 h-8 opacity-40" />
-                  <p className="text-sm">{t('docs.emptyUploaded')}</p>
+                  <p className="text-sm">{t('docs.none')}</p>
                 </div>
               ) : (
                 <>
