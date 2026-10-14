@@ -352,135 +352,145 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
             </SheetTitle>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-            {/* Attached documents (from order-documents API) */}
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-muted-foreground">{t('docs.attachedList')}</p>
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as 'attach' | 'attached')}
+            className="flex-1 flex flex-col min-h-0"
+          >
+            <div className="px-4 pt-3">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="attach">{t('docs.attach')}</TabsTrigger>
+                <TabsTrigger value="attached">{t('docs.attachedList')}</TabsTrigger>
+              </TabsList>
+            </div>
 
-              {docsLoading ? (
-                <div className="flex items-center justify-center gap-2 py-6 text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <p className="text-sm">{t('docs.loading')}</p>
-                </div>
-              ) : docsError ? (
-                <div className="flex flex-col items-center gap-2 py-6">
-                  <p className="text-sm text-muted-foreground">{t('docs.loadFailed')}</p>
-                  <Button variant="outline" size="sm" onClick={fetchDocuments}>
-                    {t('docs.retry')}
-                  </Button>
-                </div>
-              ) : !hasAnyDocuments ? (
-                <div className="flex flex-col items-center justify-center gap-2 py-6 text-muted-foreground">
-                  <ImageIcon className="w-8 h-8 opacity-40" />
-                  <p className="text-sm">{t('docs.none')}</p>
-                </div>
-              ) : (
-                <>
-                  {hasSignatures && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold flex items-center gap-1.5">
-                        <PenLine className="w-4 h-4" />
-                        {t('docs.groupSignatures')}
-                      </p>
-                      {documents!.signatures.map((sig, index) => {
-                        const point = pointLabel(sig.checkin_type);
-                        return (
-                          <div key={`sig-${index}`} className="rounded-lg border p-3 space-y-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {point && (
-                                <span className="text-xs font-medium bg-muted rounded-full px-2 py-0.5">
-                                  {point}
-                                </span>
-                              )}
-                              {sig.signer_name && (
-                                <span className="text-xs text-muted-foreground">
-                                  {t('docs.signedBy')}: {sig.signer_name}
-                                </span>
-                              )}
-                              {sig.signed_at && (
-                                <span className="text-xs text-muted-foreground">{formatTime(sig.signed_at)}</span>
-                              )}
-                            </div>
-                            <ul className="space-y-2">
-                              {sig.signature_signed_url &&
-                                renderFileRow(
-                                  { file_name: `signature-${sig.checkin_type || index}.png`, kind: 'image', signed_url: sig.signature_signed_url },
-                                  `sig-img-${index}`,
-                                )}
-                              {(sig.document_signed_urls || []).map((url, i) =>
-                                renderFileRow(
-                                  { file_name: `proof-${i + 1}.jpg`, kind: 'image', signed_url: url },
-                                  `sig-doc-${index}-${i}`,
-                                ),
-                              )}
-                            </ul>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {hasDriverDocs && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold flex items-center gap-1.5">
-                        <FileText className="w-4 h-4" />
-                        {t('docs.groupDriverDocs')}
-                      </p>
-                      {documents!.driver_documents.map((doc, index) => {
-                        const point = pointLabel(doc.checkin_type);
-                        return (
-                          <div key={`doc-${index}`} className="rounded-lg border p-3 space-y-2">
-                            <div className="space-y-0.5">
-                              <p className="text-sm font-medium">{doc.title || '-'}</p>
-                              {doc.description && (
-                                <p className="text-xs text-muted-foreground">{doc.description}</p>
-                              )}
+            <div className="flex-1 overflow-y-auto px-4 py-4">
+              {/* Attached documents (from order-documents API) */}
+              <TabsContent value="attached" className="mt-0 space-y-3">
+                {docsLoading ? (
+                  <div className="flex items-center justify-center gap-2 py-6 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <p className="text-sm">{t('docs.loading')}</p>
+                  </div>
+                ) : docsError ? (
+                  <div className="flex flex-col items-center gap-2 py-6">
+                    <p className="text-sm text-muted-foreground">{t('docs.loadFailed')}</p>
+                    <Button variant="outline" size="sm" onClick={fetchDocuments}>
+                      {t('docs.retry')}
+                    </Button>
+                  </div>
+                ) : !hasAnyDocuments ? (
+                  <div className="flex flex-col items-center justify-center gap-2 py-6 text-muted-foreground">
+                    <ImageIcon className="w-8 h-8 opacity-40" />
+                    <p className="text-sm">{t('docs.none')}</p>
+                  </div>
+                ) : (
+                  <>
+                    {hasSignatures && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold flex items-center gap-1.5">
+                          <PenLine className="w-4 h-4" />
+                          {t('docs.groupSignatures')}
+                        </p>
+                        {documents!.signatures.map((sig, index) => {
+                          const point = pointLabel(sig.checkin_type);
+                          return (
+                            <div key={`sig-${index}`} className="rounded-lg border p-3 space-y-2">
                               <div className="flex items-center gap-2 flex-wrap">
                                 {point && (
                                   <span className="text-xs font-medium bg-muted rounded-full px-2 py-0.5">
                                     {point}
                                   </span>
                                 )}
-                                {doc.driver_name && (
-                                  <span className="text-xs text-muted-foreground">{doc.driver_name}</span>
+                                {sig.signer_name && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {t('docs.signedBy')}: {sig.signer_name}
+                                  </span>
                                 )}
-                                {doc.license_plate && (
-                                  <span className="text-xs text-muted-foreground">{doc.license_plate}</span>
-                                )}
-                                {doc.submitted_at && (
-                                  <span className="text-xs text-muted-foreground">{formatTime(doc.submitted_at)}</span>
+                                {sig.signed_at && (
+                                  <span className="text-xs text-muted-foreground">{formatTime(sig.signed_at)}</span>
                                 )}
                               </div>
+                              <ul className="space-y-2">
+                                {sig.signature_signed_url &&
+                                  renderFileRow(
+                                    { file_name: `signature-${sig.checkin_type || index}.png`, kind: 'image', signed_url: sig.signature_signed_url },
+                                    `sig-img-${index}`,
+                                  )}
+                                {(sig.document_signed_urls || []).map((url, i) =>
+                                  renderFileRow(
+                                    { file_name: `proof-${i + 1}.jpg`, kind: 'image', signed_url: url },
+                                    `sig-doc-${index}-${i}`,
+                                  ),
+                                )}
+                              </ul>
                             </div>
-                            <ul className="space-y-2">
-                              {(doc.files || []).map((file, i) => renderFileRow(file, `doc-${index}-file-${i}`))}
-                            </ul>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                          );
+                        })}
+                      </div>
+                    )}
 
-                  {hasBlBooking && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold flex items-center gap-1.5">
-                        <FileText className="w-4 h-4" />
-                        {t('docs.groupBlBooking')}
-                      </p>
-                      <ul className="space-y-2">
-                        {renderFileRow(
-                          { file_name: documents!.bl_booking!.label || 'B/L', kind: 'pdf', signed_url: documents!.bl_booking!.signed_url! },
-                          'bl-booking',
-                        )}
-                      </ul>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+                    {hasDriverDocs && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold flex items-center gap-1.5">
+                          <FileText className="w-4 h-4" />
+                          {t('docs.groupDriverDocs')}
+                        </p>
+                        {documents!.driver_documents.map((doc, index) => {
+                          const point = pointLabel(doc.checkin_type);
+                          return (
+                            <div key={`doc-${index}`} className="rounded-lg border p-3 space-y-2">
+                              <div className="space-y-0.5">
+                                <p className="text-sm font-medium">{doc.title || '-'}</p>
+                                {doc.description && (
+                                  <p className="text-xs text-muted-foreground">{doc.description}</p>
+                                )}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {point && (
+                                    <span className="text-xs font-medium bg-muted rounded-full px-2 py-0.5">
+                                      {point}
+                                    </span>
+                                  )}
+                                  {doc.driver_name && (
+                                    <span className="text-xs text-muted-foreground">{doc.driver_name}</span>
+                                  )}
+                                  {doc.license_plate && (
+                                    <span className="text-xs text-muted-foreground">{doc.license_plate}</span>
+                                  )}
+                                  {doc.submitted_at && (
+                                    <span className="text-xs text-muted-foreground">{formatTime(doc.submitted_at)}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <ul className="space-y-2">
+                                {(doc.files || []).map((file, i) => renderFileRow(file, `doc-${index}-file-${i}`))}
+                              </ul>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
 
-            {!readOnly && (
-              <>
+                    {hasBlBooking && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold flex items-center gap-1.5">
+                          <FileText className="w-4 h-4" />
+                          {t('docs.groupBlBooking')}
+                        </p>
+                        <ul className="space-y-2">
+                          {renderFileRow(
+                            { file_name: documents!.bl_booking!.label || 'B/L', kind: 'pdf', signed_url: documents!.bl_booking!.signed_url! },
+                            'bl-booking',
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                )}
+              </TabsContent>
+
+              {/* Upload form */}
+              <TabsContent value="attach" className="mt-0 space-y-4">
                 <div className="space-y-2">
                   <Input
                     value={title}
@@ -568,9 +578,9 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
                     ))}
                   </ul>
                 )}
-              </>
-            )}
-          </div>
+              </TabsContent>
+            </div>
+          </Tabs>
         </SheetContent>
       </Sheet>
 
