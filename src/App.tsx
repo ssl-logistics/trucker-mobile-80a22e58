@@ -782,6 +782,7 @@ const App = () => (
                         }
                       />
                       <Route path="/push-debug" element={<PushDebugPage />} />
+                      <Route path="/docs-test" element={<ProtectedRoute><DocsSheetTestPage /></ProtectedRoute>} />
                       {/* Download app page temporarily disabled */}
                       {/* <Route path="/download" element={<DownloadAppPage />} /> */}
                       <Route
