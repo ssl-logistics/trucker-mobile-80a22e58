@@ -155,6 +155,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
         onOpenChange={setIsDocumentsSheetOpen}
         orderNumber={orderNumber || jobId}
         jobData={jobData}
+        readOnly={isFromHistory}
       />
     </>
   );
