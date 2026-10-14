@@ -101,7 +101,7 @@ const readFileAsDataUrl = (file: File): Promise<string> =>
 const isImageFile = (file: DocFile) =>
   file.kind === 'image' || (file.content_type || '').startsWith('image/');
 
-export default function JobDocumentsSheet({ open, onOpenChange, orderNumber, readOnly }: JobDocumentsSheetProps) {
+export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: JobDocumentsSheetProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
@@ -120,6 +120,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber, rea
   const [docsLoading, setDocsLoading] = useState(false);
   const [docsError, setDocsError] = useState(false);
   const [viewerImage, setViewerImage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'attach' | 'attached'>('attach');
 
   const fetchDocuments = useCallback(async () => {
     const order = (orderNumber || '').trim();
