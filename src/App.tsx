@@ -347,10 +347,26 @@ function TabLayout() {
 
   // Reset the app scroll container to top whenever a tab page opens,
   // so every newly opened page always starts at the top (no visible scrolling).
+  // Repeat across frames/short delays to beat momentum scrolling and
+  // async content that grows after the initial reset.
   useEffect(() => {
-    const root = document.getElementById('root');
-    if (root) root.scrollTop = 0;
-    window.scrollTo(0, 0);
+    const reset = () => {
+      const root = document.getElementById('root');
+      if (root) root.scrollTop = 0;
+      window.scrollTo(0, 0);
+    };
+    reset();
+    const raf1 = requestAnimationFrame(() => {
+      reset();
+      requestAnimationFrame(reset);
+    });
+    const t1 = window.setTimeout(reset, 150);
+    const t2 = window.setTimeout(reset, 400);
+    return () => {
+      cancelAnimationFrame(raf1);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, [location.pathname]);
 
   return (
