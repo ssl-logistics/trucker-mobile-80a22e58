@@ -6,3 +6,5 @@
 
 - Verify CDN asset pointers (`src/assets/*.asset.json`) in Playwright by routing `**/__l5e/**` to the local file, because the raw sandbox dev server answers that path with the SPA fallback (text/html) while the preview and published hosts serve the real bytes — a blank image locally is a serving artifact, not a broken asset.
 - Images shown in the installed (Capacitor) app must be bundled imports from src/assets, never /__l5e CDN pointers — the native app loads from local files where that relative path has no server.
+
+- Every edge function the app calls must list the app's shared secret header (`x-app-secret`, attached by `src/lib/installFetchWrapper.ts`) in its own `Access-Control-Allow-Headers` — a CORS allow-list that omits it makes the browser block the call at the preflight step, so the app only ever sees a failed load.
