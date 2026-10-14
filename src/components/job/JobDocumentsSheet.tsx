@@ -120,7 +120,21 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   const [docsLoading, setDocsLoading] = useState(false);
   const [docsError, setDocsError] = useState(false);
   const [viewerImage, setViewerImage] = useState<string | null>(null);
+  const [loadingFileKey, setLoadingFileKey] = useState<string | null>(null);
+  const imageRequestRef = useRef(0);
+  const imageLoadingRef = useRef(false);
   const [activeTab, setActiveTab] = useState<'attach' | 'attached'>('attach');
+
+  useEffect(() => {
+    if (!open) {
+      setLoadingFileKey(null);
+      setViewerImage(null);
+    }
+    return () => {
+      imageRequestRef.current += 1;
+      imageLoadingRef.current = false;
+    };
+  }, [open, orderNumber]);
 
   const fetchDocuments = useCallback(async () => {
     const order = (orderNumber || '').trim();
@@ -171,7 +185,13 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) resetForm();
+    if (!nextOpen) {
+      imageRequestRef.current += 1;
+      imageLoadingRef.current = false;
+      setLoadingFileKey(null);
+      setViewerImage(null);
+      resetForm();
+    }
     onOpenChange(nextOpen);
   };
 
@@ -297,10 +317,27 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
     if (e.target) e.target.value = '';
   };
 
-  const openFile = (file: DocFile) => {
-    if (!file.signed_url) return;
+  const openFile = async (file: DocFile, key: string) => {
+    if (!file.signed_url || imageLoadingRef.current) return;
     if (isImageFile(file)) {
-      setViewerImage(file.signed_url);
+      const request = ++imageRequestRef.current;
+      imageLoadingRef.current = true;
+      setLoadingFileKey(key);
+      try {
+        const image = new Image();
+        image.src = file.signed_url;
+        await image.decode();
+        if (request === imageRequestRef.current) setViewerImage(file.signed_url);
+      } catch {
+        if (request === imageRequestRef.current) {
+          toast({ title: t('docs.loadFailed'), variant: 'destructive' });
+        }
+      } finally {
+        if (request === imageRequestRef.current) {
+          imageLoadingRef.current = false;
+          setLoadingFileKey(null);
+        }
+      }
     } else {
       window.open(file.signed_url, '_blank', 'noopener,noreferrer');
     }
@@ -326,18 +363,28 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
 
   const renderFileRow = (file: DocFile, key: string) => (
     <li key={key}>
-      <button
+      <Button
         type="button"
-        onClick={() => openFile(file)}
-        className="w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left hover:bg-muted/50"
+        variant="ghost"
+        onClick={() => openFile(file, key)}
+        disabled={loadingFileKey !== null}
+        aria-busy={loadingFileKey === key}
+        className="w-full h-auto justify-start gap-3 rounded-lg border px-3 py-2 text-left hover:bg-muted/50"
       >
-        {isImageFile(file) ? (
+        {loadingFileKey === key ? (
+          <Loader2 className="w-5 h-5 text-muted-foreground shrink-0 animate-spin motion-reduce:animate-none" />
+        ) : isImageFile(file) ? (
           <ImageIcon className="w-5 h-5 text-muted-foreground shrink-0" />
         ) : (
           <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
         )}
-        <p className="text-sm font-medium truncate flex-1 min-w-0">{file.file_name}</p>
-      </button>
+        <span className="flex-1 min-w-0">
+          <span className="block text-sm font-medium truncate">{file.file_name}</span>
+          {loadingFileKey === key && (
+            <span role="status" className="block text-xs font-normal text-muted-foreground whitespace-normal">{t('docs.loading')}</span>
+          )}
+        </span>
+      </Button>
     </li>
   );
 
