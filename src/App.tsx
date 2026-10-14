@@ -342,13 +342,11 @@ function TabPreloader() {
   return null;
 }
 
-function TabLayout() {
+// Reset the app scroll container (#root) to top on every route change, for
+// all pages. Repeats across frames/short delays to beat momentum scrolling
+// and async content that grows after the initial reset.
+function ScrollToTopOnRouteChange() {
   const location = useLocation();
-
-  // Reset the app scroll container to top whenever a tab page opens,
-  // so every newly opened page always starts at the top (no visible scrolling).
-  // Repeat across frames/short delays to beat momentum scrolling and
-  // async content that grows after the initial reset.
   useEffect(() => {
     const reset = () => {
       const root = document.getElementById('root');
@@ -356,18 +354,25 @@ function TabLayout() {
       window.scrollTo(0, 0);
     };
     reset();
+    let raf2 = 0;
     const raf1 = requestAnimationFrame(() => {
       reset();
-      requestAnimationFrame(reset);
+      raf2 = requestAnimationFrame(reset);
     });
     const t1 = window.setTimeout(reset, 150);
     const t2 = window.setTimeout(reset, 400);
     return () => {
       cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
       window.clearTimeout(t1);
       window.clearTimeout(t2);
     };
   }, [location.pathname]);
+  return null;
+}
+
+function TabLayout() {
+  const location = useLocation();
 
   return (
     <>
@@ -392,6 +397,7 @@ const App = () => (
           <Sonner />
           <HashRouter>
             <PullDownGuard />
+            <ScrollToTopOnRouteChange />
             <SwipeBackProvider>
               <CallProvider>
                 <DeepLinkListener />
