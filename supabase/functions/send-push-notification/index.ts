@@ -184,8 +184,10 @@ async function sendApnsNotification(
     });
     
     // If production returns BadDeviceToken, try sandbox (development builds)
+    let productionErrorText = '';
     if (!response.ok) {
       const errorText = await response.text();
+      productionErrorText = errorText;
       console.log(`APNs production error ${response.status}: ${errorText}`);
       
       try {
@@ -228,7 +230,8 @@ async function sendApnsNotification(
       return { success: true };
     }
     
-    const errorText = await response.text();
+    // Body was already read above — reuse it instead of reading twice
+    const errorText = productionErrorText;
     console.error(`APNs error ${response.status}: ${errorText}`);
     
     // Check if token is invalid/expired
