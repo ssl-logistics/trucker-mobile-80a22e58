@@ -246,6 +246,7 @@ export default function JobDocumentsSheet({ open, onOpenChange, orderNumber }: J
       toast({ title: t('docs.uploadSuccess') });
       resetForm();
       fetchDocuments();
+      setActiveTab('attached');
     } catch (err) {
       console.error('Document upload error:', err);
       toast({ title: t('docs.uploadFailed'), variant: 'destructive' });
