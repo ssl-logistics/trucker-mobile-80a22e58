@@ -397,6 +397,7 @@ const App = () => (
           <Sonner />
           <HashRouter>
             <PullDownGuard />
+            <ScrollToTopOnRouteChange />
             <SwipeBackProvider>
               <CallProvider>
                 <DeepLinkListener />
