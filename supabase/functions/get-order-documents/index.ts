@@ -1,7 +1,11 @@
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
-
-// Proxy for the external order-documents API (read-only).
-// Keeps ORDER_DOC_API_KEY server-side; the app sends only an order_number.
+// Must list every header the app sends. The app's fetch wrapper (src/lib/installFetchWrapper.ts)
+// attaches x-app-secret to every request to our own edge functions; if it is not allowed here,
+// the browser blocks the call at the CORS preflight step and the app sees "Failed to fetch".
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key, x-app-secret',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+}
 
 const EXTERNAL_BASE = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1'
 
