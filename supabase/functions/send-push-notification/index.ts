@@ -192,7 +192,9 @@ async function sendApnsNotification(
       
       try {
         const errorJson = JSON.parse(errorText);
-        if (errorJson.reason === 'BadDeviceToken') {
+        // Development (Xcode) builds register sandbox tokens; production APNs answers
+        // BadDeviceToken or DeviceTokenNotForTopic for them — retry on sandbox.
+        if (errorJson.reason === 'BadDeviceToken' || errorJson.reason === 'DeviceTokenNotForTopic') {
           console.log('Trying APNs sandbox endpoint for development token...');
           const sandboxUrl = `https://api.sandbox.push.apple.com/3/device/${deviceToken}`;
           response = await fetch(sandboxUrl, {
