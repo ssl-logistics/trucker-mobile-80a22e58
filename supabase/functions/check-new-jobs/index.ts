@@ -348,6 +348,8 @@ serve(async (req) => {
               user_ids: [user_id],
               title: pushTitle,
               body: pushBody,
+              notification_type: 'new_assigned_job',
+              reference_id: firstJob.order_number || firstJob.order_code,
               data: {
                 type: 'new_assigned_job',
                 order_number: firstJob.order_number || firstJob.order_code,
