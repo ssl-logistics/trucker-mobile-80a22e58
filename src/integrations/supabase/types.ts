@@ -968,6 +968,45 @@ export type Database = {
         }
         Relationships: []
       }
+      push_delivery_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          notification_type: string | null
+          platform: string
+          reference_id: string | null
+          success: boolean
+          title: string | null
+          token_removed: boolean
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          notification_type?: string | null
+          platform: string
+          reference_id?: string | null
+          success?: boolean
+          title?: string | null
+          token_removed?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          notification_type?: string | null
+          platform?: string
+          reference_id?: string | null
+          success?: boolean
+          title?: string | null
+          token_removed?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string
