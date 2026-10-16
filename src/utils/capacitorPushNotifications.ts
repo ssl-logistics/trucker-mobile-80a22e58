@@ -306,6 +306,25 @@ export const hasNativePushTokenInDb = async (): Promise<boolean> => {
   }
 };
 
+// Return the token currently stored for this user/platform (or null)
+export const getStoredNativePushToken = async (): Promise<string | null> => {
+  try {
+    const { userId } = await getCurrentUserIdFromAnySource();
+    if (!userId) return null;
+    const prefix = Capacitor.getPlatform() === 'ios' ? 'apns://' : 'fcm://';
+    const { data } = await supabase
+      .from('push_subscriptions')
+      .select('endpoint')
+      .eq('user_id', userId)
+      .like('endpoint', `${prefix}%`)
+      .limit(1);
+    const ep = data?.[0]?.endpoint as string | undefined;
+    return ep ? ep.slice(prefix.length) : null;
+  } catch {
+    return null;
+  }
+};
+
 // Save native push token to database (APNs for iOS, FCM for Android)
 export const saveNativePushToken = async (token: string): Promise<void> => {
   console.log('[NativePush] ========================================');
