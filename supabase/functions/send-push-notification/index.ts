@@ -830,15 +830,17 @@ Deno.serve(async (req) => {
             vapidSubject
           );
 
+          let tokenRemoved = false;
           if (!result.success && result.error?.includes('410')) {
             console.log('Removing expired web subscription:', sub.id);
             await supabaseClient
               .from('push_subscriptions')
               .delete()
               .eq('id', sub.id);
+            tokenRemoved = true;
           }
 
-          return { ...result, user_id: sub.user_id, type: 'web' };
+          return { ...result, user_id: sub.user_id, type: 'web', tokenRemoved };
         })
       );
 
@@ -882,15 +884,17 @@ Deno.serve(async (req) => {
               bundleId
             );
 
+            let tokenRemoved = false;
             if (!result.success && result.error === 'TOKEN_EXPIRED') {
               console.log('Removing expired APNs token:', sub.id);
               await supabaseClient
                 .from('push_subscriptions')
                 .delete()
                 .eq('id', sub.id);
+              tokenRemoved = true;
             }
 
-            return { ...result, user_id: sub.user_id, type: 'apns' };
+            return { ...result, user_id: sub.user_id, type: 'apns', tokenRemoved };
           })
         );
 
@@ -934,15 +938,17 @@ Deno.serve(async (req) => {
                 serviceAccount.project_id
               );
 
+              let tokenRemoved = false;
               if (!result.success && result.error === 'TOKEN_EXPIRED') {
                 console.log('Removing expired FCM token:', sub.id);
                 await supabaseClient
                   .from('push_subscriptions')
                   .delete()
                   .eq('id', sub.id);
+                tokenRemoved = true;
               }
 
-              return { ...result, user_id: sub.user_id, type: 'fcm' };
+              return { ...result, user_id: sub.user_id, type: 'fcm', tokenRemoved };
             })
           );
 
