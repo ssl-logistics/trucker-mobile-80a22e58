@@ -136,6 +136,8 @@ Deno.serve(async (req) => {
           title: titleTh,
           body: descTh,
           tag: referenceId,
+          notification_type: 'booking_closing_date',
+          reference_id: orderNumber,
           data: { reference_id: orderNumber, type: 'booking_closing_date' },
         },
       })

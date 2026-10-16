@@ -87,6 +87,8 @@ Deno.serve(async (req) => {
           title: titleTh,
           body: descTh,
           tag: referenceId,
+          notification_type: 'container_return_deadline',
+          reference_id: orderNumber,
           data: { reference_id: orderNumber, type: 'container_return_deadline' },
         },
       })

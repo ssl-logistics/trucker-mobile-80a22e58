@@ -33,6 +33,8 @@ interface NotificationPayload {
   data?: Record<string, unknown>;
   tag?: string;
   requireInteraction?: boolean;
+  notification_type?: string;
+  reference_id?: string;
 }
 
 interface PushSubscription {
@@ -800,7 +802,7 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${webSubs.length} web subscriptions, ${fcmSubs.length} FCM tokens (Android), ${apnsSubs.length} APNs tokens (iOS)`);
 
-    const results: Array<{ success: boolean; error?: string; user_id: string; type: string }> = [];
+    const results: Array<{ success: boolean; error?: string; user_id: string; type: string; tokenRemoved?: boolean }> = [];
 
     // Send web push notifications (only if VAPID keys are configured)
     const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
@@ -828,15 +830,17 @@ Deno.serve(async (req) => {
             vapidSubject
           );
 
+          let tokenRemoved = false;
           if (!result.success && result.error?.includes('410')) {
             console.log('Removing expired web subscription:', sub.id);
             await supabaseClient
               .from('push_subscriptions')
               .delete()
               .eq('id', sub.id);
+            tokenRemoved = true;
           }
 
-          return { ...result, user_id: sub.user_id, type: 'web' };
+          return { ...result, user_id: sub.user_id, type: 'web', tokenRemoved };
         })
       );
 
@@ -880,15 +884,17 @@ Deno.serve(async (req) => {
               bundleId
             );
 
+            let tokenRemoved = false;
             if (!result.success && result.error === 'TOKEN_EXPIRED') {
               console.log('Removing expired APNs token:', sub.id);
               await supabaseClient
                 .from('push_subscriptions')
                 .delete()
                 .eq('id', sub.id);
+              tokenRemoved = true;
             }
 
-            return { ...result, user_id: sub.user_id, type: 'apns' };
+            return { ...result, user_id: sub.user_id, type: 'apns', tokenRemoved };
           })
         );
 
@@ -932,15 +938,17 @@ Deno.serve(async (req) => {
                 serviceAccount.project_id
               );
 
+              let tokenRemoved = false;
               if (!result.success && result.error === 'TOKEN_EXPIRED') {
                 console.log('Removing expired FCM token:', sub.id);
                 await supabaseClient
                   .from('push_subscriptions')
                   .delete()
                   .eq('id', sub.id);
+                tokenRemoved = true;
               }
 
-              return { ...result, user_id: sub.user_id, type: 'fcm' };
+              return { ...result, user_id: sub.user_id, type: 'fcm', tokenRemoved };
             })
           );
 
@@ -956,6 +964,31 @@ Deno.serve(async (req) => {
         }
       } else {
         console.warn('FIREBASE_SERVICE_ACCOUNT not configured, skipping Android FCM notifications');
+      }
+    }
+
+    // Record every delivery attempt so success/failure can be audited later.
+    // Logging must never break the send flow — failures here are only logged.
+    if (results.length > 0) {
+      try {
+        const logRows = results.map((r) => ({
+          user_id: r.user_id || null,
+          notification_type: payload.notification_type ?? null,
+          reference_id: payload.reference_id ?? null,
+          title: payload.title,
+          platform: r.type,
+          success: r.success,
+          error_message: r.success ? null : (r.error ?? 'Unknown error'),
+          token_removed: r.tokenRemoved ?? false,
+        }));
+        const { error: logError } = await supabaseClient
+          .from('push_delivery_log')
+          .insert(logRows);
+        if (logError) {
+          console.error('Failed to write push_delivery_log:', logError);
+        }
+      } catch (logErr) {
+        console.error('Failed to write push_delivery_log:', logErr);
       }
     }
 

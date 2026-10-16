@@ -453,6 +453,8 @@ serve(async (req) => {
             user_ids: pushUserIds,
             title: `📦 ${pushJobLabel}เข้ามาแล้ว!`,
             body: `${upsertedJob.origin_location} → ${upsertedJob.destination_location} | ฿${upsertedJob.price?.toLocaleString() || 0}`,
+            notification_type: 'new_job',
+            reference_id: upsertedJob.order_code,
             data: {
               type: 'new_job',
               job_id: upsertedJob.id,

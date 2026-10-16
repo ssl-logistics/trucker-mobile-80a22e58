@@ -237,6 +237,7 @@ Deno.serve(async (req) => {
         body: {
           user_id: driverId, title: titleTh, body: descTh,
           url: `/job/${orderNumber}`, tag: `qtruck-${eventId}`, requireInteraction: true,
+          notification_type: 'qtruck_queue', reference_id: orderNumber,
         },
       })
       console.log('[qtruck-webhook] push invoked for driver', driverId)
