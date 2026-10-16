@@ -33,6 +33,8 @@ interface NotificationPayload {
   data?: Record<string, unknown>;
   tag?: string;
   requireInteraction?: boolean;
+  notification_type?: string;
+  reference_id?: string;
 }
 
 interface PushSubscription {
