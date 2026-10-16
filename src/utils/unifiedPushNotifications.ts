@@ -207,6 +207,10 @@ export const initializePushNotifications = async (): Promise<void> => {
       App.addListener('appStateChange', ({ isActive }) => {
         if (isActive) void refreshNativeToken('resume');
       });
+      window.addEventListener('auth_driver_updated', () => {
+        lastRefreshAt = 0;
+        void refreshNativeToken('login');
+      });
     } catch (e) {
       console.warn('[UnifiedPush] Could not add resume listener', e);
     }
