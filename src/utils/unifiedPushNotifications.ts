@@ -15,6 +15,7 @@ import {
   unregisterNativePushNotifications,
   checkNativePushStatus,
   hasNativePushTokenInDb,
+  getStoredNativePushToken,
   openNotificationSettings,
   isNotificationPermissionDenied,
 } from './capacitorPushNotifications';
@@ -164,36 +165,61 @@ export const getPlatformName = (): string => {
 
 // Initialize push notifications (call on app start)
 // This will also auto-register the FCM token if permission is already granted but no token saved
+// Always fetch the device's latest token and re-save it when it differs from
+// what's stored — stale/expired tokens otherwise linger forever (TOKEN_EXPIRED,
+// BadDeviceToken) and the phone never gets alerts again.
+let refreshInFlight = false;
+let lastRefreshAt = 0;
+let resumeListenerAdded = false;
+
+const refreshNativeToken = async (reason: string): Promise<void> => {
+  if (refreshInFlight) return;
+  if (Date.now() - lastRefreshAt < 60_000 && reason === 'resume') return;
+  refreshInFlight = true;
+  lastRefreshAt = Date.now();
+  try {
+    const permitted = await checkNativePushStatus();
+    if (!permitted) return;
+    const token = await registerNativePushNotifications(true);
+    if (!token) return;
+    const stored = await getStoredNativePushToken();
+    if (stored === token) {
+      console.log('[UnifiedPush] Token unchanged (', reason, ')');
+      return;
+    }
+    await saveNativePushToken(token);
+    console.log('[UnifiedPush] ✅ Token refreshed and saved (', reason, ')');
+  } catch (error) {
+    console.error('[UnifiedPush] Token refresh failed:', error);
+  } finally {
+    refreshInFlight = false;
+  }
+};
+
 export const initializePushNotifications = async (): Promise<void> => {
-  if (isNativePlatform()) {
-    setupNativePushListeners();
-    
-    // Auto-register token if permission granted but no token in DB
+  if (!isNativePlatform()) return;
+  setupNativePushListeners();
+  await refreshNativeToken('init');
+  if (!resumeListenerAdded) {
+    resumeListenerAdded = true;
     try {
-      const permitted = await checkNativePushStatus();
-      console.log('[UnifiedPush] initializePushNotifications - permission status:', permitted);
-      
-      if (permitted) {
-        const hasToken = await hasNativePushTokenInDb();
-        console.log('[UnifiedPush] initializePushNotifications - has token in DB:', hasToken);
-        
-        if (!hasToken) {
-          console.log('[UnifiedPush] Permission granted but no token in DB, auto-registering...');
-          // Use forceRegister=true to bypass cooldown for auto-registration
-          const token = await registerNativePushNotifications(true);
-          if (token) {
-            console.log('[UnifiedPush] Auto-registration got token, saving...');
-            try {
-              await saveNativePushToken(token);
-              console.log('[UnifiedPush] ✅ Auto-registered FCM token successfully!');
-            } catch (saveError) {
-              console.error('[UnifiedPush] Failed to save auto-registered token:', saveError);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('[UnifiedPush] Error in auto-registration check:', error);
+      const { App } = await import('@capacitor/app');
+      App.addListener('appStateChange', ({ isActive }) => {
+        if (isActive) void refreshNativeToken('resume');
+      });
+      window.addEventListener('auth_driver_updated', () => {
+        lastRefreshAt = 0;
+        void refreshNativeToken('login');
+      });
+    } catch (e) {
+      console.warn('[UnifiedPush] Could not add resume listener', e);
     }
   }
+};
+
+// Call after a successful login so the device is bound to the new account.
+export const refreshPushTokenAfterLogin = async (): Promise<void> => {
+  if (!isNativePlatform()) return;
+  lastRefreshAt = 0;
+  await refreshNativeToken('login');
 };
