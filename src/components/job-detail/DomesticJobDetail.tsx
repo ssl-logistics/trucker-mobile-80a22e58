@@ -2850,17 +2850,14 @@ export default function DomesticJobDetail({
                     return !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
                   }) :
                   deliverySopCompleted);
-              // Extra cargo points must all be done before the next step (container return)
+              // Extra cargo points are display-only for now (check-in gating comes later)
               const xcPoints = extraCargoPoints.length ? extraCargoPoints : getExtraCargoPoints(job);
-              const extraCargoDone = extraTick >= 0 && allExtraCargoDone(job.order_code, xcPoints);
-              const allDeliveriesCompleted = mainCargoCompleted && extraCargoDone;
+              const allDeliveriesCompleted = mainCargoCompleted;
 
               return (
                 <>
                 {xcPoints.map((pt, i) => (
-                  <ExtraPointCard key={`xc-${pt.sequence}`} kind="cargo" point={pt} index={i} orderNumber={job.order_code}
-                    locked={!mainCargoCompleted} readOnly={isFromHistory}
-                    onOpen={() => navigate(`/job/${encodeURIComponent(job.order_code)}/extra-point/cargo/${pt.sequence}`, { state: { jobData: { ...jobWithTransferFlag, extra_cargo_points: xcPoints }, fromHistory: isFromHistory } })} />
+                  <ExtraPointCard key={`xc-${pt.sequence}`} kind="cargo" point={pt} index={i} readOnly={isFromHistory} />
                 ))}
                 <Card ref={containerReturnRef} className={`overflow-hidden border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500' : containerReturnCheckedIn ? 'border-blue-500' : allDeliveriesCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
                 <div className={`px-4 py-2.5 flex items-center justify-between ${containerReturnConfirmed ? 'bg-green-500' : containerReturnCheckedIn ? 'bg-blue-500' : allDeliveriesCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
