@@ -2860,6 +2860,11 @@ export default function DomesticJobDetail({
             {/* Extra cargo points (international only, display-only) — follow the main cargo points */}
             {isInternationalJobItem(job) && xcPoints.map((pt, i) => (
               <ExtraPointCard key={`xc-${pt.sequence}`} kind="cargo" point={pt} index={i} readOnly={isFromHistory}
+                title={(() => {
+                  const ty = String((pt as any).point_type || (pt as any).stop_type || '').toLowerCase();
+                  const isPickup = ty.includes('pick') ? true : ty.includes('deliver') ? false : !job.bl_no;
+                  return t(isPickup ? 'jobDetail.pickupPoint' : 'jobDetail.deliveryPoint');
+                })()}
                 cardRef={(el) => { if (el) deliveryCardRefs.current.set(`xc-${pt.sequence}`, el); else deliveryCardRefs.current.delete(`xc-${pt.sequence}`); }} />
             ))}
 
