@@ -55,7 +55,7 @@ import { isHistoryContext } from '@/lib/historyMode';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { readPageCache, writePageCache } from '@/lib/pageCache';
 import ExtraPointCard from '@/components/job-detail/ExtraPointCard';
-import { getExtraCargoPoints, allExtraCargoDone, EXTRA_POINT_EVENT } from '@/lib/extraPoints';
+import { getExtraCargoPoints } from '@/lib/extraPoints';
 
 interface DriverCheckin {
   order_number: string;
