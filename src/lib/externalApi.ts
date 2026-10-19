@@ -278,6 +278,7 @@ export async function driverCheckin(body: {
   container_number_2?: string;
   seal_number_2?: string;
   destination_sequence_number?: number;
+  extra_point_sequence?: number;
   payment_method?: string;
 }) {
   // Map driver_id to the correct field based on driver_type

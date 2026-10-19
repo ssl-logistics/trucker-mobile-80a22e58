@@ -17,21 +17,27 @@ interface Props {
   leadingAction?: React.ReactNode;
   /** Override header title */
   title?: string;
+  /** Check-in state: locked (grey), open (waiting check-in), done (green) */
+  tone?: 'locked' | 'open' | 'done';
+  statusLabel?: string;
 }
 
 /** Display-only card for an extra cargo point or container drop point (check-in comes later). */
-export default function ExtraPointCard({ kind, point, index, readOnly, subtitle, cardRef, leadingAction, title }: Props) {
+export default function ExtraPointCard({ kind, point, index, readOnly, subtitle, cardRef, leadingAction, title, tone, statusLabel }: Props) {
   const { t } = useLanguage();
   const isDrop = kind === 'drop';
   const addr = extraPointAddress(point);
+  const border = tone === 'done' ? 'border-green-500' : tone === 'open' ? (isDrop ? 'border-orange-500' : 'border-teal-500') : 'border-gray-300';
+  const head = tone === 'done' ? 'bg-green-500' : tone === 'open' ? (isDrop ? 'bg-orange-500' : 'bg-teal-600') : 'bg-gray-400';
 
   return (
-    <Card ref={cardRef} className={`overflow-hidden border-2 rounded-2xl ${isDrop ? 'border-gray-300' : 'border-gray-300'}`}
+    <Card ref={cardRef} className={`overflow-hidden border-2 rounded-2xl ${border}`}
       onClick={(e) => e.stopPropagation()}>
-      <div className={`px-4 py-2.5 ${isDrop ? 'bg-gray-400' : 'bg-gray-400'}`}>
+      <div className={`px-4 py-2.5 flex items-center justify-between ${head}`}>
         <h3 className="font-semibold text-sm text-white">
           {title ?? `${isDrop ? t('dropPoint.title') : t('extraPoint.title')} ${index + 1}`}
         </h3>
+        {statusLabel && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white bg-white/20">{statusLabel}</span>}
       </div>
       <div className="p-4 space-y-2 text-sm bg-white">
         {subtitle}

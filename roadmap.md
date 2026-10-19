@@ -50,7 +50,8 @@
 - [x] บันทึกผลการส่งแจ้งเตือน: ตาราง push_delivery_log + send-push-notification เขียนผลทุกครั้ง + caller ส่ง notification_type/reference_id
 - [x] หน้า Login: ไม่เลื่อนเมื่อจอพอดี (รูปย่อได้, ล็อกความสูงเท่าจอ)
 - [x] งานต่างประเทศ: จุดรับ/ส่งสินค้าเพิ่ม (ต้องครบก่อนคืนตู้) + การ์ดดรอปตู้แยกในหน้างานปัจจุบัน (ดรอป → ไปรับ)
-- [ ] ส่งผลเช็คอินจุดเพิ่ม/ดรอปตู้และรูปไประบบหลังบ้าน — รอรูปแบบข้อมูลจากทีมหลังบ้าน (ตอนนี้บันทึกในเครื่อง)
+- [x] เช็คอินจุดเพิ่ม/ดรอปตู้ พร้อมรูป ผ่าน driver-checkin (extra_cargo / extra_drop / extra_drop_pickup) + ล็อกปุ่มในแอป; งานไม่มีจุดเพิ่มไม่กระทบ
+- [ ] ทดสอบเช็คอินจุดเพิ่มบนเครื่องจริงด้วยบัญชีคนขับ
 - [ ] Extra cargo / drop point check-in + backend save + 'must finish before container return' rule — waiting on backend API spec
 - [ ] Server-side new-job check while app is closed — needs scheduled jobs (not available on this project) or a TMS 'job assigned' webhook
 - [x] User confirmed iOS Bundle ID com.thetrucker.mobile; update APNs topic only, preserve Android/Firebase com.thetroob.mobile

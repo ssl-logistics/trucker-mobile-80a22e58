@@ -55,7 +55,7 @@ import { isHistoryContext } from '@/lib/historyMode';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { readPageCache, writePageCache } from '@/lib/pageCache';
 import ExtraPointCard from '@/components/job-detail/ExtraPointCard';
-import { getExtraCargoPoints, getExtraDropPoints } from '@/lib/extraPoints';
+import { getExtraCargoPoints, getExtraDropPoints, allDropsPickedUp, allExtraCargoDone, dropState, cargoDone, localExtraCheckins, EXTRA_POINT_EVENT, type ExtraPoint, type ExtraCheckinType } from '@/lib/extraPoints';
 import { isInternationalJobItem } from '@/lib/jobLocation';
 
 interface DriverCheckin {
@@ -206,6 +206,22 @@ export default function DomesticJobDetail({
   const dpSteps = isInternationalJobItem(job)
     ? getExtraDropPoints(job).flatMap((pt) => (['drop', 'pickup'] as const).map((step) => ({ pt, step, key: `dp-${step}-${pt.sequence}` })))
     : [];
+  // Extra point check-ins (API + just-sent local records). No extra points => gates stay open.
+  const [extraApiCheckins, setExtraApiCheckins] = useState<any[]>([]);
+  const [extraTick, setExtraTick] = useState(0);
+  useEffect(() => {
+    const h = () => setExtraTick((x) => x + 1);
+    window.addEventListener(EXTRA_POINT_EVENT, h);
+    window.addEventListener('focus', h);
+    return () => { window.removeEventListener(EXTRA_POINT_EVENT, h); window.removeEventListener('focus', h); };
+  }, []);
+  const extraCheckins = useMemo(
+    () => [...extraApiCheckins, ...localExtraCheckins(job?.order_code)],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [extraApiCheckins, job?.order_code, extraTick]);
+  const dropPts = isInternationalJobItem(job) ? getExtraDropPoints(job) : [];
+  const dropsDone = allDropsPickedUp(dropPts, extraCheckins);
+  const xcDone = !isInternationalJobItem(job) || allExtraCargoDone(xcPoints, extraCheckins);
   const isFromHistory = isHistoryContext(location.search, location.state);
   const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
   // Merge is_transferred flag into job for state propagation to sub-pages
@@ -738,6 +754,7 @@ export default function DomesticJobDetail({
           })
         : [];
       console.log('Filtered checkins for current order:', checkins.length, 'items');
+      setExtraApiCheckins(checkins.filter((c: any) => String(c?.checkin_type || '').startsWith('extra_')));
 
       // Check for different checkin types - only from filtered checkins for this specific order
       const hasPickupCheckin = checkins.some((c: DriverCheckin) => c.checkin_type === 'pickup');
@@ -1083,6 +1100,21 @@ export default function DomesticJobDetail({
   // Container step is only "completed" if checkin exists AND evidence/OCR is done
   // For BL jobs: require container_pickup_confirmed checkin (evidence submitted)
   // For non-BL jobs: require OCR verified
+  const openExtraCheckin = (type: ExtraCheckinType, pt: ExtraPoint, title: string) =>
+    navigate(`/job/${encodeURIComponent(job.order_code)}/extra-point/${type}/${pt.sequence}`, {
+      state: {
+        point: pt, orderNumber: job.order_code, orderId: job.id, title, driverId: userId,
+        driverType: isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance',
+        jobData: (location.state as any)?.jobData,
+      },
+    });
+  const extraCheckinButton = (done: boolean, locked: boolean, onClick: () => void) =>
+    done ? undefined : (
+      <Button size="sm" disabled={locked} className="h-9 gap-1.5 p-1 bg-[#225795] hover:bg-[#1b4778] text-white"
+        onClick={onClick}>
+        <MapPin className="w-3.5 h-3.5" /><span className="text-xs">{t('extraPoint.stepCheckIn')}</span>
+      </Button>
+    );
   const isContainerStepCompleted = emptyContainerCheckedIn && (
     job.bl_no ? containerPickupConfirmed : isOcrVerified
   );
@@ -1963,11 +1995,20 @@ export default function DomesticJobDetail({
             }
 
               {/* Container drop points (display only): drop -> pick up again, before cargo points */}
-              {dpSteps.map((s) => (
+              {dpSteps.map((s) => {
+                const ds = dropState(s.pt, extraCheckins);
+                const done = s.step === 'drop' ? ds !== 'pending' : ds === 'picked_up';
+                const locked = !done && (s.step === 'drop' ? (accidentLocked || !isContainerStepCompleted) : ds !== 'dropped');
+                const title = t(s.step === 'drop' ? 'dropPoint.dropStep' : 'dropPoint.pickupStep');
+                return (
                 <ExtraPointCard key={s.key} kind="drop" point={s.pt} index={0} readOnly={isFromHistory}
-                  title={t(s.step === 'drop' ? 'dropPoint.dropStep' : 'dropPoint.pickupStep')}
+                  title={title}
+                  tone={done ? 'done' : locked ? 'locked' : 'open'}
+                  statusLabel={t(done ? 'extraPoint.statusDone' : locked ? 'jobDetail.waitingPreviousStep' : 'jobDetail.waitingCheckIn')}
+                  leadingAction={extraCheckinButton(done, locked, () => openExtraCheckin(s.step === 'drop' ? 'extra_drop' : 'extra_drop_pickup', s.pt, title))}
                   cardRef={(el) => { if (el) deliveryCardRefs.current.set(s.key, el); else deliveryCardRefs.current.delete(s.key); }} />
-              ))}
+                );
+              })}
 
               {/* Pickup Point Card */}
               {/* For international jobs, pickup is locked until empty container is checked in */}
@@ -1975,7 +2016,7 @@ export default function DomesticJobDetail({
               {!job.bl_no && (() => {
               const isInternationalJob = job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ';
               // Lock pickup if: international job AND (not checked in OR checked in but OCR not verified)
-              const isPickupLocked = accidentLocked || (isInternationalJob && (!emptyContainerCheckedIn || emptyContainerCheckedIn && !isContainerStepCompleted));
+              const isPickupLocked = accidentLocked || (isInternationalJob && (!emptyContainerCheckedIn || emptyContainerCheckedIn && !isContainerStepCompleted)) || !dropsDone;
 
               return (
                 <Card ref={card1Ref} className={`overflow-hidden border-2 rounded-2xl ${pickupSopCompleted || jobApplication?.sop_completed_at ? 'border-green-500' : pickupCheckedIn ? 'border-teal-500' : isPickupLocked ? 'border-gray-300' : 'border-teal-500'}`}>
@@ -2244,7 +2285,7 @@ export default function DomesticJobDetail({
               const isPreviousCompleted = getPreviousCompleted();
 
               // This destination is locked if previous step is not completed
-              const isDestinationLocked = !isPreviousCompleted;
+              const isDestinationLocked = !isPreviousCompleted || !dropsDone;
 
               // Determine status text and colors
               // Flow changed: Check-in → POD (no separate payment step)
@@ -2858,15 +2899,26 @@ export default function DomesticJobDetail({
             })())}
 
             {/* Extra cargo points (international only, display-only) — follow the main cargo points */}
-            {isInternationalJobItem(job) && xcPoints.map((pt, i) => (
+            {isInternationalJobItem(job) && xcPoints.map((pt, i) => {
+              const ty = String((pt as any).point_type || (pt as any).stop_type || '').toLowerCase();
+              const isPickup = ty.includes('pick') ? true : ty.includes('deliver') ? false : !job.bl_no;
+              const title = t(isPickup ? 'jobDetail.pickupPoint' : 'jobDetail.deliveryPoint');
+              const mainDone = job.booking_no
+                ? (pickupSopCompleted || !!jobApplication?.sop_completed_at)
+                : (displayDestinations.length > 0
+                  ? displayDestinations.every((dest) => !!destCheckinById[dest.id]?.sop_completed_at || !!dest.sop_completed_at)
+                  : deliverySopCompleted);
+              const done = cargoDone(pt, extraCheckins);
+              const locked = !done && (accidentLocked || !dropsDone || !mainDone);
+              return (
               <ExtraPointCard key={`xc-${pt.sequence}`} kind="cargo" point={pt} index={i} readOnly={isFromHistory}
-                title={(() => {
-                  const ty = String((pt as any).point_type || (pt as any).stop_type || '').toLowerCase();
-                  const isPickup = ty.includes('pick') ? true : ty.includes('deliver') ? false : !job.bl_no;
-                  return t(isPickup ? 'jobDetail.pickupPoint' : 'jobDetail.deliveryPoint');
-                })()}
+                title={title}
+                tone={done ? 'done' : locked ? 'locked' : 'open'}
+                statusLabel={t(done ? 'extraPoint.statusDone' : locked ? 'jobDetail.waitingPreviousStep' : 'jobDetail.waitingCheckIn')}
+                leadingAction={extraCheckinButton(done, locked, () => openExtraCheckin('extra_cargo', pt, title))}
                 cardRef={(el) => { if (el) deliveryCardRefs.current.set(`xc-${pt.sequence}`, el); else deliveryCardRefs.current.delete(`xc-${pt.sequence}`); }} />
-            ))}
+              );
+            })}
 
             {/* Container Return Card - Only for international jobs, unlocked after all deliveries completed */}
             {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
@@ -2880,7 +2932,7 @@ export default function DomesticJobDetail({
                     return !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
                   }) :
                   deliverySopCompleted);
-              const allDeliveriesCompleted = mainCargoCompleted;
+              const allDeliveriesCompleted = mainCargoCompleted && xcDone;
 
               return (
                 <>
