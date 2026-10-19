@@ -56,6 +56,7 @@ import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { readPageCache, writePageCache } from '@/lib/pageCache';
 import ExtraPointCard from '@/components/job-detail/ExtraPointCard';
 import { getExtraCargoPoints } from '@/lib/extraPoints';
+import { isInternationalJobItem } from '@/lib/jobLocation';
 
 interface DriverCheckin {
   order_number: string;
@@ -201,6 +202,7 @@ export default function DomesticJobDetail({
     const st: any = (location.state as any)?.jobData;
     return getExtraCargoPoints(st?.extra_cargo_points ? st : null);
   }, [location.state]);
+  const xcPoints = extraCargoPoints.length ? extraCargoPoints : getExtraCargoPoints(job);
   const isFromHistory = isHistoryContext(location.search, location.state);
   const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
   // Merge is_transferred flag into job for state propagation to sub-pages
@@ -1755,6 +1757,12 @@ export default function DomesticJobDetail({
                 </div>;
             })}
 
+              {isInternationalJobItem(job) && xcPoints.map((pt) => (
+                <div key={`xcdot-${pt.sequence}`} className="relative flex justify-center" style={{ height: `${cardHeights.deliveryCards[`xc-${pt.sequence}`] || 200}px`, marginBottom: '12px' }}>
+                  <div className="absolute top-0"><div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" /></div>
+                </div>
+              ))}
+
               {/* Container Return Circle - Only for international jobs with return data */}
               {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
             job.container_return_location || job.container_return_latitude) &&
@@ -2831,6 +2839,12 @@ export default function DomesticJobDetail({
 
             })())}
 
+            {/* Extra cargo points (international only, display-only) — follow the main cargo points */}
+            {isInternationalJobItem(job) && xcPoints.map((pt, i) => (
+              <ExtraPointCard key={`xc-${pt.sequence}`} kind="cargo" point={pt} index={i} readOnly={isFromHistory}
+                cardRef={(el) => { if (el) deliveryCardRefs.current.set(`xc-${pt.sequence}`, el); else deliveryCardRefs.current.delete(`xc-${pt.sequence}`); }} />
+            ))}
+
             {/* Container Return Card - Only for international jobs, unlocked after all deliveries completed */}
             {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
             job.container_return_location || job.container_return_latitude) && (() => {
@@ -2843,15 +2857,10 @@ export default function DomesticJobDetail({
                     return !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
                   }) :
                   deliverySopCompleted);
-              // Extra cargo points are display-only for now (check-in gating comes later)
-              const xcPoints = extraCargoPoints.length ? extraCargoPoints : getExtraCargoPoints(job);
               const allDeliveriesCompleted = mainCargoCompleted;
 
               return (
                 <>
-                {xcPoints.map((pt, i) => (
-                  <ExtraPointCard key={`xc-${pt.sequence}`} kind="cargo" point={pt} index={i} readOnly={isFromHistory} />
-                ))}
                 <Card ref={containerReturnRef} className={`overflow-hidden border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500' : containerReturnCheckedIn ? 'border-blue-500' : allDeliveriesCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
                 <div className={`px-4 py-2.5 flex items-center justify-between ${containerReturnConfirmed ? 'bg-green-500' : containerReturnCheckedIn ? 'bg-blue-500' : allDeliveriesCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
                   <h3 className="font-semibold text-sm text-white">จุดคืนตู้คอนเทนเนอร์</h3>

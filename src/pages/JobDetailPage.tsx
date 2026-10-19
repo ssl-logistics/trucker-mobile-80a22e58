@@ -516,6 +516,8 @@ export default function JobDetailPage() {
             container_return_longitude: foundJob.container_return_longitude || foundJob.container_return?.longitude || foundJob.return_longitude || foundJob.full_container_return?.longitude || null,
             container_return_phone: foundJob.container_return_phone || foundJob.container_return?.phone || foundJob.return_phone || foundJob.return_contact_phone || foundJob.full_container_return?.phone || null,
             container_return_date: foundJob.container_return_date || foundJob.container_return_datetime || foundJob.container_return?.date || foundJob.container_return?.datetime || foundJob.return_date || foundJob.return_full_container_date || foundJob.full_container_return?.date || null,
+            extra_cargo_points: foundJob.extra_cargo_points || null,
+            extra_drop_points: foundJob.extra_drop_points || null,
             // Map destinations array from API (fallback to csv_extra_data.destinations)
             destinations: (() => {
               let rawDests: any[] = Array.isArray(foundJob.destinations) ? foundJob.destinations : [];
