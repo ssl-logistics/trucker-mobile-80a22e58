@@ -30,6 +30,8 @@ import { isPreviewHost } from '@/utils/previewHost';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import JobQueueDialog, { type JobQueueInfo } from '@/components/job/JobQueueDialog';
+import DropPointListCard from '@/components/job-detail/DropPointListCard';
+import { getExtraDropPoints } from '@/lib/extraPoints';
 import {
   normalizeLocationObject as normalizeLocationObjectShared,
   getApiLocationName as getApiLocationNameShared,
@@ -1224,8 +1226,7 @@ export default function CurrentJobsPage() {
           const deliveryTime = job.destination_delivery_time || '';
           const queueInfo = getQueueInfo(job);
 
-          return <Card
-                  key={job.id}
+          return <React.Fragment key={job.id}><Card
                   className="overflow-hidden bg-card cursor-pointer"
                   onClick={() => handleOpenJob(job)}
                 >
@@ -1486,7 +1487,11 @@ export default function CurrentJobsPage() {
                       </div>
                     )}
                   </div>
-                </Card>;
+                </Card>
+                {getExtraDropPoints(job).map((pt, i) => (
+                  <DropPointListCard key={`drop-${job.id}-${pt.sequence}`} job={job} point={pt} index={i} />
+                ))}
+                </React.Fragment>;
         })}
           </div>}
       </div>
