@@ -1,8 +1,7 @@
-ซ่อนแถว "Invoice" ในการ์ดจุดรับ/ส่งสินค้า สำหรับงานต่างประเทศ
+ปุ่ม "ดูข้อมูลงาน" ในการ์ดดรอปตู้: พื้นหลังสีส้ม ตัวหนังสือและไอคอนสีขาว
 
-- งานต่างประเทศ (BL / Booking): ไม่แสดงแถว Invoice
-- งานในประเทศ: แสดงเหมือนเดิม (ไม่มีข้อมูลแสดง "-")
-- ไม่เปลี่ยนส่วนอื่นหรือขั้นตอนงาน
+- ใช้สีส้มเดียวกับหัวการ์ดดรอปตู้ เมื่อกดค้างจะเข้มขึ้นเล็กน้อย
+- ปุ่มโทร / เส้นทาง คงเดิม
 
 ## Technical
-`DomesticJobDetail.tsx` ~บรรทัด 2500: ครอบแถว Invoice ด้วย `!isInternationalJobItem(job)` (จาก `src/lib/jobLocation.ts`) ซึ่งครอบคลุม job_type "bl"/"booking" และงานที่มี bl_no/booking_no
+`DropPointListCard.tsx`: เปลี่ยน Button เป็น `bg-orange-500 hover:bg-orange-600 text-white border-0` (ไม่ใช้ variant outline)
