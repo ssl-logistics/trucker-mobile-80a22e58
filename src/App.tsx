@@ -214,6 +214,7 @@ const DeliveryDetailPage = lazyWithPreload(() => import("./pages/DeliveryDetailP
 const DeliverySOPCheckInPage = lazyWithPreload(() => import("./pages/DeliverySOPCheckInPage"));
 const ContainerCheckInPage = lazyWithPreload(() => import("./pages/ContainerCheckInPage"));
 const ContainerSOPPage = lazyWithPreload(() => import("./pages/ContainerSOPPage"));
+const DropPointInfoPage = lazyWithPreload(() => import("./pages/DropPointInfoPage"));
 const ContainerSummaryPage = lazyWithPreload(() => import("./pages/ContainerSummaryPage"));
 const AddExpensePage = lazyWithPreload(() => import("./pages/AddExpensePage"));
 const DashboardPage = lazyWithPreload(() => import("./pages/DashboardPage"));
@@ -498,6 +499,14 @@ const App = () => (
                         element={
                           <ProtectedRoute>
                             <ContainerCheckInPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/job/:jobId/extra-point/drop/:seq"
+                        element={
+                          <ProtectedRoute>
+                            <DropPointInfoPage />
                           </ProtectedRoute>
                         }
                       />
