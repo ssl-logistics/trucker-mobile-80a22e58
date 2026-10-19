@@ -92,7 +92,7 @@ serve(async (req) => {
 
       if (response.ok) {
         const data = await response.json();
-        jobs = data?.data || [];
+        jobs = (data?.data || []).map((j: any) => ({ ...j, __newly_assigned: true }));
         console.log(`[check-new-jobs] Pending jobs: ${jobs.length}`);
       } else {
         const errText = await response.text();
@@ -171,8 +171,9 @@ serve(async (req) => {
       }
 
       // Skip jobs with past pickup dates
+      // Newly assigned (pending) jobs always notify, even when the pickup date has passed
       const pickupDateStr = j.sender_pickup_date || j.pickup_date;
-      if (pickupDateStr) {
+      if (pickupDateStr && !j.__newly_assigned) {
         const pickupDate = new Date(pickupDateStr);
         pickupDate.setHours(0, 0, 0, 0);
         if (pickupDate < today) {
