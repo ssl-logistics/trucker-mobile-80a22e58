@@ -6,8 +6,8 @@
 
 ```text
 [จุดรับตู้]                      (เดิม)
-[จุดดรอปตู้ 1]     <- ใหม่: ดรอปตู้ได้เลยหลังรับตู้
-[รับตู้ที่ดรอปไว้ 1] <- ใหม่: กลับไปรับตู้จุดเดิม
+[จุดดรอปตู้]       <- ใหม่: ดรอปตู้ได้เลยหลังรับตู้ (ไม่มีเลข)
+[รับตู้ที่ดรอปไว้]   <- ใหม่: กลับไปรับตู้จุดเดิม (ไม่มีเลข)
 [จุดรับ/ส่งสินค้า]               (เดิม)
 [จุดรับ/ส่งสินค้าเพิ่ม]           (เดิม ถ้ามี)
 [จุดคืนตู้ / ส่งตู้]              (เดิม)
@@ -20,7 +20,7 @@
 
 ## รายละเอียดทางเทคนิค
 - `CurrentJobsPage.tsx`: เอาการ render `DropPointListCard` ออก (ลบไฟล์ `DropPointListCard.tsx`, หน้า `DropPointInfoPage.tsx` และ route ใน `App.tsx` ที่ไม่ใช้แล้ว)
-- `DomesticJobDetail.tsx`: ใต้ `isInternationalJobItem(job)` อ่าน `getExtraDropPoints(job)` แล้ว render `ExtraPointCard` 2 ใบต่อจุด (kind drop, title "จุดดรอปตู้ N" / "รับตู้ที่ดรอปไว้ N") ต่อจากการ์ดรับตู้ ก่อนการ์ดจุดรับ/ส่งสินค้าหลัก; เพิ่ม dot ในคอลัมน์ timeline ผ่าน `cardRef`
+- `DomesticJobDetail.tsx`: ใต้ `isInternationalJobItem(job)` อ่าน `getExtraDropPoints(job)` แล้ว render `ExtraPointCard` 2 ใบต่อจุด (kind drop, title "จุดดรอปตู้" / "รับตู้ที่ดรอปไว้" ไม่มีเลขต่อท้าย) ต่อจากการ์ดรับตู้ ก่อนการ์ดจุดรับ/ส่งสินค้าหลัก; เพิ่ม dot ในคอลัมน์ timeline ผ่าน `cardRef`
 - `ExtraPointCard.tsx`: ใช้สไตล์เทาเหมือนการ์ดจุดเพิ่ม (ไม่ใช้ส้มแล้ว) สำหรับการ์ดในหน้ารายละเอียด
 - `JobDetailPage.tsx` ส่ง `extra_drop_points` อยู่แล้ว — ตรวจซ้ำตอนทำ
 - i18n: `dropPoint.dropStep` "จุดดรอปตู้", `dropPoint.pickupStep` "รับตู้ที่ดรอปไว้" ครบ 4 ภาษา
