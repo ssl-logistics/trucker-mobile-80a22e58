@@ -348,7 +348,7 @@ const SignIn = () => {
       <div className="relative flex-shrink-0 bg-white" style={{
         height: "min(calc(100vw * 700 / 1200), max(120px, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 476px)))"
       }}>
-        <img alt="The Truckers" className="absolute inset-0 w-full h-full object-contain" src={loginHeroImg} />
+        <img alt="The Truckers" className="absolute inset-0 w-full h-full object-cover object-bottom" src={loginHeroImg} />
       </div>
 
       {/* Login Form */}
