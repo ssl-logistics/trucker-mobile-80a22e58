@@ -59,7 +59,8 @@ export default function ExtraPointCard({ kind, point, index, readOnly, subtitle,
           </div>
         )}
         {!readOnly && (
-          <div className="grid grid-cols-2 gap-2 pt-1">
+          <div className={`grid ${leadingAction ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pt-1`}>
+            {leadingAction}
             <Button variant="outline" size="sm" className="h-9 gap-1.5 p-1 border-[#225795]/30 text-[#225795]"
               onClick={() => point.contact_phone
                 ? (window.location.href = `tel:${point.contact_phone}`)
