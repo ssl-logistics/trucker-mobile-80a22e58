@@ -153,6 +153,7 @@ function PullDownGuard() {
 
 const jobChildSegments = new Set([
   "container-checkin",
+  "extra-point",
   "container-sop",
   "container-summary",
   "add-expense",
@@ -212,6 +213,7 @@ const PickupSummaryPage = lazyWithPreload(() => import("./pages/PickupSummaryPag
 const DeliveryDetailPage = lazyWithPreload(() => import("./pages/DeliveryDetailPage"));
 const DeliverySOPCheckInPage = lazyWithPreload(() => import("./pages/DeliverySOPCheckInPage"));
 const ContainerCheckInPage = lazyWithPreload(() => import("./pages/ContainerCheckInPage"));
+const ExtraPointPage = lazyWithPreload(() => import("./pages/ExtraPointPage"));
 const ContainerSOPPage = lazyWithPreload(() => import("./pages/ContainerSOPPage"));
 const ContainerSummaryPage = lazyWithPreload(() => import("./pages/ContainerSummaryPage"));
 const AddExpensePage = lazyWithPreload(() => import("./pages/AddExpensePage"));
@@ -489,6 +491,14 @@ const App = () => (
                         element={
                           <ProtectedRoute>
                             <JobDetailPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/job/:jobId/extra-point/:kind/:seq"
+                        element={
+                          <ProtectedRoute>
+                            <ExtraPointPage />
                           </ProtectedRoute>
                         }
                       />

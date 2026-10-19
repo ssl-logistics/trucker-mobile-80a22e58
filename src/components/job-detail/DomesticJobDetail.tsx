@@ -54,6 +54,8 @@ import { ContainerReturnDeadlineBanner } from '@/components/job-detail/Container
 import { isHistoryContext } from '@/lib/historyMode';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { readPageCache, writePageCache } from '@/lib/pageCache';
+import ExtraPointCard from '@/components/job-detail/ExtraPointCard';
+import { getExtraCargoPoints, allExtraCargoDone, EXTRA_POINT_EVENT } from '@/lib/extraPoints';
 
 interface DriverCheckin {
   order_number: string;
@@ -195,6 +197,17 @@ export default function DomesticJobDetail({
 }: DomesticJobDetailProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const extraCargoPoints = useMemo(() => {
+    const st: any = (location.state as any)?.jobData;
+    return getExtraCargoPoints(st?.extra_cargo_points ? st : null);
+  }, [location.state]);
+  const [extraTick, setExtraTick] = useState(0);
+  useEffect(() => {
+    const h = () => setExtraTick((n) => n + 1);
+    window.addEventListener(EXTRA_POINT_EVENT, h);
+    window.addEventListener('focus', h);
+    return () => { window.removeEventListener(EXTRA_POINT_EVENT, h); window.removeEventListener('focus', h); };
+  }, []);
   const isFromHistory = isHistoryContext(location.search, location.state);
   const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
   // Merge is_transferred flag into job for state propagation to sub-pages
@@ -2829,7 +2842,7 @@ export default function DomesticJobDetail({
             {(job.job_type === 'international' || job.job_type === 'ภายนอกประเทศ' || job.job_type === 'นอกประเทศ') && (
             job.container_return_location || job.container_return_latitude) && (() => {
               // For booking (outbound) jobs without delivery, unlock after pickup SOP
-              const allDeliveriesCompleted = job.booking_no
+              const mainCargoCompleted = job.booking_no
                 ? (pickupSopCompleted || !!jobApplication?.sop_completed_at)
                 : (displayDestinations.length > 0 ?
                   displayDestinations.every((dest) => {
@@ -2837,8 +2850,18 @@ export default function DomesticJobDetail({
                     return !!destCheckin?.sop_completed_at || !!dest.sop_completed_at;
                   }) :
                   deliverySopCompleted);
+              // Extra cargo points must all be done before the next step (container return)
+              const xcPoints = extraCargoPoints.length ? extraCargoPoints : getExtraCargoPoints(job);
+              const extraCargoDone = extraTick >= 0 && allExtraCargoDone(job.order_code, xcPoints);
+              const allDeliveriesCompleted = mainCargoCompleted && extraCargoDone;
 
               return (
+                <>
+                {xcPoints.map((pt, i) => (
+                  <ExtraPointCard key={`xc-${pt.sequence}`} kind="cargo" point={pt} index={i} orderNumber={job.order_code}
+                    locked={!mainCargoCompleted} readOnly={isFromHistory}
+                    onOpen={() => navigate(`/job/${encodeURIComponent(job.order_code)}/extra-point/cargo/${pt.sequence}`, { state: { jobData: { ...jobWithTransferFlag, extra_cargo_points: xcPoints }, fromHistory: isFromHistory } })} />
+                ))}
                 <Card ref={containerReturnRef} className={`overflow-hidden border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500' : containerReturnCheckedIn ? 'border-blue-500' : allDeliveriesCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
                 <div className={`px-4 py-2.5 flex items-center justify-between ${containerReturnConfirmed ? 'bg-green-500' : containerReturnCheckedIn ? 'bg-blue-500' : allDeliveriesCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
                   <h3 className="font-semibold text-sm text-white">จุดคืนตู้คอนเทนเนอร์</h3>
@@ -3010,7 +3033,8 @@ export default function DomesticJobDetail({
                       </Button>
                   </div>
                 </div>
-              </Card>);
+              </Card>
+                </>);
 
             })()}
             </div>
