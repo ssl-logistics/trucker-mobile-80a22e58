@@ -55,7 +55,7 @@ import { isHistoryContext } from '@/lib/historyMode';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { readPageCache, writePageCache } from '@/lib/pageCache';
 import ExtraPointCard from '@/components/job-detail/ExtraPointCard';
-import { getExtraCargoPoints } from '@/lib/extraPoints';
+import { getExtraCargoPoints, getExtraDropPoints } from '@/lib/extraPoints';
 import { isInternationalJobItem } from '@/lib/jobLocation';
 
 interface DriverCheckin {

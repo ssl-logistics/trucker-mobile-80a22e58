@@ -26,9 +26,9 @@ export default function ExtraPointCard({ kind, point, index, readOnly, subtitle,
   const addr = extraPointAddress(point);
 
   return (
-    <Card ref={cardRef} className={`overflow-hidden border-2 rounded-2xl ${isDrop ? 'border-orange-400' : 'border-gray-300'}`}
+    <Card ref={cardRef} className={`overflow-hidden border-2 rounded-2xl ${isDrop ? 'border-gray-300' : 'border-gray-300'}`}
       onClick={(e) => e.stopPropagation()}>
-      <div className={`px-4 py-2.5 ${isDrop ? 'bg-orange-500' : 'bg-gray-400'}`}>
+      <div className={`px-4 py-2.5 ${isDrop ? 'bg-gray-400' : 'bg-gray-400'}`}>
         <h3 className="font-semibold text-sm text-white">
           {title ?? `${isDrop ? t('dropPoint.title') : t('extraPoint.title')} ${index + 1}`}
         </h3>
