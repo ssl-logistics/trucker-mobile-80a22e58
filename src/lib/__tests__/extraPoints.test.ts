@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getExtraCargoPoints, getExtraDropPoints, allDropsPickedUp, allExtraCargoDone, dropState } from '@/lib/extraPoints';
+import { getExtraCargoPoints, getExtraDropPoints, allDropsPickedUp, allExtraCargoDone, dropState, cargoDone, extraPointAddress } from '@/lib/extraPoints';
 
 describe('extraPoints', () => {
   it('sorts extra cargo points by sequence', () => {
@@ -37,5 +37,16 @@ describe('extraPoints', () => {
       { checkin_type: 'extra_cargo', destination_sequence_number: 1 },
       { checkin_type: 'extra_cargo', extra_point_sequence: 2 },
     ])).toBe(true);
+  });
+
+  it('address does not repeat district/province already in it', () => {
+    expect(extraPointAddress({ sequence: 1, address: 'เลขที่ 116 อำเภอเมืองระยอง จังหวัดระยอง', district: 'เมืองระยอง', province: 'ระยอง' }))
+      .toBe('เลขที่ 116 อำเภอเมืองระยอง จังหวัดระยอง');
+    expect(extraPointAddress({ sequence: 1, address: 'เลขที่ 5', province: 'ชลบุรี' })).toBe('เลขที่ 5 ชลบุรี');
+  });
+
+  it('is_completed from the system counts as done', () => {
+    expect(cargoDone({ sequence: 1, is_completed: true }, [])).toBe(true);
+    expect(cargoDone({ sequence: 1, is_completed: false }, [])).toBe(false);
   });
 });
