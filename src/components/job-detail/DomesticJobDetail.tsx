@@ -2497,11 +2497,13 @@ export default function DomesticJobDetail({
                             <span>{formatDateTime((job as any).closing_time, language)}</span>
                           </div>
                         )}
-                        <div className="flex items-start gap-2">
-                          <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
-                          <span className="font-medium text-[#454545] min-w-[50px]">Invoice</span>
-                          <span>{dest.invoice_number || '-'}</span>
-                        </div>
+                        {!isInternationalJobItem(job) && (
+                          <div className="flex items-start gap-2">
+                            <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#225795]" />
+                            <span className="font-medium text-[#454545] min-w-[50px]">Invoice</span>
+                            <span>{dest.invoice_number || '-'}</span>
+                          </div>
+                        )}
                         {(dest as any).customer && (() => {
                           const c: any = (dest as any).customer;
                           const addressLine = [c.province, c.district].filter(Boolean).join(' ');
