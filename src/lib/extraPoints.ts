@@ -18,6 +18,16 @@ export interface ExtraPoint {
   status?: string | null;
   is_completed?: boolean | null;
   completed_photo_urls?: string[] | null;
+  products?: ExtraPointProduct[] | null;
+}
+
+export interface ExtraPointProduct {
+  product_code?: string | null;
+  product_name?: string | null;
+  quantity?: number | null;
+  unit?: string | null;
+  weight?: number | null;
+  notes?: string | null;
 }
 
 export type ExtraPointKind = 'cargo' | 'drop';
