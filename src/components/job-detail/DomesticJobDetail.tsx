@@ -201,13 +201,6 @@ export default function DomesticJobDetail({
     const st: any = (location.state as any)?.jobData;
     return getExtraCargoPoints(st?.extra_cargo_points ? st : null);
   }, [location.state]);
-  const [extraTick, setExtraTick] = useState(0);
-  useEffect(() => {
-    const h = () => setExtraTick((n) => n + 1);
-    window.addEventListener(EXTRA_POINT_EVENT, h);
-    window.addEventListener('focus', h);
-    return () => { window.removeEventListener(EXTRA_POINT_EVENT, h); window.removeEventListener('focus', h); };
-  }, []);
   const isFromHistory = isHistoryContext(location.search, location.state);
   const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
   // Merge is_transferred flag into job for state propagation to sub-pages
