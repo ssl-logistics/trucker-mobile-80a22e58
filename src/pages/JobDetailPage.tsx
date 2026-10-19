@@ -110,6 +110,8 @@ interface JobDetail {
   booking_no?: string | null;
   bl_no?: string | null;
   destinations?: JobDestination[];
+  extra_cargo_points?: any[] | null;
+  extra_drop_points?: any[] | null;
   origins?: JobOrigin[];
   products?: any[];
   // Container return info for international jobs
