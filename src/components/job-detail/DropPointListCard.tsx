@@ -20,7 +20,7 @@ export default function DropPointListCard({ job, point, index }: { job: any; poi
       point={point}
       index={index}
       leadingAction={
-        <Button variant="outline" size="sm" className="h-9 gap-1.5 p-1 border-orange-400/60 text-orange-600"
+        <Button size="sm" className="h-9 gap-1.5 p-1 border-0 bg-orange-500 hover:bg-orange-600 text-white"
           onClick={() => navigate(`/job/${jobId}/extra-point/drop/${point.sequence}`, { state: { jobData: job, point, index } })}>
           <Eye className="w-3.5 h-3.5" /><span className="text-xs">{t('dropPoint.viewJob')}</span>
         </Button>
