@@ -12,20 +12,21 @@ interface Props {
   readOnly?: boolean;
   /** Extra line(s) under the title, e.g. order/container code on the current-jobs list */
   subtitle?: React.ReactNode;
+  cardRef?: (el: HTMLDivElement | null) => void;
 }
 
 /** Display-only card for an extra cargo point or container drop point (check-in comes later). */
-export default function ExtraPointCard({ kind, point, index, readOnly, subtitle }: Props) {
+export default function ExtraPointCard({ kind, point, index, readOnly, subtitle, cardRef }: Props) {
   const { t } = useLanguage();
   const isDrop = kind === 'drop';
   const addr = extraPointAddress(point);
 
   return (
-    <Card className={`overflow-hidden border-2 rounded-2xl ${isDrop ? 'border-orange-400' : 'border-blue-500'}`}
+    <Card ref={cardRef} className={`overflow-hidden border-2 rounded-2xl ${isDrop ? 'border-orange-400' : 'border-gray-300'}`}
       onClick={(e) => e.stopPropagation()}>
-      <div className={`px-4 py-2.5 ${isDrop ? 'bg-orange-500' : 'bg-blue-600'}`}>
+      <div className={`px-4 py-2.5 ${isDrop ? 'bg-orange-500' : 'bg-gray-400'}`}>
         <h3 className="font-semibold text-sm text-white">
-          {isDrop ? t('dropPoint.title') : t('extraPoint.title')} #{index + 1}
+          {isDrop ? t('dropPoint.title') : t('extraPoint.title')} {index + 1}
         </h3>
       </div>
       <div className="p-4 space-y-2 text-sm bg-white">
