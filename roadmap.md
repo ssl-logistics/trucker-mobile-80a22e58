@@ -48,3 +48,4 @@
 - [x] แนบเอกสารงานต่างประเทศ: ส่ง order_number เต็มรวม /NN ตามตู้ (เอาการตัด suffix ออกจาก JobDocumentsSheet)
 - [x] ปิดโหมด debug ของแอปติดตัง: capacitor.config.ts webContentsDebuggingEnabled=false และ ios/debug.xcconfig CAPACITOR_DEBUG=false
 - [x] บันทึกผลการส่งแจ้งเตือน: ตาราง push_delivery_log + send-push-notification เขียนผลทุกครั้ง + caller ส่ง notification_type/reference_id
+- [x] หน้า Login: ไม่เลื่อนเมื่อจอพอดี (รูปย่อได้, ล็อกความสูงเท่าจอ)
