@@ -43,19 +43,19 @@ export default function ExtraPointCard({ kind, point, index, readOnly, subtitle,
         {subtitle}
         <div className="flex items-start gap-2">
           <MapPin className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
-          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.place') || 'สถานที่'}</span>
+          <span className="font-medium text-[#454545] min-w-[50px] whitespace-nowrap shrink-0">{t('jobDetail.place') || 'สถานที่'}</span>
           <span className="font-semibold text-[#225795]">{point.location_name || '-'}</span>
         </div>
         {addr && (
           <div className="flex items-start gap-2">
             <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-            <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.address') || 'ที่อยู่'}</span>
+            <span className="font-medium text-[#454545] min-w-[50px] whitespace-nowrap shrink-0">{t('jobDetail.address') || 'ที่อยู่'}</span>
             <span className="text-[#454545]">{addr}</span>
           </div>
         )}
         <div className="flex items-start gap-2">
           <User className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
-          <span className="font-medium text-[#454545] min-w-[50px]">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
+          <span className="font-medium text-[#454545] min-w-[50px] whitespace-nowrap shrink-0">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
           <span className="text-[#454545]">{point.contact_name || '-'}{point.contact_phone ? ` (${point.contact_phone})` : ''}</span>
         </div>
         {point.notes && (
