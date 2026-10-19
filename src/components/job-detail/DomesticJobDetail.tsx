@@ -54,7 +54,7 @@ import { ContainerReturnDeadlineBanner } from '@/components/job-detail/Container
 import { isHistoryContext } from '@/lib/historyMode';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { readPageCache, writePageCache } from '@/lib/pageCache';
-import ExtraPointCard, { useExtraProgress } from '@/components/job-detail/ExtraPointCard';
+import ExtraPointCard from '@/components/job-detail/ExtraPointCard';
 import { getExtraCargoPoints, allExtraCargoDone, EXTRA_POINT_EVENT } from '@/lib/extraPoints';
 
 interface DriverCheckin {
@@ -2851,14 +2851,16 @@ export default function DomesticJobDetail({
                   }) :
                   deliverySopCompleted);
               // Extra cargo points must all be done before the next step (container return)
-              const allDeliveriesCompleted = mainCargoCompleted && (extraCargoPoints.length === 0 || extraCargoDone);
+              const xcPoints = extraCargoPoints.length ? extraCargoPoints : getExtraCargoPoints(job);
+              const extraCargoDone = extraTick >= 0 && allExtraCargoDone(job.order_code, xcPoints);
+              const allDeliveriesCompleted = mainCargoCompleted && extraCargoDone;
 
               return (
                 <>
-                {extraCargoPoints.map((pt, i) => (
+                {xcPoints.map((pt, i) => (
                   <ExtraPointCard key={`xc-${pt.sequence}`} kind="cargo" point={pt} index={i} orderNumber={job.order_code}
                     locked={!mainCargoCompleted} readOnly={isFromHistory}
-                    onOpen={() => navigate(`/job/${encodeURIComponent(job.order_code)}/extra-point/cargo/${pt.sequence}`, { state: { jobData: { ...jobWithTransferFlag, extra_cargo_points: extraCargoPoints }, fromHistory: isFromHistory } })} />
+                    onOpen={() => navigate(`/job/${encodeURIComponent(job.order_code)}/extra-point/cargo/${pt.sequence}`, { state: { jobData: { ...jobWithTransferFlag, extra_cargo_points: xcPoints }, fromHistory: isFromHistory } })} />
                 ))}
                 <Card ref={containerReturnRef} className={`overflow-hidden border-2 rounded-2xl ${containerReturnConfirmed ? 'border-green-500' : containerReturnCheckedIn ? 'border-blue-500' : allDeliveriesCompleted ? 'border-teal-500' : 'border-gray-300'}`}>
                 <div className={`px-4 py-2.5 flex items-center justify-between ${containerReturnConfirmed ? 'bg-green-500' : containerReturnCheckedIn ? 'bg-blue-500' : allDeliveriesCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
