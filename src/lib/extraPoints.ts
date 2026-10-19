@@ -1,6 +1,7 @@
 // Extra container points (per-container) sent by get-driver-assigned-jobs:
-// extra_cargo_points (point_type=cargo) and extra_drop_points (point_type=drop).
-// Progress is kept on the device until the backend defines a check-in payload.
+// extra_cargo_points and extra_drop_points. Check-in goes through driver-checkin
+// with checkin_type extra_cargo | extra_drop | extra_drop_pickup + extra_point_sequence.
+// Jobs without extra points are never gated (every gate returns true).
 
 export interface ExtraPoint {
   sequence: number;
@@ -14,18 +15,12 @@ export interface ExtraPoint {
   contact_name?: string | null;
   contact_phone?: string | null;
   notes?: string | null;
+  status?: string | null;
 }
 
 export type ExtraPointKind = 'cargo' | 'drop';
-/** cargo: checked_in -> done. drop: dropped -> picked_up (done). */
-export type ExtraStep = 'checked_in' | 'done' | 'dropped' | 'picked_up';
-
-export interface ExtraProgress {
-  checked_in?: string;
-  done?: string;
-  dropped?: string;
-  picked_up?: string;
-}
+export type ExtraCheckinType = 'extra_cargo' | 'extra_drop' | 'extra_drop_pickup';
+export type DropState = 'pending' | 'dropped' | 'picked_up';
 
 const norm = (list: unknown): ExtraPoint[] =>
   (Array.isArray(list) ? list : [])
@@ -36,33 +31,55 @@ const norm = (list: unknown): ExtraPoint[] =>
 export const getExtraCargoPoints = (job: any): ExtraPoint[] => norm(job?.extra_cargo_points);
 export const getExtraDropPoints = (job: any): ExtraPoint[] => norm(job?.extra_drop_points);
 
-const key = (order: string, kind: ExtraPointKind, seq: number) =>
-  `extra_point_progress:${order}:${kind}:${seq}`;
-
 export const EXTRA_POINT_EVENT = 'extra-point-progress';
 
-export function readExtraProgress(order: string, kind: ExtraPointKind, seq: number): ExtraProgress {
+// ---- Local record of check-ins just sent successfully (bridges API lag) ----
+const LKEY = 'extra_point_checkins_v2';
+const TTL = 24 * 60 * 60 * 1000;
+type LocalRec = { order: string; type: ExtraCheckinType; seq: number; at: number };
+
+function readLocal(): LocalRec[] {
   try {
-    return JSON.parse(localStorage.getItem(key(order, kind, seq)) || '{}') || {};
+    const a = JSON.parse(localStorage.getItem(LKEY) || '[]');
+    return Array.isArray(a) ? a.filter((r) => Date.now() - r.at < TTL) : [];
   } catch {
-    return {};
+    return [];
   }
 }
 
-export function saveExtraStep(order: string, kind: ExtraPointKind, seq: number, step: ExtraStep, at = new Date().toISOString()) {
-  const next = { ...readExtraProgress(order, kind, seq), [step]: at };
-  localStorage.setItem(key(order, kind, seq), JSON.stringify(next));
+export function recordExtraCheckin(order: string, type: ExtraCheckinType, seq: number) {
+  const list = readLocal().filter((r) => !(r.order === order && r.type === type && r.seq === seq));
+  list.push({ order, type, seq, at: Date.now() });
+  try { localStorage.setItem(LKEY, JSON.stringify(list)); } catch { /* ignore */ }
   window.dispatchEvent(new Event(EXTRA_POINT_EVENT));
-  return next;
 }
 
-export const isExtraPointDone = (kind: ExtraPointKind, p: ExtraProgress) =>
-  kind === 'cargo' ? !!p.done : !!p.picked_up;
+/** Checkin-like rows ({checkin_type, destination_sequence_number}) for one order from local records. */
+export const localExtraCheckins = (order: string) =>
+  readLocal().filter((r) => r.order === order).map((r) => ({ checkin_type: r.type, destination_sequence_number: r.seq }));
 
-/** True when every extra cargo point of the order is completed (true when there are none). */
-export function allExtraCargoDone(order: string, points: ExtraPoint[]): boolean {
-  return points.every((p) => isExtraPointDone('cargo', readExtraProgress(order, 'cargo', p.sequence)));
+const seqOf = (c: any) => Number(c?.extra_point_sequence ?? c?.destination_sequence_number);
+const has = (checkins: any[], type: ExtraCheckinType, seq: number) =>
+  checkins.some((c) => c?.checkin_type === type && seqOf(c) === seq);
+
+export function dropState(p: ExtraPoint, checkins: any[]): DropState {
+  const s = String(p.status || '').toLowerCase();
+  if (s === 'picked_up' || has(checkins, 'extra_drop_pickup', p.sequence)) return 'picked_up';
+  if (s === 'dropped' || has(checkins, 'extra_drop', p.sequence)) return 'dropped';
+  return 'pending';
 }
+
+export function cargoDone(p: ExtraPoint, checkins: any[]): boolean {
+  return String(p.status || '').toLowerCase() === 'completed' || has(checkins, 'extra_cargo', p.sequence);
+}
+
+/** True when every drop point has been picked up again (true when there are none). */
+export const allDropsPickedUp = (points: ExtraPoint[], checkins: any[]) =>
+  points.every((p) => dropState(p, checkins) === 'picked_up');
+
+/** True when every extra cargo point is completed (true when there are none). */
+export const allExtraCargoDone = (points: ExtraPoint[], checkins: any[]) =>
+  points.every((p) => cargoDone(p, checkins));
 
 export const extraPointAddress = (p: ExtraPoint) =>
   [p.address, p.district, p.province].filter((v) => v && String(v).trim()).join(' ');
