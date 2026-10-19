@@ -216,6 +216,11 @@ async function sendApnsNotification(
           // Parse sandbox error
           try {
             const sandboxErrorJson = JSON.parse(sandboxError);
+            // Production said "not for topic": the token is real but the installed app's bundle ID
+            // differs from ours — a setup mismatch, so keep the token instead of deleting it.
+            if (errorJson.reason === 'DeviceTokenNotForTopic') {
+              return { success: false, error: `TOPIC_MISMATCH (bundle ${bundleId})` };
+            }
             if (sandboxErrorJson.reason === 'BadDeviceToken' || sandboxErrorJson.reason === 'Unregistered') {
               return { success: false, error: 'TOKEN_EXPIRED' };
             }
