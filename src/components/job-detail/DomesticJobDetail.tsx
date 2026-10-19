@@ -55,7 +55,7 @@ import { isHistoryContext } from '@/lib/historyMode';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { readPageCache, writePageCache } from '@/lib/pageCache';
 import ExtraPointCard from '@/components/job-detail/ExtraPointCard';
-import { getExtraCargoPoints } from '@/lib/extraPoints';
+import { getExtraCargoPoints, getExtraDropPoints } from '@/lib/extraPoints';
 import { isInternationalJobItem } from '@/lib/jobLocation';
 
 interface DriverCheckin {
@@ -203,6 +203,9 @@ export default function DomesticJobDetail({
     return getExtraCargoPoints(st?.extra_cargo_points ? st : null);
   }, [location.state]);
   const xcPoints = extraCargoPoints.length ? extraCargoPoints : getExtraCargoPoints(job);
+  const dpSteps = isInternationalJobItem(job)
+    ? getExtraDropPoints(job).flatMap((pt) => (['drop', 'pickup'] as const).map((step) => ({ pt, step, key: `dp-${step}-${pt.sequence}` })))
+    : [];
   const isFromHistory = isHistoryContext(location.search, location.state);
   const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
   // Merge is_transferred flag into job for state propagation to sub-pages
@@ -1709,6 +1712,12 @@ export default function DomesticJobDetail({
                 </div>
             }
 
+              {dpSteps.map((s) => (
+                <div key={`${s.key}-dot`} className="relative flex justify-center" style={{ height: `${cardHeights.deliveryCards[s.key] || 200}px`, marginBottom: '12px' }}>
+                  <div className="absolute top-0"><div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" /></div>
+                </div>
+              ))}
+
               {/* Step 1 Circle - Pickup Point (hidden for BL inbound jobs) */}
               {!job.bl_no &&
             <div className="relative flex justify-center mb-3" style={{
@@ -1952,6 +1961,13 @@ export default function DomesticJobDetail({
                   </div>
                 </Card>
             }
+
+              {/* Container drop points (display only): drop -> pick up again, before cargo points */}
+              {dpSteps.map((s) => (
+                <ExtraPointCard key={s.key} kind="drop" point={s.pt} index={0} readOnly={isFromHistory}
+                  title={t(s.step === 'drop' ? 'dropPoint.dropStep' : 'dropPoint.pickupStep')}
+                  cardRef={(el) => { if (el) deliveryCardRefs.current.set(s.key, el); else deliveryCardRefs.current.delete(s.key); }} />
+              ))}
 
               {/* Pickup Point Card */}
               {/* For international jobs, pickup is locked until empty container is checked in */}

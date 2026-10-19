@@ -55,3 +55,4 @@
 - [ ] Server-side new-job check while app is closed — needs scheduled jobs (not available on this project) or a TMS 'job assigned' webhook
 - [x] User confirmed iOS Bundle ID com.thetrucker.mobile; update APNs topic only, preserve Android/Firebase com.thetroob.mobile
 - [ ] Verify iPhone receives push after APNs topic correction — requires device test; confirm APNs key team if rejected
+- [ ] Lock cargo point until dropped container is picked up again — waiting for backend check-in spec
