@@ -344,15 +344,13 @@ const SignIn = () => {
     paddingTop: "env(safe-area-inset-top, 0px)",
     paddingBottom: "env(safe-area-inset-bottom, 0px)"
   }}>
-      {/* Hero Section: full ratio when space allows, shrinks so the page fits without scrolling */}
-      <div className="relative flex-shrink-0 bg-white" style={{
-        height: "min(calc(100vw * 700 / 1200), max(120px, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 476px)))"
-      }}>
-        <img alt="The Truckers" className="absolute inset-0 w-full h-full object-cover object-bottom" src={loginHeroImg} />
+      {/* Hero Section: always the image's true ratio so it is never cropped */}
+      <div className="relative flex-shrink-0 bg-white w-full" style={{ aspectRatio: "1200 / 700" }}>
+        <img alt="The Truckers" className="absolute inset-0 w-full h-full object-contain" src={loginHeroImg} />
       </div>
 
       {/* Login Form */}
-      <div className="flex-1 px-6 pt-12 pb-2 bg-white flex flex-col">
+      <div className="flex-1 px-6 pt-12 [@media(max-height:700px)]:pt-4 pb-2 bg-white flex flex-col">
         <h1 className="text-lg font-bold text-center mb-2 text-foreground">{t('signIn.title')}</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 w-full mx-auto flex-1 flex flex-col">
