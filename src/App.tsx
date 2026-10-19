@@ -99,7 +99,7 @@ function VersionBadge() {
         zIndex: 2147483647,
       }}
     >
-      v2.8
+      v3.0
     </div>
   );
 
@@ -333,7 +333,8 @@ function TabPreloader() {
 
     const warm = () => preloadAllTabs();
     const w = window as any;
-    const id = typeof w.requestIdleCallback === "function" ? w.requestIdleCallback(warm) : window.setTimeout(warm, 1500);
+    const id =
+      typeof w.requestIdleCallback === "function" ? w.requestIdleCallback(warm) : window.setTimeout(warm, 1500);
     return () => {
       if (typeof w.cancelIdleCallback === "function") w.cancelIdleCallback(id);
       else window.clearTimeout(id);
@@ -349,7 +350,7 @@ function ScrollToTopOnRouteChange() {
   const location = useLocation();
   useEffect(() => {
     const reset = () => {
-      const root = document.getElementById('root');
+      const root = document.getElementById("root");
       if (root) root.scrollTop = 0;
       window.scrollTo(0, 0);
     };
