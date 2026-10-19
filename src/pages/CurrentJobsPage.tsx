@@ -1,3 +1,4 @@
+import React from 'react';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
