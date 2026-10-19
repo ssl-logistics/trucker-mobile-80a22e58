@@ -19,6 +19,7 @@ export default function DropPointListCard({ job, point, index }: { job: any; poi
       kind="drop"
       point={point}
       index={index}
+      title={`${t('dropPoint.label')} · ${ref}`}
       leadingAction={
         <Button size="sm" className="h-9 gap-1.5 p-1 border-0 bg-orange-500 hover:bg-orange-600 text-white"
           onClick={() => navigate(`/job/${jobId}/extra-point/drop/${point.sequence}`, { state: { jobData: job, point, index } })}>
@@ -27,7 +28,6 @@ export default function DropPointListCard({ job, point, index }: { job: any; poi
       }
       subtitle={
         <div className="flex items-center gap-2 text-sm">
-          <span className="inline-block px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 font-medium">{ref}</span>
           {code && (<><Tag className="w-4 h-4 text-muted-foreground" /><span className="text-muted-foreground">{t('jobDetail.containerCode')} :</span><span className="font-medium">{code}</span></>)}
         </div>
       }
