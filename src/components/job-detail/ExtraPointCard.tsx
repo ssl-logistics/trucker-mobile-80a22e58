@@ -1,8 +1,9 @@
-import { Phone, Navigation, MapPin, User, FileText } from 'lucide-react';
+import { Phone, Navigation, MapPin, User, FileText, Package } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { translateUnit } from '@/utils/apiDataTranslations';
 import { ExtraPoint, ExtraPointKind, extraPointAddress, openExtraPointRoute } from '@/lib/extraPoints';
 
 interface Props {
@@ -26,7 +27,7 @@ interface Props {
 
 /** Display-only card for an extra cargo point or container drop point (check-in comes later). */
 export default function ExtraPointCard({ kind, point, index, readOnly, subtitle, cardRef, leadingAction, title, tone, statusLabel, onOpen }: Props) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isDrop = kind === 'drop';
   const addr = extraPointAddress(point);
   const border = tone === 'done' ? 'border-green-500' : tone === 'open' ? (isDrop ? 'border-orange-500' : 'border-teal-500') : 'border-gray-300';
@@ -66,6 +67,27 @@ export default function ExtraPointCard({ kind, point, index, readOnly, subtitle,
           <span className="font-medium text-[#454545] min-w-[50px] whitespace-nowrap shrink-0">{t('jobDetail.phone') || 'เบอร์โทร'}</span>
           <span className="text-[#454545]">{point.contact_phone || '-'}</span>
         </div>
+        {!isDrop && Array.isArray(point.products) && point.products.length > 0 && (
+          <div className="flex items-start gap-2">
+            <Package className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
+            <span className="font-medium text-[#454545] min-w-[50px] whitespace-nowrap shrink-0">{language === 'th' ? 'สินค้า' : language === 'zh' ? '货物' : language === 'ko' ? '상품' : 'Products'}</span>
+            <div className="flex-1 space-y-1.5">
+              {point.products.map((p, i) => (
+                <div key={i} className="text-[#454545]">
+                  <div className="font-semibold text-[#225795]">
+                    {p.product_name || '-'}{p.product_code ? <span className="text-xs text-muted-foreground font-normal"> ({p.product_code})</span> : null}
+                  </div>
+                  <div className="text-xs">
+                    {[p.quantity != null ? `${p.quantity} ${p.unit ? translateUnit(p.unit, language) : ''}`.trim() : null,
+                      p.weight != null ? `${t('jobDetail.weight')} ${Number(p.weight).toLocaleString()} ${language === 'th' ? 'กก.' : 'kg'}` : null]
+                      .filter(Boolean).join(' · ')}
+                  </div>
+                  {p.notes && <div className="text-xs text-muted-foreground">{p.notes}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {point.notes && (
           <div className="flex items-start gap-2">
             <FileText className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
