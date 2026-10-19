@@ -340,11 +340,14 @@ const SignIn = () => {
       setIsLoggingIn(false);
     }
   };
-  return <div className="min-h-[100dvh] bg-background flex flex-col overflow-x-hidden" style={{
-    paddingTop: "env(safe-area-inset-top, 0px)"
+  return <div className="h-[100dvh] bg-background flex flex-col overflow-x-hidden overflow-y-auto overscroll-none" style={{
+    paddingTop: "env(safe-area-inset-top, 0px)",
+    paddingBottom: "env(safe-area-inset-bottom, 0px)"
   }}>
-      {/* Hero Section with Truck Image */}
-      <div className="relative flex-shrink-0 bg-white" style={{ aspectRatio: "1200 / 700" }}>
+      {/* Hero Section: full ratio when space allows, shrinks so the page fits without scrolling */}
+      <div className="relative flex-shrink-0 bg-white" style={{
+        height: "min(calc(100vw * 700 / 1200), max(120px, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 476px)))"
+      }}>
         <img alt="The Truckers" className="absolute inset-0 w-full h-full object-contain" src={loginHeroImg} />
       </div>
 
