@@ -493,9 +493,6 @@ const App = () => (
                           </ProtectedRoute>
                         }
                       />
-                          </ProtectedRoute>
-                        }
-                      />
                       <Route
                         path="/job/:jobId/container-checkin"
                         element={
