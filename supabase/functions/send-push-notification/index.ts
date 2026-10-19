@@ -865,7 +865,8 @@ Deno.serve(async (req) => {
       const apnsKeyId = Deno.env.get('APNS_KEY_ID');
       const apnsTeamId = Deno.env.get('APNS_TEAM_ID');
       const apnsAuthKey = Deno.env.get('APNS_AUTH_KEY_P8');
-      const bundleId = 'com.thetroob.mobile';
+      // iOS uses a different identifier from Android/Firebase.
+      const bundleId = 'com.thetrucker.mobile';
 
       if (apnsKeyId && apnsTeamId && apnsAuthKey) {
         const apnsData: Record<string, unknown> = {

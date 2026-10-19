@@ -53,4 +53,5 @@
 - [ ] ส่งผลเช็คอินจุดเพิ่ม/ดรอปตู้และรูปไประบบหลังบ้าน — รอรูปแบบข้อมูลจากทีมหลังบ้าน (ตอนนี้บันทึกในเครื่อง)
 - [ ] Extra cargo / drop point check-in + backend save + 'must finish before container return' rule — waiting on backend API spec
 - [ ] Server-side new-job check while app is closed — needs scheduled jobs (not available on this project) or a TMS 'job assigned' webhook
-- [ ] iOS push: confirm installed iPhone app bundle ID matches com.thetroob.mobile and APNs key team
+- [x] User confirmed iOS Bundle ID com.thetrucker.mobile; update APNs topic only, preserve Android/Firebase com.thetroob.mobile
+- [ ] Verify iPhone receives push after APNs topic correction — requires device test; confirm APNs key team if rejected
