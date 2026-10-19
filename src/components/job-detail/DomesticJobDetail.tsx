@@ -1108,6 +1108,14 @@ export default function DomesticJobDetail({
         jobData: (location.state as any)?.jobData,
       },
     });
+  const openExtraDetail = (type: ExtraCheckinType, pt: ExtraPoint, title: string, done: boolean, locked: boolean) =>
+    navigate(`/job/${encodeURIComponent(job.order_code)}/extra-point/${type}/${pt.sequence}/detail${isFromHistory ? '?from=history' : ''}`, {
+      state: {
+        point: pt, orderNumber: job.order_code, orderId: job.id, title, driverId: userId,
+        driverType: isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance',
+        jobData: (location.state as any)?.jobData || job, done, locked, fromHistory: isFromHistory,
+      },
+    });
   const extraCheckinButton = (done: boolean, locked: boolean, onClick: () => void) =>
     done ? undefined : (
       <Button size="sm" disabled={locked} className="h-9 gap-1.5 p-1 bg-[#225795] hover:bg-[#1b4778] text-white"
@@ -2005,7 +2013,7 @@ export default function DomesticJobDetail({
                   title={title}
                   tone={done ? 'done' : locked ? 'locked' : 'open'}
                   statusLabel={t(done ? 'extraPoint.statusDone' : locked ? 'jobDetail.waitingPreviousStep' : 'jobDetail.waitingCheckIn')}
-                  leadingAction={extraCheckinButton(done, locked, () => openExtraCheckin(s.step === 'drop' ? 'extra_drop' : 'extra_drop_pickup', s.pt, title))}
+                  onOpen={() => openExtraDetail(s.step === 'drop' ? 'extra_drop' : 'extra_drop_pickup', s.pt, title, done, locked)}
                   cardRef={(el) => { if (el) deliveryCardRefs.current.set(s.key, el); else deliveryCardRefs.current.delete(s.key); }} />
                 );
               })}
@@ -2915,7 +2923,7 @@ export default function DomesticJobDetail({
                 title={title}
                 tone={done ? 'done' : locked ? 'locked' : 'open'}
                 statusLabel={t(done ? 'extraPoint.statusDone' : locked ? 'jobDetail.waitingPreviousStep' : 'jobDetail.waitingCheckIn')}
-                leadingAction={extraCheckinButton(done, locked, () => openExtraCheckin('extra_cargo', pt, title))}
+                onOpen={() => openExtraDetail('extra_cargo', pt, title, done, locked)}
                 cardRef={(el) => { if (el) deliveryCardRefs.current.set(`xc-${pt.sequence}`, el); else deliveryCardRefs.current.delete(`xc-${pt.sequence}`); }} />
               );
             })}

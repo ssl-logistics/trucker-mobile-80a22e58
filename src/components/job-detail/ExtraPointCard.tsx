@@ -20,10 +20,12 @@ interface Props {
   /** Check-in state: locked (grey), open (waiting check-in), done (green) */
   tone?: 'locked' | 'open' | 'done';
   statusLabel?: string;
+  /** Tap the card to open the point detail page */
+  onOpen?: () => void;
 }
 
 /** Display-only card for an extra cargo point or container drop point (check-in comes later). */
-export default function ExtraPointCard({ kind, point, index, readOnly, subtitle, cardRef, leadingAction, title, tone, statusLabel }: Props) {
+export default function ExtraPointCard({ kind, point, index, readOnly, subtitle, cardRef, leadingAction, title, tone, statusLabel, onOpen }: Props) {
   const { t } = useLanguage();
   const isDrop = kind === 'drop';
   const addr = extraPointAddress(point);
@@ -32,7 +34,8 @@ export default function ExtraPointCard({ kind, point, index, readOnly, subtitle,
 
   return (
     <Card ref={cardRef} className={`overflow-hidden border-2 rounded-2xl ${border}`}
-      onClick={(e) => e.stopPropagation()}>
+      role={onOpen ? 'button' : undefined}
+      onClick={(e) => { e.stopPropagation(); onOpen?.(); }}>
       <div className={`px-4 py-2.5 flex items-center justify-between ${head}`}>
         <h3 className="font-semibold text-sm text-white">
           {title ?? `${isDrop ? t('dropPoint.title') : t('extraPoint.title')} ${index + 1}`}
@@ -56,7 +59,12 @@ export default function ExtraPointCard({ kind, point, index, readOnly, subtitle,
         <div className="flex items-start gap-2">
           <User className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
           <span className="font-medium text-[#454545] min-w-[50px] whitespace-nowrap shrink-0">{t('jobDetail.contactPerson') || 'ผู้ติดต่อ'}</span>
-          <span className="text-[#454545]">{point.contact_name || '-'}{point.contact_phone ? ` (${point.contact_phone})` : ''}</span>
+          <span className="text-[#454545]">{point.contact_name || '-'}</span>
+        </div>
+        <div className="flex items-start gap-2">
+          <Phone className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
+          <span className="font-medium text-[#454545] min-w-[50px] whitespace-nowrap shrink-0">{t('jobDetail.phone') || 'เบอร์โทร'}</span>
+          <span className="text-[#454545]">{point.contact_phone || '-'}</span>
         </div>
         {point.notes && (
           <div className="flex items-start gap-2">
@@ -65,7 +73,7 @@ export default function ExtraPointCard({ kind, point, index, readOnly, subtitle,
           </div>
         )}
         {!readOnly && (
-          <div className={`grid ${leadingAction ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pt-1`}>
+          <div className={`grid ${leadingAction ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pt-1`} onClick={(e) => e.stopPropagation()}>
             {leadingAction}
             <Button variant="outline" size="sm" className="h-9 gap-1.5 p-1 border-[#225795]/30 text-[#225795]"
               onClick={() => point.contact_phone

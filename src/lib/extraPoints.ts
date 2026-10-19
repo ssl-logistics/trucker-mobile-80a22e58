@@ -16,6 +16,8 @@ export interface ExtraPoint {
   contact_phone?: string | null;
   notes?: string | null;
   status?: string | null;
+  is_completed?: boolean | null;
+  completed_photo_urls?: string[] | null;
 }
 
 export type ExtraPointKind = 'cargo' | 'drop';
@@ -64,13 +66,13 @@ const has = (checkins: any[], type: ExtraCheckinType, seq: number) =>
 
 export function dropState(p: ExtraPoint, checkins: any[]): DropState {
   const s = String(p.status || '').toLowerCase();
-  if (s === 'picked_up' || has(checkins, 'extra_drop_pickup', p.sequence)) return 'picked_up';
+  if (s === 'picked_up' || p.is_completed === true || has(checkins, 'extra_drop_pickup', p.sequence)) return 'picked_up';
   if (s === 'dropped' || has(checkins, 'extra_drop', p.sequence)) return 'dropped';
   return 'pending';
 }
 
 export function cargoDone(p: ExtraPoint, checkins: any[]): boolean {
-  return String(p.status || '').toLowerCase() === 'completed' || has(checkins, 'extra_cargo', p.sequence);
+  return String(p.status || '').toLowerCase() === 'completed' || p.is_completed === true || has(checkins, 'extra_cargo', p.sequence);
 }
 
 /** True when every drop point has been picked up again (true when there are none). */
@@ -81,8 +83,13 @@ export const allDropsPickedUp = (points: ExtraPoint[], checkins: any[]) =>
 export const allExtraCargoDone = (points: ExtraPoint[], checkins: any[]) =>
   points.every((p) => cargoDone(p, checkins));
 
-export const extraPointAddress = (p: ExtraPoint) =>
-  [p.address, p.district, p.province].filter((v) => v && String(v).trim()).join(' ');
+export const extraPointAddress = (p: ExtraPoint) => {
+  const base = String(p.address || '').trim();
+  const extra = [p.district, p.province]
+    .map((v) => String(v || '').trim())
+    .filter((v) => v && !base.includes(v));
+  return [base, ...extra].filter(Boolean).join(' ');
+};
 
 export function openExtraPointRoute(p: ExtraPoint): boolean {
   if (p.latitude != null && p.longitude != null) {
