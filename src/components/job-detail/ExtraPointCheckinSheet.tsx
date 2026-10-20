@@ -24,7 +24,7 @@ export default function ExtraPointCheckinSheet({ data, onClose }: { data: ExtraC
         {data && (
           <ExtraPointCheckinForm key={`${data.type}-${data.seq}`} type={data.type} seq={data.seq} st={data}
             onDone={onClose} onCancel={onClose}>
-            <JobActionButtons jobId={data.orderNumber || ''} orderNumber={data.orderNumber || ''} jobData={data.jobData} />
+            <JobActionButtons jobId={data.orderNumber || ''} orderNumber={data.orderNumber || ''} jobData={data.jobData} expenseMode="sheet" />
             {photos.length > 0 && (
               <div className="bg-white rounded-2xl p-4 space-y-2">
                 <div className="text-sm font-medium text-[#454545]">{t('extraPoint.photos')}</div>
