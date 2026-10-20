@@ -165,7 +165,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
 
       {expenseMode === 'sheet' && (
         <Dialog open={!!expenseSheet} onOpenChange={(o) => !o && setExpenseSheet(null)}>
-          <DialogContent className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0 [&>button]:hidden" aria-describedby={undefined}>
+          <DialogContent className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0 [&>button]:hidden overflow-x-hidden [&_.pb-20]:pb-0 [&_.fixed.bottom-0]:sticky [&_.fixed.bottom-0]:z-30" aria-describedby={undefined}>
             {expenseSheet === 'view' && (
               <JobExpensesPage embeddedJobId={jobId} embeddedState={{ jobData, fromHistory: isFromHistory }} onClose={() => setExpenseSheet(null)} />
             )}
