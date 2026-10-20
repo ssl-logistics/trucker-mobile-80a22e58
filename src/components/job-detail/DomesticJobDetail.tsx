@@ -2732,8 +2732,8 @@ export default function DomesticJobDetail({
                           </>
                       }
                         <Button size="sm" className="h-9 flex items-center justify-center gap-1.5 p-1 border-transparent bg-[#225896] hover:bg-[#1a4578]" onClick={() => {
-                        if (needsLoadingQrDelivery) { openLoadingQr(() => navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob, fromHistory: isFromHistory } })); return; }
-                        navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob, fromHistory: isFromHistory } });
+                        if (needsLoadingQrDelivery) { openLoadingQr(() => navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob, fromHistory: isFromHistory, checkedIn: isCheckedIn, podDone: isPodCompleted } })); return; }
+                        navigate(`/job/${encodeURIComponent(job.order_code)}/delivery/${dest.sequence_number}${isFromHistory ? '?from=history' : ''}`, { state: { jobData: jobWithTransferFlag, destId: dest.id, reorderedSequence: dest.sequence_number, isBidJob, fromHistory: isFromHistory, checkedIn: isCheckedIn, podDone: isPodCompleted } });
                       }} disabled={isDestinationLocked || (isFromHistory && !isCheckedIn && !isPodCompleted)}>
                           <img src={statusIcon} alt="status" className="w-3.5 h-3.5 brightness-0 invert hidden sm:block" />
                           <span className="text-xs">{needsLoadingQrDelivery ? t('loadingQr.button') : isPodCompleted ? t('jobDetail.viewInfo') : isCheckedIn ? t('jobDetail.uploadEvidence') : t('jobDetail.updateStatus')}</span>
