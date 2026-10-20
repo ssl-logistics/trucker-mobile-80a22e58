@@ -86,10 +86,12 @@ interface ExpenseItem {
 
 const isFuelType = (type: string | undefined) => type === 'fuel' || type === 'fuel_drop';
 
-const AddExpensePage = () => {
+const AddExpensePage = ({ embeddedJobId, embeddedState, onClose }: { embeddedJobId?: string; embeddedState?: any; onClose?: () => void } = {}) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { jobId } = useParams();
+  const routerLocation = useLocation();
+  const location = embeddedState ? { ...routerLocation, state: embeddedState } : routerLocation;
+  const params = useParams();
+  const jobId = embeddedJobId ?? params.jobId;
   const { toast } = useToast();
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -131,6 +133,7 @@ const AddExpensePage = () => {
   useEffect(() => () => unlockBody(), []);
   const handleBack = () => {
     unlockBody();
+    if (onClose) return onClose();
     const idx = (window.history.state as any)?.idx;
     if (typeof idx === 'number' && idx > 0) navigate(-1);
     else navigate(`/job/${encodeURIComponent(jobId || '')}`, { replace: true });
@@ -636,7 +639,7 @@ const AddExpensePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted pb-20">
+    <div className={`${onClose ? "" : "min-h-screen "}bg-muted pb-20`}>
       {/* Header */}
       <header className="app-sticky-header bg-background border-b">
         <div className="px-4 py-[10.5px] flex items-center gap-3">
