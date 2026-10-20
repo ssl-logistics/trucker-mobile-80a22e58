@@ -153,7 +153,7 @@ export default function ContainerCheckInPage() {
       const stateJob = navState?.jobData;
       let result: any;
       
-      if (stateJob && (stateJob.order_number === jobId || stateJob.id === jobId)) {
+      if (stateJob && [stateJob.order_number, stateJob.order_code, stateJob.id].some((v: any) => v != null && String(v) === jobId)) {
         console.log('[ContainerCheckInPage] Using navigation state data (fast path)');
         result = { success: true, data: [stateJob] };
       } else if (isInternalDriver || isExternalDriver) {
@@ -188,6 +188,7 @@ export default function ContainerCheckInPage() {
         // Find the specific job by order_number OR id (jobId could be either)
         const foundJob = result.data.find((j: any) => 
           j.order_number === jobId || 
+          j.order_code === jobId ||
           j.id === jobId || 
           String(j.id) === jobId
         );
@@ -215,7 +216,7 @@ export default function ContainerCheckInPage() {
           // Map API response to JobDetail interface
           const mappedJob: JobDetail = {
             id: foundJob.id,
-            order_code: foundJob.order_number,
+            order_code: foundJob.order_number || foundJob.order_code,
             transport_type: foundJob.transport_mode || null,
             job_type: foundJob.job_type || foundJob.transport_category || null,
             employer_name: foundJob.factory_name || foundJob.sender_name || null,
