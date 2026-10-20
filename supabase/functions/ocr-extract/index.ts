@@ -289,7 +289,7 @@ IMPORTANT:
             ],
           },
         ],
-        max_tokens: 500,
+        max_tokens: 4000,
       }),
     });
 
@@ -311,10 +311,26 @@ IMPORTANT:
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         extractedData = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('no complete JSON');
       }
     } catch (parseError) {
-      console.error('Error parsing AI response:', parseError);
-      extractedData = { raw_text: content };
+      console.error('Error parsing AI response, salvaging fields:', parseError);
+      // Salvage complete "key": value pairs from a truncated/invalid response
+      extractedData = {};
+      const pairRe = /"([a-zA-Z_0-9]+)"\s*:\s*("(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?|null|true|false)/g;
+      let m: RegExpExecArray | null;
+      while ((m = pairRe.exec(content)) !== null) {
+        try { extractedData[m[1]] = JSON.parse(m[2]); } catch { /* skip */ }
+      }
+      if (extractedData.raw_text === undefined) extractedData.raw_text = content;
+    }
+
+    // Fallback: find container number pattern in text when the field is empty
+    if ((extraction_type === 'eir_document' || extraction_type === 'container_seal') && !extractedData.container_number) {
+      const haystack = `${extractedData.raw_text ?? ''} ${content}`.toUpperCase().replace(/[\s-]/g, '');
+      const cm = haystack.match(/[A-Z]{3}U\d{7}/) || haystack.match(/[A-Z]{4}\d{7}/);
+      if (cm) extractedData.container_number = cm[0];
     }
 
     // For payment_slip, add validation checks
