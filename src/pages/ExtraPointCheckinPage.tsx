@@ -34,7 +34,7 @@ function getPosition(): Promise<{ latitude?: number; longitude?: number }> {
 }
 
 export default function ExtraPointCheckinPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const { type, seq } = useParams();
   const st = (useLocation().state || {}) as {
