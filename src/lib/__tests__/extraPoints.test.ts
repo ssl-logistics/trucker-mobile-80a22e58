@@ -50,3 +50,13 @@ describe('extraPoints', () => {
     expect(cargoDone({ sequence: 1, is_completed: false }, [])).toBe(false);
   });
 });
+
+describe('extraPoints flags from the main system', () => {
+  it('is_dropped counts as dropped, is_picked_up as picked up', () => {
+    expect(dropState({ sequence: 2, is_dropped: true } as any, [])).toBe('dropped');
+    expect(dropState({ sequence: 2, is_dropped: true, is_picked_up: true } as any, [])).toBe('picked_up');
+  });
+  it('drop not picked up keeps container return locked', () => {
+    expect(allDropsPickedUp([{ sequence: 2 }], [{ checkin_type: 'extra_drop', destination_sequence_number: 2 }])).toBe(false);
+  });
+});

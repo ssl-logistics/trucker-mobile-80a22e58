@@ -42,7 +42,8 @@ export default function ExtraPointDetailPage() {
     : ctype === 'extra_drop' ? dropState(point, local) !== 'pending' : dropState(point, local) === 'picked_up'));
   const locked = !done && !!st.locked;
 
-  const photos = point?.completed_photo_urls || [];
+  const pa = point as any;
+  const photos: string[] = (ctype === 'extra_drop' ? pa?.dropped_photo_urls : ctype === 'extra_drop_pickup' ? pa?.picked_up_photo_urls : pa?.completed_photo_urls) || [];
   const { urls } = usePresignedImageUrls(photos);
 
   if (!point) {
