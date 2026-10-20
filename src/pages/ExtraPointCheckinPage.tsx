@@ -13,6 +13,15 @@ import { ExtraCheckinType, ExtraPoint, extraPointAddress, recordExtraCheckin } f
 
 const TYPES: ExtraCheckinType[] = ['extra_cargo', 'extra_drop', 'extra_drop_pickup'];
 
+// Main-system error codes (driver-checkin) -> readable messages
+const ERR: Record<string, { th: string; en: string; zh: string; ko: string }> = {
+  PHOTO_REQUIRED: { th: 'ต้องแนบรูปอย่างน้อย 1 รูป', en: 'Please attach at least 1 photo', zh: '请至少附上1张照片', ko: '사진을 1장 이상 첨부하세요' },
+  EXTRA_POINT_NOT_FOUND: { th: 'ไม่พบจุดนี้ในงาน', en: 'This stop was not found in the job', zh: '未找到该站点', ko: '이 지점을 찾을 수 없습니다' },
+  EXTRA_POINT_INVALID_STATE: { th: 'ยังไม่ได้ดรอปตู้ที่จุดนี้', en: 'Container has not been dropped here yet', zh: '尚未在此放下集装箱', ko: '아직 컨테이너를 내려놓지 않았습니다' },
+  CONTAINER_AT_DROP_POINT: { th: 'ตู้ยังอยู่ที่ลานดรอป ต้องรับตู้คืนก่อน', en: 'Container is still at the drop yard. Pick it up first', zh: '集装箱仍在堆场，请先取回', ko: '컨테이너가 아직 야드에 있습니다. 먼저 회수하세요' },
+  EXTRA_POINTS_INCOMPLETE: { th: 'ยังทำจุดเพิ่มไม่ครบ คืนตู้ไม่ได้', en: 'Extra stops are not complete yet', zh: '附加站点尚未完成', ko: '추가 지점이 아직 완료되지 않았습니다' },
+};
+
 function getPosition(): Promise<{ latitude?: number; longitude?: number }> {
   return new Promise((resolve) => {
     if (!navigator.geolocation) return resolve({});
@@ -75,7 +84,10 @@ export default function ExtraPointCheckinPage() {
         notes: notes.trim() || undefined,
         ...pos,
       });
-      if (error) throw new Error(error);
+      if (error) {
+        const code = Object.keys(ERR).find((k) => String(error).includes(k));
+        throw new Error(code ? (ERR[code][language as 'th'] || ERR[code].en) : error);
+      }
       recordExtraCheckin(st.orderNumber, ctype, sequence);
       toast({ title: t('extraPoint.success') });
       navigate(-1);
