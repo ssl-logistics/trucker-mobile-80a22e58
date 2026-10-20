@@ -277,7 +277,7 @@ export default function ContainerCheckInPage() {
           setLoading(false);
           // Check existing check-in in the background so the page shows immediately
           setStatusSyncing(true);
-          checkExistingCheckin(foundJob.id, foundJob.order_number)
+          checkExistingCheckin(foundJob.id, foundJob.order_number || foundJob.order_code)
             .catch((e) => console.warn('[ContainerCheckIn] checkin sync failed:', e))
             .finally(() => setStatusSyncing(false));
         } else {
