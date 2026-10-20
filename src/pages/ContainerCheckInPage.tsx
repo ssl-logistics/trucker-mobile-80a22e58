@@ -71,6 +71,7 @@ export default function ContainerCheckInPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
+  const [statusSyncing, setStatusSyncing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
@@ -272,9 +273,12 @@ export default function ContainerCheckInPage() {
             booking_no: foundJob.booking_no || foundJob.booking_number || null,
           };
           setJob(mappedJob);
-          
-          // Check if already checked in for empty_container
-          await checkExistingCheckin(foundJob.id, foundJob.order_number);
+          setLoading(false);
+          // Check existing check-in in the background so the page shows immediately
+          setStatusSyncing(true);
+          checkExistingCheckin(foundJob.id, foundJob.order_number)
+            .catch((e) => console.warn('[ContainerCheckIn] checkin sync failed:', e))
+            .finally(() => setStatusSyncing(false));
         } else {
           console.error('[ContainerCheckInPage] Job not found for jobId:', jobId);
           throw new Error('Job not found');
@@ -841,9 +845,9 @@ export default function ContainerCheckInPage() {
         <Button 
           className="w-full h-12 text-base bg-[#00B8D4] hover:bg-[#00A0BC] rounded-full" 
           onClick={() => setShowConfirmDialog(true)}
-          disabled={isCheckingIn}
+          disabled={isCheckingIn || statusSyncing}
         >
-          {isCheckingIn ? (
+          {isCheckingIn || statusSyncing ? (
             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
           ) : (
             <MapPin className="w-5 h-5 mr-2" />
