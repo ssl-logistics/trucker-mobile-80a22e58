@@ -31,6 +31,7 @@ import { notifyQtruckQueueScan } from '@/lib/qtruckQueueStatus';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import LoadingQrScanDialog from '@/components/job/LoadingQrScanDialog';
 import ReportProblemDrawer from '@/components/job/ReportProblemDrawer';
+import ExtraPointCheckinSheet, { type ExtraCheckinSheetData } from '@/components/job-detail/ExtraPointCheckinSheet';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { formatDate, formatDateTime } from '@/lib/dateUtils';
 import { useOCR } from '@/hooks/useOCR';
@@ -1102,13 +1103,12 @@ export default function DomesticJobDetail({
   // Container step is only "completed" if checkin exists AND evidence/OCR is done
   // For BL jobs: require container_pickup_confirmed checkin (evidence submitted)
   // For non-BL jobs: require OCR verified
+  const [extraSheet, setExtraSheet] = useState<ExtraCheckinSheetData | null>(null);
   const openExtraCheckin = (type: ExtraCheckinType, pt: ExtraPoint, title: string) =>
-    navigate(`/job/${encodeURIComponent(job.order_code)}/extra-point/${type}/${pt.sequence}`, {
-      state: {
-        point: pt, orderNumber: job.order_code, orderId: job.id, title, driverId: userId,
-        driverType: isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance',
-        jobData: (location.state as any)?.jobData,
-      },
+    setExtraSheet({
+      type, seq: pt.sequence, point: pt, orderNumber: job.order_code, orderId: job.id, title, driverId: userId,
+      driverType: isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance',
+      jobData: (location.state as any)?.jobData || job,
     });
   const openExtraDetail = (type: ExtraCheckinType, pt: ExtraPoint, title: string, done: boolean, locked: boolean) =>
     navigate(`/job/${encodeURIComponent(job.order_code)}/extra-point/${type}/${pt.sequence}/detail${isFromHistory ? '?from=history' : ''}`, {
@@ -3133,6 +3133,7 @@ export default function DomesticJobDetail({
 
 
       <LoadingQrScanDialog open={loadingQrOpen} onOpenChange={handleLoadingQrOpenChange} onDone={handleLoadingQrDone} />
+      <ExtraPointCheckinSheet data={extraSheet} onClose={() => setExtraSheet(null)} />
       <ReportProblemDrawer open={isReportDrawerOpen} onOpenChange={setIsReportDrawerOpen} jobId={job.id} orderNumber={job.order_code} />
 
       {/* Accident Evidence — auto-opened when job is locked */}
