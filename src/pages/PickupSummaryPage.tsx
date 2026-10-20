@@ -234,13 +234,6 @@ export default function PickupSummaryPage() {
 
       {/* Content */}
       <div className="px-4 py-6 space-y-4">
-        {/* Action Buttons - Hidden when viewing from history or SOP completed */}
-        {!((location.state as any)?.jobData?.booking_no || (location.state as any)?.jobData?.bl_no) && (
-          <div className="bg-white rounded-xl p-4">
-            <JobActionButtons jobId={jobId} orderNumber={jobId} isPodCompleted={fromHistory ? false : !!sopData?.sop_completed_at} completedAt={sopData?.sop_completed_at} />
-          </div>
-        )}
-
         {/* Check-in Status */}
         {sopData?.checked_in_at && (
           <Card className="p-4 bg-[#E6F7E6] border-green-200">
@@ -287,7 +280,7 @@ export default function PickupSummaryPage() {
                             folder="sop-photos"
                             filenamePrefix={`${user?.id}-${jobId}-product-${idx}-edit`}
                             completedAt={photoEditCompletedAt}
-                            fromHistory={fromHistory} isOwnData={isOwnSopData}
+                            fromHistory={true} isOwnData={isOwnSopData}
                           />
                         </div>
                       ))}
@@ -309,7 +302,7 @@ export default function PickupSummaryPage() {
                             folder="sop-photos"
                             filenamePrefix={`${user?.id}-${jobId}-doc-${idx}-edit`}
                             completedAt={photoEditCompletedAt}
-                            fromHistory={fromHistory} isOwnData={isOwnSopData}
+                            fromHistory={true} isOwnData={isOwnSopData}
                           />
                         </div>
                       ))}
@@ -352,7 +345,7 @@ export default function PickupSummaryPage() {
                           folder="sop-photos"
                           filenamePrefix={`${user?.id}-${jobId}-weightslip-${idx}-edit`}
                           completedAt={photoEditCompletedAt}
-                          fromHistory={fromHistory} isOwnData={isOwnSopData} 
+                          fromHistory={true} isOwnData={isOwnSopData} 
                         />
                       </div>
                     )}
