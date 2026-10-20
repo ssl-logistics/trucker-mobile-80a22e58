@@ -458,99 +458,25 @@ const ContainerSOPPage = () => {
         return Array.isArray(rawDetails) ? rawDetails : [];
       };
 
-      let foundJob: any = null;
-      const stateJob = navState?.jobData;
-      if (stateJob) {
-        foundJob = stateJob;
-      }
-
-      const shouldFetchFromApi = !foundJob || parseContainerArray(foundJob).length === 0;
-
-      if (shouldFetchFromApi) {
-        try {
-          let apiJob: any = null;
-
-          if (isInternalDriver || isExternalDriver) {
-            const driverType = isInternalDriver ? 'internal' : 'external';
-            const [acceptedRes, arrivedAtPickupRes, inProgressRes, inTransitRes, deliveredRes, returningContainerRes, atContainerReturnRes, containerReturnedRes, completedRes] = await Promise.all([
-              getDriverAssignedJobs(user!.id, driverType, 50, 'accepted'),
-              getDriverAssignedJobs(user!.id, driverType, 50, 'arrived_at_pickup'),
-              getDriverAssignedJobs(user!.id, driverType, 50, 'in_progress'),
-              getDriverAssignedJobs(user!.id, driverType, 50, 'in_transit'),
-              getDriverAssignedJobs(user!.id, driverType, 50, 'delivered'),
-              getDriverAssignedJobs(user!.id, driverType, 50, 'returning_container'),
-              getDriverAssignedJobs(user!.id, driverType, 50, 'at_container_return'),
-              getDriverAssignedJobs(user!.id, driverType, 50, 'container_returned'),
-              getDriverAssignedJobs(user!.id, driverType, 50, 'completed'),
-            ]);
-            apiJob = [
-              ...((acceptedRes.data as any)?.data || []),
-              ...((arrivedAtPickupRes.data as any)?.data || []),
-              ...((inProgressRes.data as any)?.data || []),
-              ...((inTransitRes.data as any)?.data || []),
-              ...((deliveredRes.data as any)?.data || []),
-              ...((returningContainerRes.data as any)?.data || []),
-              ...((atContainerReturnRes.data as any)?.data || []),
-              ...((containerReturnedRes.data as any)?.data || []),
-              ...((completedRes.data as any)?.data || []),
-            ].find((j: any) => j.order_number === jobId || j.order_code === jobId || j.id === jobId);
-          } else {
-            const { data: result } = await getFreelanceAcceptedJobs(user!.id);
-            if (result?.data) {
-              apiJob = result.data.find((j: any) => j.order_number === jobId || j.order_code === jobId || j.id === jobId);
-            }
-          }
-
-          if (apiJob) {
-            foundJob = foundJob ? { ...foundJob, ...apiJob } : apiJob;
-          }
-        } catch (apiFetchError) {
-          console.warn('[ContainerSOPPage] API fetch failed, using state data as fallback:', apiFetchError);
-        }
-      }
-
-      if (foundJob) {
+      const toDetail = (foundJob: any) => {
         const rawDetails = parseContainerArray(foundJob);
-
-        const containerDetails: ContainerDetail[] = Array.isArray(rawDetails)
-          ? rawDetails
-              .filter((item: any) =>
-                item?.containerNo ||
-                item?.container_no ||
-                item?.container_number ||
-                item?.sealNo ||
-                item?.seal_no ||
-                item?.seal_number
-              )
-              .map((item: any) => ({
-                containerNo: item.containerNo || item.container_no || item.container_number || '',
-                sealNo: item.sealNo || item.seal_no || item.seal_number || ''
-              }))
-          : [];
-
+        const containerDetails: ContainerDetail[] = rawDetails
+          .filter((item: any) =>
+            item?.containerNo || item?.container_no || item?.container_number ||
+            item?.sealNo || item?.seal_no || item?.seal_number
+          )
+          .map((item: any) => ({
+            containerNo: item.containerNo || item.container_no || item.container_number || '',
+            sealNo: item.sealNo || item.seal_no || item.seal_number || ''
+          }));
         const firstContainerDetail = containerDetails.find((item) => item?.containerNo || item?.sealNo) || null;
-
-        const fallbackContainerNumber =
-          foundJob.container_number ||
-          foundJob.container_no_1 ||
-          foundJob.container_no_2 ||
-          firstContainerDetail?.containerNo ||
-          '';
-
-        const fallbackSealNumber =
-          foundJob.seal_number ||
-          foundJob.seal_no_1 ||
-          foundJob.seal_no_2 ||
-          firstContainerDetail?.sealNo ||
-          '';
-
-        setJobDetail({
+        return {
           id: foundJob.id || jobId || '',
           order_code: foundJob.order_code || foundJob.order_number || jobId || '',
           employer_name: foundJob.employer_name || foundJob.factory_name || foundJob.sender_name || '',
           container_checkpoint: foundJob.container_checkpoint || foundJob.empty_pickup_depot || '',
-          container_number: fallbackContainerNumber,
-          seal_number: fallbackSealNumber,
+          container_number: foundJob.container_number || foundJob.container_no_1 || foundJob.container_no_2 || firstContainerDetail?.containerNo || '',
+          seal_number: foundJob.seal_number || foundJob.seal_no_1 || foundJob.seal_no_2 || firstContainerDetail?.sealNo || '',
           container_number_2: foundJob.container_number_2 || '',
           seal_number_2: foundJob.seal_number_2 || '',
           start_date: foundJob.start_date || foundJob.sender_pickup_date || '',
@@ -561,10 +487,55 @@ const ContainerSOPPage = () => {
           container_details: containerDetails,
           container_return_location: foundJob.container_return_location || foundJob.return_container_at || '',
           closing_time: foundJob.closing_time || foundJob.closingTime || foundJob.closing_date || '',
-        });
-      } else {
-        throw new Error('Job not found');
+        } as any;
+      };
+
+      const fetchApiJob = async (): Promise<any> => {
+        try {
+          if (isInternalDriver || isExternalDriver) {
+            const driverType = isInternalDriver ? 'internal' : 'external';
+            const res = await getDriverAssignedJobs(
+              user!.id, driverType, 50,
+              'accepted,arrived_at_pickup,in_progress,in_transit,delivered,returning_container,at_container_return,container_returned,completed'
+            );
+            const list = ((res.data as any)?.data || []) as any[];
+            return list.find((j: any) => j.order_number === jobId || j.order_code === jobId || j.id === jobId) || null;
+          }
+          const { data: result } = await getFreelanceAcceptedJobs(user!.id);
+          return result?.data?.find((j: any) => j.order_number === jobId || j.order_code === jobId || j.id === jobId) || null;
+        } catch (apiFetchError) {
+          console.warn('[ContainerSOPPage] API fetch failed, using state data as fallback:', apiFetchError);
+          return null;
+        }
+      };
+
+      const stateJob = navState?.jobData;
+      if (stateJob) {
+        // Show the page right away from the job passed by the previous page
+        setJobDetail(toDetail(stateJob));
+        setLoading(false);
+        if (parseContainerArray(stateJob).length === 0) {
+          fetchApiJob().then((apiJob) => {
+            if (!apiJob) return;
+            const fresh = toDetail({ ...stateJob, ...apiJob });
+            setJobDetail((prev: any) => {
+              if (!prev) return fresh;
+              const merged: any = { ...prev };
+              for (const k of Object.keys(fresh)) {
+                const cur = merged[k];
+                const empty = cur == null || cur === '' || (Array.isArray(cur) && cur.length === 0);
+                if (empty) merged[k] = fresh[k];
+              }
+              return merged;
+            });
+          });
+        }
+        return;
       }
+
+      const apiJob = await fetchApiJob();
+      if (!apiJob) throw new Error('Job not found');
+      setJobDetail(toDetail(apiJob));
     } catch (error) {
       console.error('Error loading job details:', error);
       toast({
