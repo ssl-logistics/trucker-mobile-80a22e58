@@ -532,7 +532,7 @@ const App = () => (
                   <FloatingChatbot />
                   <PreviewDebugFab />
                   <Suspense fallback={<PageLoader />}>
-                    <JobStepRoutes>
+                    <JobStepRoutes steps={stepRoutes}>
                       <Route path="/" element={<StartPage />} />
                       <Route path="/register" element={<Register />} />
                       <Route path="/forgot-password" element={<ForgotPassword />} />
