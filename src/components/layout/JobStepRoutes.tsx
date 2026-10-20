@@ -1,7 +1,7 @@
 import { ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { Routes, useLocation, useNavigate, type Location } from 'react-router-dom';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 
 const JOB_RE = /^\/job\/([^/]+)$/;
 const STEP_RE = /^\/job\/([^/]+)\/.+/;
@@ -42,8 +42,12 @@ export default function JobStepRoutes({ children, steps }: { children: ReactNode
       {bg && (
         <Dialog open onOpenChange={(o) => !o && close()}>
           <DialogContent aria-describedby={undefined}
-            className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0 bg-background [&>button]:hidden [&_.min-h-screen]:min-h-full overflow-x-hidden [&_.min-h-screen]:pb-0 [&_.fixed.bottom-0]:sticky [&_.fixed.bottom-0]:z-30"
+            className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0 bg-background [&>button]:hidden [&_.min-h-screen]:min-h-full overflow-x-hidden [&_.min-h-screen]:pb-0 [&_.fixed.bottom-0]:sticky [&_.fixed.bottom-0]:z-30 [&_button:has(>svg.lucide-chevron-left:only-child)]:hidden"
             onOpenAutoFocus={(e) => e.preventDefault()}>
+            <button type="button" aria-label="close" onClick={close}
+              className="sticky top-2 z-[60] ml-auto mr-2 -mb-10 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow">
+              <X className="h-5 w-5" />
+            </button>
             <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
               <Routes location={location}>{steps}</Routes>
             </Suspense>
