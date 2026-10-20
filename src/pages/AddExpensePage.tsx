@@ -967,7 +967,7 @@ const AddExpensePage = ({ embeddedJobId, embeddedState, onClose }: { embeddedJob
                   </div>
                   {showAdvanceIntro && (
                     <div
-                      className="absolute right-0 top-full mt-3 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl bg-card border border-orange-300 shadow-xl p-4"
+                      className="absolute right-0 bottom-full mb-3 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl bg-card border border-orange-300 shadow-xl p-4"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="absolute -top-2 right-6 w-4 h-4 rotate-45 bg-card border-l border-t border-orange-300" />
