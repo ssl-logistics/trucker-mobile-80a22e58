@@ -42,7 +42,7 @@ export default function JobStepRoutes({ children, steps }: { children: ReactNode
       {bg && (
         <Dialog open onOpenChange={(o) => !o && close()}>
           <DialogContent aria-describedby={undefined}
-            className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0 bg-background [&>button]:hidden [&_.min-h-screen]:min-h-full"
+            className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0 bg-background [&>button]:hidden [&_.min-h-screen]:min-h-full [&_.fixed.bottom-0]:sticky [&_.fixed.bottom-0]:z-40"
             onOpenAutoFocus={(e) => e.preventDefault()}>
             <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
               <Routes location={location}>{steps}</Routes>
