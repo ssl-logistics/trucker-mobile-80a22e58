@@ -35,10 +35,14 @@ interface Expense {
   created_at: string;
 }
 
-export default function JobExpensesPage() {
-  const { jobId } = useParams();
+export interface EmbeddedPageProps { embeddedJobId?: string; embeddedState?: any; onClose?: () => void }
+
+export default function JobExpensesPage({ embeddedJobId, embeddedState, onClose }: EmbeddedPageProps = {}) {
+  const params = useParams();
+  const jobId = embeddedJobId ?? params.jobId;
   const navigate = useNavigate();
-  const location = useLocation();
+  const routerLocation = useLocation();
+  const location = embeddedState ? { ...routerLocation, state: embeddedState } : routerLocation;
   // History view is read-only: no add/delete/upload of expenses or receipts
   const isFromHistory = isHistoryContext(location.search, location.state);
   const isNavigatingRef = useRef(false);
@@ -442,11 +446,12 @@ export default function JobExpensesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-6">
+      <div className={`${onClose ? "" : "min-h-screen "}bg-background pb-6`}>
         <header className="bg-header text-header-foreground px-4 py-6 rounded-b-3xl shadow-lg">
           <div className="flex items-center justify-center relative">
             <button
               onClick={() => {
+                if (onClose) return onClose();
                 if (window.history.length > 1) {
                   navigate(-1);
                 } else {
@@ -468,12 +473,13 @@ export default function JobExpensesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-6">
+    <div className={`${onClose ? "" : "min-h-screen "}bg-background pb-6`}>
       {/* Header */}
       <header className="bg-header text-header-foreground px-4 py-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center justify-center relative">
           <button 
             onClick={() => {
+              if (onClose) return onClose();
               if (isNavigatingRef.current) return;
               isNavigatingRef.current = true;
               // If there's history, go back; otherwise navigate to a sensible default

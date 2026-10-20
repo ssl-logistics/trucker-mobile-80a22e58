@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ReportProblemDrawer from "./ReportProblemDrawer";
 import JobDocumentsSheet from "./JobDocumentsSheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import JobExpensesPage from "@/pages/JobExpensesPage";
+import AddExpensePage from "@/pages/AddExpensePage";
 import expenseViewIcon from '@/assets/expense-view-icon.svg';
 import expenseAddIcon from '@/assets/expense-add-icon.svg';
 import reportProblemIcon from '@/assets/report-problem-icon.svg';
@@ -18,14 +21,17 @@ interface JobActionButtonsProps {
   checkinType?: 'container_pickup' | 'container_return';
   completedAt?: string | null;
   jobData?: any;
+  /** 'sheet' opens view/add expense as popups instead of navigating */
+  expenseMode?: 'page' | 'sheet';
 }
 
-export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType, completedAt, jobData }: JobActionButtonsProps) {
+export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType, completedAt, jobData, expenseMode = 'page' }: JobActionButtonsProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
   const [isReportDrawerOpen, setIsReportDrawerOpen] = useState(false);
   const [isDocumentsSheetOpen, setIsDocumentsSheetOpen] = useState(false);
+  const [expenseSheet, setExpenseSheet] = useState<null | 'view' | 'add'>(null);
   
   const isFromHistory = isHistoryContext(location.search, location.state);
 
@@ -88,7 +94,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
           <>
             <button 
               className="flex flex-col items-center gap-1 text-primary"
-              onClick={() => navigate(`/job/${encodeURIComponent(jobId)}/expenses${isFromHistory ? '?from=history' : ''}`, { state: { jobData, fromHistory: isFromHistory } })}
+              onClick={() => expenseMode === 'sheet' ? setExpenseSheet('view') : navigate(`/job/${encodeURIComponent(jobId)}/expenses${isFromHistory ? '?from=history' : ''}`, { state: { jobData, fromHistory: isFromHistory } })}
             >
               <img src={expenseViewIcon} alt="" className="w-8 h-8" />
               <span className="text-xs font-medium">{t('jobActions.viewExpenses')}</span>
@@ -97,7 +103,7 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
             {!isFromHistory && (
               <button 
                 className="flex flex-col items-center gap-1 text-primary"
-                onClick={() => navigate(`/job/${encodeURIComponent(jobId)}/add-expense`, { state: { returnPath: location.pathname, jobData } })}
+                onClick={() => expenseMode === 'sheet' ? setExpenseSheet('add') : navigate(`/job/${encodeURIComponent(jobId)}/add-expense`, { state: { returnPath: location.pathname, jobData } })}
               >
                 <img src={expenseAddIcon} alt="" className="w-8 h-8" />
                 <span className="text-xs font-medium">{t('jobActions.addExpense')}</span>
@@ -156,6 +162,19 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
         orderNumber={orderNumber || jobId}
         jobData={jobData}
       />
+
+      {expenseMode === 'sheet' && (
+        <Sheet open={!!expenseSheet} onOpenChange={(o) => !o && setExpenseSheet(null)}>
+          <SheetContent side="bottom" className="h-[95vh] overflow-y-auto rounded-t-2xl p-0 [&>button]:hidden">
+            {expenseSheet === 'view' && (
+              <JobExpensesPage embeddedJobId={jobId} embeddedState={{ jobData, fromHistory: isFromHistory }} onClose={() => setExpenseSheet(null)} />
+            )}
+            {expenseSheet === 'add' && (
+              <AddExpensePage embeddedJobId={jobId} embeddedState={{ jobData }} onClose={() => setExpenseSheet(null)} />
+            )}
+          </SheetContent>
+        </Sheet>
+      )}
     </>
   );
 }
