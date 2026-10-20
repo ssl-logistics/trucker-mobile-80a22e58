@@ -239,7 +239,7 @@ export default function ReportProblemDrawer({
         <DrawerHeader className="border-b">
           <div className="flex items-center justify-between">
             <DrawerTitle className="text-lg font-semibold">{t('reportProblem.title')}</DrawerTitle>
-            <DrawerClose className="text-2xl text-gray-500" disabled={isSubmitting}>×</DrawerClose>
+            <DrawerClose aria-label="close" className="flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow" disabled={isSubmitting}><X className="h-5 w-5" /></DrawerClose>
           </div>
         </DrawerHeader>
 
