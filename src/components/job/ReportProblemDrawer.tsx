@@ -1,6 +1,6 @@
 import { ACCEPT_IMAGE_DOC } from '@/utils/uploadAccept';
 import { useState, useEffect } from "react";
-import { Camera } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
