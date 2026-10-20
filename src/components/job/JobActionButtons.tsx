@@ -167,10 +167,10 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
       {expenseMode === 'sheet' && (
         <Sheet open={!!expenseSheet} onOpenChange={(o) => !o && setExpenseSheet(null)}>
           <SheetContent side="bottom" className="h-[90vh] max-w-[560px] mx-auto rounded-t-2xl overflow-y-auto p-0 [&>button]:hidden overflow-x-hidden [&_.pb-20]:pb-0 [&_.fixed.bottom-0]:sticky [&_.fixed.bottom-0]:z-30 [&_button:has(>svg.lucide-chevron-left:only-child)]:hidden" aria-describedby={undefined}>
-            <button type="button" aria-label="close" onClick={() => setExpenseSheet(null)}
-              className="sticky top-2 z-[60] ml-auto mr-2 -mb-10 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow">
+            <div className="sticky top-2 z-[60] -mb-10 flex justify-end pr-2 pointer-events-none"><button type="button" aria-label="close" onClick={() => setExpenseSheet(null)}
+              className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow">
               <X className="h-5 w-5" />
-            </button>
+            </button></div>
             {expenseSheet === 'view' && (
               <JobExpensesPage embeddedJobId={jobId} embeddedState={{ jobData, fromHistory: isFromHistory }} onClose={() => setExpenseSheet(null)} />
             )}
