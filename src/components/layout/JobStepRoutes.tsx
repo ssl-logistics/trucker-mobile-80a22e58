@@ -1,6 +1,6 @@
 import { ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { Routes, useLocation, useNavigate, type Location } from 'react-router-dom';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 
 const JOB_RE = /^\/job\/([^/]+)$/;
@@ -40,18 +40,15 @@ export default function JobStepRoutes({ children, steps }: { children: ReactNode
     <>
       <Routes key={reloadKey} location={bg || location}>{children}</Routes>
       {bg && (
-        <Sheet open onOpenChange={(o) => !o && close()}>
-          <SheetContent side="bottom"
-            className="h-[95vh] overflow-y-auto rounded-t-2xl p-0 bg-background [&>button]:hidden [&_.min-h-screen]:min-h-full"
+        <Dialog open onOpenChange={(o) => !o && close()}>
+          <DialogContent aria-describedby={undefined}
+            className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0 bg-background [&>button]:hidden [&_.min-h-screen]:min-h-full"
             onOpenAutoFocus={(e) => e.preventDefault()}>
-            <div className="sticky top-0 z-50 flex justify-center bg-transparent py-1.5 pointer-events-none">
-              <div className="h-1.5 w-12 rounded-full bg-muted-foreground/30" />
-            </div>
             <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
               <Routes location={location}>{steps}</Routes>
             </Suspense>
-          </SheetContent>
-        </Sheet>
+          </DialogContent>
+        </Dialog>
       )}
     </>
   );

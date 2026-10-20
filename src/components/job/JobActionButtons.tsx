@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ReportProblemDrawer from "./ReportProblemDrawer";
 import JobDocumentsSheet from "./JobDocumentsSheet";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import JobExpensesPage from "@/pages/JobExpensesPage";
 import AddExpensePage from "@/pages/AddExpensePage";
 import expenseViewIcon from '@/assets/expense-view-icon.svg';
@@ -164,16 +164,16 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
       />
 
       {expenseMode === 'sheet' && (
-        <Sheet open={!!expenseSheet} onOpenChange={(o) => !o && setExpenseSheet(null)}>
-          <SheetContent side="bottom" className="h-[95vh] overflow-y-auto rounded-t-2xl p-0 [&>button]:hidden">
+        <Dialog open={!!expenseSheet} onOpenChange={(o) => !o && setExpenseSheet(null)}>
+          <DialogContent className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0 [&>button]:hidden" aria-describedby={undefined}>
             {expenseSheet === 'view' && (
               <JobExpensesPage embeddedJobId={jobId} embeddedState={{ jobData, fromHistory: isFromHistory }} onClose={() => setExpenseSheet(null)} />
             )}
             {expenseSheet === 'add' && (
               <AddExpensePage embeddedJobId={jobId} embeddedState={{ jobData }} onClose={() => setExpenseSheet(null)} />
             )}
-          </SheetContent>
-        </Sheet>
+          </DialogContent>
+        </Dialog>
       )}
     </>
   );
