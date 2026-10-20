@@ -1597,7 +1597,7 @@ const ContainerSOPPage = () => {
   const pageTitle = isContainerReturn 
     ? 'แนบเอกสารคืนตู้' 
     : isLoadedContainer
-      ? `ยืนยันรับตู้หนัก ${jobDetail.container_checkpoint}`
+      ? 'ยืนยันรับตู้หนัก'
       : isEmptyContainer 
         ? `แนบเอกสารรับตู้เปล่า ${jobDetail.container_checkpoint}`
         : `${t('containerSop.title')} ${jobDetail.container_checkpoint}`;
