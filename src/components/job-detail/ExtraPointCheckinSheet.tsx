@@ -1,4 +1,4 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Dialog as Sheet, DialogContent, DialogHeader as SheetHeader, DialogTitle as SheetTitle } from '@/components/ui/dialog';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { usePresignedImageUrls } from '@/hooks/usePresignedImageUrl';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -17,7 +17,7 @@ export default function ExtraPointCheckinSheet({ data, onClose }: { data: ExtraC
 
   return (
     <Sheet open={!!data} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto rounded-t-2xl bg-[#F5F7FA] p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+      <DialogContent aria-describedby={undefined} className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl gap-0 bg-[#F5F7FA] p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
         <SheetHeader className="mb-3 text-left">
           <SheetTitle className="text-[#225795]">{data?.title || t('extraPoint.stepCheckIn')}</SheetTitle>
         </SheetHeader>
@@ -39,7 +39,7 @@ export default function ExtraPointCheckinSheet({ data, onClose }: { data: ExtraC
             )}
           </ExtraPointCheckinForm>
         )}
-      </SheetContent>
+      </DialogContent>
     </Sheet>
   );
 }
