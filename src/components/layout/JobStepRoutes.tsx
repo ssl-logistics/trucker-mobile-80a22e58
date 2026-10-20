@@ -1,4 +1,4 @@
-import { ReactNode, Suspense, useRef, useState } from 'react';
+import { ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { Routes, useLocation, useNavigate, type Location } from 'react-router-dom';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Loader2 } from 'lucide-react';
@@ -25,8 +25,11 @@ export default function JobStepRoutes({ children, steps }: { children: ReactNode
 
   const bg = stepMatch ? bgRef.current : null;
   // Remount the job page after a popup session so it re-reads the latest statuses
-  if (wasSheet.current && !bg) { wasSheet.current = false; queueMicrotask(() => setReloadKey((k) => k + 1)); }
-  if (bg) wasSheet.current = true;
+  const isSheet = !!bg;
+  useEffect(() => {
+    if (isSheet) wasSheet.current = true;
+    else if (wasSheet.current) { wasSheet.current = false; setReloadKey((k) => k + 1); }
+  }, [isSheet]);
 
   const close = () => {
     const b = bgRef.current;
