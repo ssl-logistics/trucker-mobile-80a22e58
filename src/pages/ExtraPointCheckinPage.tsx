@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Camera, Image as ImageIcon, Loader2, X, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,14 +33,35 @@ function getPosition(): Promise<{ latitude?: number; longitude?: number }> {
   });
 }
 
+export interface ExtraCheckinState {
+  point?: ExtraPoint; orderNumber?: string; orderId?: string; title?: string;
+  driverId?: string; driverType?: 'internal' | 'external' | 'freelance';
+}
+
 export default function ExtraPointCheckinPage() {
-  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const { type, seq } = useParams();
-  const st = (useLocation().state || {}) as {
-    point?: ExtraPoint; orderNumber?: string; orderId?: string; title?: string;
-    driverId?: string; driverType?: 'internal' | 'external' | 'freelance';
-  };
+  const { t } = useLanguage();
+  const st = (useLocation().state || {}) as ExtraCheckinState;
+  return (
+    <div className="min-h-screen bg-[#F5F7FA] pb-10">
+      <div className="bg-[#225795] text-white px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-3 flex items-center gap-2">
+        <BackButton />
+        <h1 className="font-semibold text-base">{st.title || t('extraPoint.stepCheckIn')}</h1>
+      </div>
+      <div className="p-4">
+        <ExtraPointCheckinForm type={type} seq={seq} st={st} onDone={() => navigate(-1)} />
+      </div>
+    </div>
+  );
+}
+
+/** Photo + notes check-in form for an extra point; used by the page and the job-detail popup. */
+export function ExtraPointCheckinForm({ type, seq, st, onDone, onCancel, children }: {
+  type?: string; seq?: string | number; st: ExtraCheckinState;
+  onDone: () => void; onCancel?: () => void; children?: ReactNode;
+}) {
+  const { t, language } = useLanguage();
   const [files, setFiles] = useState<File[]>([]);
   const [notes, setNotes] = useState('');
   const [sending, setSending] = useState(false);
@@ -90,7 +111,7 @@ export default function ExtraPointCheckinPage() {
       }
       recordExtraCheckin(st.orderNumber, ctype, sequence);
       toast({ title: t('extraPoint.success') });
-      navigate(-1);
+      onDone();
     } catch (e) {
       toast({ title: t('extraPoint.failed'), description: e instanceof Error ? e.message : String(e), variant: 'destructive' });
     } finally {
@@ -99,13 +120,8 @@ export default function ExtraPointCheckinPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] pb-10">
-      <div className="bg-[#225795] text-white px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-3 flex items-center gap-2">
-        <BackButton />
-        <h1 className="font-semibold text-base">{st.title || t('extraPoint.stepCheckIn')}</h1>
-      </div>
-
-      <div className="p-4 space-y-4">
+    <div>
+      <div className="space-y-4">
         {point && (
           <div className="bg-white rounded-2xl p-4 text-sm space-y-1">
             <div className="flex gap-2"><MapPin className="w-4 h-4 text-[#225795] mt-0.5 shrink-0" />
@@ -114,6 +130,8 @@ export default function ExtraPointCheckinPage() {
             <div className="text-xs text-muted-foreground pl-6">{st.orderNumber}</div>
           </div>
         )}
+
+        {children}
 
         <div className="bg-white rounded-2xl p-4 space-y-3">
           <div className="text-sm font-medium text-[#454545]">{t('extraPoint.addPhoto')} *</div>
@@ -147,9 +165,16 @@ export default function ExtraPointCheckinPage() {
           <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
         </div>
 
-        <Button className="w-full h-12 bg-[#225795] hover:bg-[#1b4778] text-white" disabled={sending || !ctype || !files.length} onClick={submit}>
-          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('extraPoint.submit')}
-        </Button>
+        <div className={onCancel ? 'grid grid-cols-2 gap-2' : ''}>
+          {onCancel && (
+            <Button type="button" variant="outline" className="w-full h-12" disabled={sending} onClick={onCancel}>
+              {t('common.cancel')}
+            </Button>
+          )}
+          <Button className="w-full h-12 bg-[#225795] hover:bg-[#1b4778] text-white" disabled={sending || !ctype || !files.length} onClick={submit}>
+            {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('extraPoint.submit')}
+          </Button>
+        </div>
       </div>
     </div>
   );
