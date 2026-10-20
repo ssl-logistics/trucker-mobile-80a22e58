@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/layout/BackButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ExtraPointCard from '@/components/job-detail/ExtraPointCard';
+import ExtraPointCheckinSheet, { type ExtraCheckinSheetData } from '@/components/job-detail/ExtraPointCheckinSheet';
 import JobActionButtons from '@/components/job/JobActionButtons';
 import { usePresignedImageUrls } from '@/hooks/usePresignedImageUrl';
 import { isHistoryContext } from '@/lib/historyMode';
@@ -27,6 +28,7 @@ export default function ExtraPointDetailPage() {
   const ctype = type as ExtraCheckinType;
   const orderNumber = st.orderNumber || '';
 
+  const [sheet, setSheet] = useState<ExtraCheckinSheetData | null>(null);
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const on = () => setTick((n) => n + 1);
@@ -84,13 +86,14 @@ export default function ExtraPointDetailPage() {
 
         {!isFromHistory && !done && (
           <Button className="w-full h-12 gap-2 bg-[#225795] hover:bg-[#1b4778] text-white" disabled={locked}
-            onClick={() => navigate(`/job/${encodeURIComponent(orderNumber)}/extra-point/${ctype}/${seq}`, { state: st })}>
+            onClick={() => setSheet({ ...(st as any), type: ctype, seq: Number(seq) })}>
             <MapPin className="w-4 h-4" />{t('extraPoint.stepCheckIn')}
           </Button>
         )}
 
         <JobActionButtons jobId={orderNumber} orderNumber={orderNumber} jobData={st.jobData} />
       </div>
+      <ExtraPointCheckinSheet data={sheet} onClose={() => setSheet(null)} />
     </div>
   );
 }

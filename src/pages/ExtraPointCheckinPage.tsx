@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Camera, Image as ImageIcon, Loader2, X, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -59,7 +59,7 @@ export default function ExtraPointCheckinPage() {
 /** Photo + notes check-in form for an extra point; used by the page and the job-detail popup. */
 export function ExtraPointCheckinForm({ type, seq, st, onDone, onCancel, children }: {
   type?: string; seq?: string | number; st: ExtraCheckinState;
-  onDone: () => void; onCancel?: () => void; children?: React.ReactNode;
+  onDone: () => void; onCancel?: () => void; children?: ReactNode;
 }) {
   const { t, language } = useLanguage();
   const [files, setFiles] = useState<File[]>([]);
