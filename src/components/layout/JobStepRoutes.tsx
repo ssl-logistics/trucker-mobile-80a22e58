@@ -44,7 +44,7 @@ export default function JobStepRoutes({ children, steps }: { children: ReactNode
           <DialogContent aria-describedby={undefined}
             className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0 bg-background [&>button]:hidden [&_.min-h-screen]:min-h-full overflow-x-hidden [&_.min-h-screen]:pb-0 [&_.fixed.bottom-0]:sticky [&_.fixed.bottom-0]:z-30 [&_button:has(>svg.lucide-chevron-left:only-child)]:hidden"
             onOpenAutoFocus={(e) => e.preventDefault()}>
-            <div className="sticky top-2 z-[60] -mb-10 flex justify-end pr-2 pointer-events-none"><button type="button" aria-label="close" onClick={close}
+            <div className="sticky top-2 z-[110] -mb-10 flex justify-end pr-2 pointer-events-none"><button type="button" aria-label="close" onClick={close}
               className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow">
               <X className="h-5 w-5" />
             </button></div>
