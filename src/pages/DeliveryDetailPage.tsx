@@ -113,6 +113,7 @@ export default function DeliveryDetailPage() {
   const [destination, setDestination] = useState<JobDestination | null>(null);
   const [isMultiDestination, setIsMultiDestination] = useState(false);
   const [jobApplication, setJobApplication] = useState<JobApplication | null>(null);
+  const [statusSyncing, setStatusSyncing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPaymentDrawer, setShowPaymentDrawer] = useState(false);
@@ -481,6 +482,18 @@ export default function DeliveryDetailPage() {
           // Get the actual sequence number for filtering checkins
           const currentSequenceNumber = targetDestination?.sequence_number || 1;
 
+            // Seed status from the job page so buttons are right immediately; sync from API in background
+            const navSt = (location.state as any) || {};
+            if (navSt.checkedIn || navSt.podDone) {
+              const seed = new Date().toISOString();
+              const ci = navSt.checkedIn || navSt.podDone ? seed : null;
+              const pod = navSt.podDone ? seed : null;
+              setDestination(prev => prev ? { ...prev, checked_in_at: prev.checked_in_at || ci, sop_completed_at: prev.sop_completed_at || pod } : prev);
+              setJobApplication(prev => prev || { delivery_checked_in_at: ci, payment_completed_at: null, payment_method: null, pod_photo_url: null, delivery_sop_completed_at: pod } as any);
+            }
+            setLoading(false);
+            setStatusSyncing(true);
+            (async () => {
             // Check for delivery check-in status from API
             try {
               const driverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
@@ -573,6 +586,7 @@ export default function DeliveryDetailPage() {
           } catch (checkinError) {
             console.error('Error fetching checkin status:', checkinError);
           }
+            })().finally(() => setStatusSyncing(false));
         } else {
           throw new Error('Job not found');
         }
@@ -1324,7 +1338,7 @@ export default function DeliveryDetailPage() {
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
             onClick={() => setShowSignature(true)}
-            disabled={!podPhoto || isSubmittingPod}
+            disabled={!podPhoto || isSubmittingPod || statusSyncing}
           >
             {isSubmittingPod ? (
               <span className="inline-flex items-center justify-center gap-2">
@@ -1352,7 +1366,7 @@ export default function DeliveryDetailPage() {
             <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="flex-1 h-11">
               {t('delivery.cancel')}
             </Button>
-            <Button onClick={handleCheckIn} disabled={isCheckingIn} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleCheckIn} disabled={isCheckingIn || statusSyncing} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700">
               {isCheckingIn ? 'กำลังเช็คอิน...' : t('delivery.confirm')}
             </Button>
           </DialogFooter>
