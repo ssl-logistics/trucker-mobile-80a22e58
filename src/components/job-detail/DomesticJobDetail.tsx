@@ -221,7 +221,9 @@ export default function DomesticJobDetail({
     [extraApiCheckins, job?.order_code, extraTick]);
   const dropPts = isInternationalJobItem(job) ? getExtraDropPoints(job) : [];
   const dropsDone = allDropsPickedUp(dropPts, extraCheckins);
-  const xcDone = !isInternationalJobItem(job) || allExtraCargoDone(xcPoints, extraCheckins);
+  // Container sitting at a drop yard (dropped, not picked up yet)
+  const atDropSeq = dropPts.find((p) => dropState(p, extraCheckins) === 'dropped')?.sequence;
+  const xcDone = !isInternationalJobItem(job) || (allExtraCargoDone(xcPoints, extraCheckins) && dropsDone);
   const isFromHistory = isHistoryContext(location.search, location.state);
   const isTransferred = !!(location.state as any)?.jobData?.is_transferred || !!(location.state as any)?.is_transferred;
   // Merge is_transferred flag into job for state propagation to sub-pages
@@ -1120,7 +1122,7 @@ export default function DomesticJobDetail({
     done ? undefined : (
       <Button size="sm" disabled={locked} className="h-9 gap-1.5 p-1 bg-[#225795] hover:bg-[#1b4778] text-white"
         onClick={onClick}>
-        <MapPin className="w-3.5 h-3.5" /><span className="text-xs">{t('extraPoint.stepCheckIn')}</span>
+        <MapPin className="w-3.5 h-3.5" /><span className="text-xs">{t('jobDetail.updateStatus')}</span>
       </Button>
     );
   const isContainerStepCompleted = emptyContainerCheckedIn && (
@@ -2006,14 +2008,18 @@ export default function DomesticJobDetail({
               {dpSteps.map((s) => {
                 const ds = dropState(s.pt, extraCheckins);
                 const done = s.step === 'drop' ? ds !== 'pending' : ds === 'picked_up';
-                const locked = !done && (s.step === 'drop' ? (accidentLocked || !isContainerStepCompleted) : ds !== 'dropped');
+                const locked = !done && (s.step === 'drop'
+                  ? (accidentLocked || !isContainerStepCompleted || (atDropSeq != null && atDropSeq !== s.pt.sequence))
+                  : ds !== 'dropped');
                 const title = t(s.step === 'drop' ? 'dropPoint.dropStep' : 'dropPoint.pickupStep');
+                const ctype = s.step === 'drop' ? 'extra_drop' : 'extra_drop_pickup';
                 return (
                 <ExtraPointCard key={s.key} kind="drop" point={s.pt} index={0} readOnly={isFromHistory}
                   title={title}
                   tone={done ? 'done' : locked ? 'locked' : 'open'}
                   statusLabel={t(done ? 'extraPoint.statusDone' : locked ? 'jobDetail.waitingPreviousStep' : 'jobDetail.waitingCheckIn')}
-                  onOpen={() => openExtraDetail(s.step === 'drop' ? 'extra_drop' : 'extra_drop_pickup', s.pt, title, done, locked)}
+                  leadingAction={extraCheckinButton(done, locked, () => openExtraCheckin(ctype, s.pt, title))}
+                  onOpen={() => openExtraDetail(ctype, s.pt, title, done, locked)}
                   cardRef={(el) => { if (el) deliveryCardRefs.current.set(s.key, el); else deliveryCardRefs.current.delete(s.key); }} />
                 );
               })}
@@ -2923,6 +2929,7 @@ export default function DomesticJobDetail({
                 title={title}
                 tone={done ? 'done' : locked ? 'locked' : 'open'}
                 statusLabel={t(done ? 'extraPoint.statusDone' : locked ? 'jobDetail.waitingPreviousStep' : 'jobDetail.waitingCheckIn')}
+                leadingAction={extraCheckinButton(done, locked, () => openExtraCheckin('extra_cargo', pt, title))}
                 onOpen={() => openExtraDetail('extra_cargo', pt, title, done, locked)}
                 cardRef={(el) => { if (el) deliveryCardRefs.current.set(`xc-${pt.sequence}`, el); else deliveryCardRefs.current.delete(`xc-${pt.sequence}`); }} />
               );

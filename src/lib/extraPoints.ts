@@ -76,8 +76,9 @@ const has = (checkins: any[], type: ExtraCheckinType, seq: number) =>
 
 export function dropState(p: ExtraPoint, checkins: any[]): DropState {
   const s = String(p.status || '').toLowerCase();
-  if (s === 'picked_up' || p.is_completed === true || has(checkins, 'extra_drop_pickup', p.sequence)) return 'picked_up';
-  if (s === 'dropped' || has(checkins, 'extra_drop', p.sequence)) return 'dropped';
+  const a = p as any;
+  if (s === 'picked_up' || p.is_completed === true || a.is_picked_up === true || has(checkins, 'extra_drop_pickup', p.sequence)) return 'picked_up';
+  if (s === 'dropped' || a.is_dropped === true || has(checkins, 'extra_drop', p.sequence)) return 'dropped';
   return 'pending';
 }
 
