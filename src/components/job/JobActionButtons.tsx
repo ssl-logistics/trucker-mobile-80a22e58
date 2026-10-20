@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ReportProblemDrawer from "./ReportProblemDrawer";
 import JobDocumentsSheet from "./JobDocumentsSheet";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import JobExpensesPage from "@/pages/JobExpensesPage";
 import AddExpensePage from "@/pages/AddExpensePage";
 import expenseViewIcon from '@/assets/expense-view-icon.svg';
@@ -25,7 +25,7 @@ interface JobActionButtonsProps {
   expenseMode?: 'page' | 'sheet';
 }
 
-export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType, completedAt, jobData, expenseMode = 'page' }: JobActionButtonsProps) {
+export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, checkinType, completedAt, jobData, expenseMode = 'sheet' }: JobActionButtonsProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -164,16 +164,16 @@ export default function JobActionButtons({ jobId, orderNumber, isPodCompleted, c
       />
 
       {expenseMode === 'sheet' && (
-        <Dialog open={!!expenseSheet} onOpenChange={(o) => !o && setExpenseSheet(null)}>
-          <DialogContent className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0 [&>button]:hidden overflow-x-hidden [&_.pb-20]:pb-0 [&_.fixed.bottom-0]:sticky [&_.fixed.bottom-0]:z-30" aria-describedby={undefined}>
+        <Sheet open={!!expenseSheet} onOpenChange={(o) => !o && setExpenseSheet(null)}>
+          <SheetContent side="bottom" className="h-[90vh] max-w-[560px] mx-auto rounded-t-2xl overflow-y-auto p-0 [&>button]:hidden overflow-x-hidden [&_.pb-20]:pb-0 [&_.fixed.bottom-0]:sticky [&_.fixed.bottom-0]:z-30" aria-describedby={undefined}>
             {expenseSheet === 'view' && (
               <JobExpensesPage embeddedJobId={jobId} embeddedState={{ jobData, fromHistory: isFromHistory }} onClose={() => setExpenseSheet(null)} />
             )}
             {expenseSheet === 'add' && (
               <AddExpensePage embeddedJobId={jobId} embeddedState={{ jobData }} onClose={() => setExpenseSheet(null)} />
             )}
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       )}
     </>
   );
