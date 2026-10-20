@@ -970,7 +970,7 @@ const AddExpensePage = ({ embeddedJobId, embeddedState, onClose }: { embeddedJob
                       className="absolute right-0 bottom-full mb-3 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl bg-card border border-orange-300 shadow-xl p-4"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="absolute -top-2 right-6 w-4 h-4 rotate-45 bg-card border-l border-t border-orange-300" />
+                      <div className="absolute -bottom-2 right-6 w-4 h-4 rotate-45 bg-card border-r border-b border-orange-300" />
                       <p className="font-semibold text-orange-700 mb-1">{t('expense.advance_intro_title')}</p>
                       <p className="text-sm text-muted-foreground mb-3">{t('expense.advance_intro_desc')}</p>
                       <Button className="w-full bg-orange-500 hover:bg-orange-600" onClick={ackAdvanceIntro}>
