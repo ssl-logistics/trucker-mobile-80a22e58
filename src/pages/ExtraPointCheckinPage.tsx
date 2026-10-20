@@ -74,7 +74,7 @@ export default function ExtraPointCheckinPage() {
       const [urls, pos] = await Promise.all([Promise.all(files.map(upload)), getPosition()]);
       const photoUrls = urls.filter(Boolean) as string[];
       if (photoUrls.length !== files.length) throw new Error(t('extraPoint.failed'));
-      const { error } = await driverCheckin({
+      const { data: resp, error } = await driverCheckin({
         order_number: st.orderNumber,
         driver_id: st.driverId,
         driver_type: st.driverType || 'freelance',
@@ -85,7 +85,7 @@ export default function ExtraPointCheckinPage() {
         ...pos,
       });
       if (error) {
-        const code = Object.keys(ERR).find((k) => String(error).includes(k));
+        const code = Object.keys(ERR).find((k) => String((resp as any)?.error_code || error).includes(k));
         throw new Error(code ? (ERR[code][language as 'th'] || ERR[code].en) : error);
       }
       recordExtraCheckin(st.orderNumber, ctype, sequence);
