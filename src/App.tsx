@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import JobStepRoutes from "@/components/layout/JobStepRoutes";
 import { HashRouter, Routes, Route, useLocation, Navigate, Outlet } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { registerTabPreload, preloadAllTabs } from "@/lib/tabPreload";
@@ -392,6 +393,123 @@ function TabLayout() {
 
 const queryClient = new QueryClient();
 
+const stepRoutes = (
+  <>
+    <Route
+      path="/job/:jobId/extra-point/:type/:seq/detail"
+      element={
+        <ProtectedRoute>
+          <ExtraPointDetailPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/extra-point/:type/:seq"
+      element={
+        <ProtectedRoute>
+          <ExtraPointCheckinPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/container-checkin"
+      element={
+        <ProtectedRoute>
+          <ContainerCheckInPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/container-sop"
+      element={
+        <ProtectedRoute>
+          <ContainerSOPPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/container-summary"
+      element={
+        <ProtectedRoute>
+          <ContainerSummaryPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/add-expense"
+      element={
+        <ProtectedRoute>
+          <AddExpensePage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/expenses"
+      element={
+        <ProtectedRoute>
+          <JobExpensesPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/pickup"
+      element={
+        <ProtectedRoute>
+          <PickupDetailPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/sop"
+      element={
+        <ProtectedRoute>
+          <SOPCheckInPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/pickup-summary"
+      element={
+        <ProtectedRoute>
+          <PickupSummaryPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/delivery"
+      element={
+        <ProtectedRoute>
+          <DeliveryDetailPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/delivery/:destinationId"
+      element={
+        <ProtectedRoute>
+          <DeliveryDetailPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/delivery-sop"
+      element={
+        <ProtectedRoute>
+          <DeliverySOPCheckInPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/job/:jobId/delivery-sop/:destinationId"
+      element={
+        <ProtectedRoute>
+          <DeliverySOPCheckInPage />
+        </ProtectedRoute>
+      }
+    />
+  </>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -414,7 +532,7 @@ const App = () => (
                   <FloatingChatbot />
                   <PreviewDebugFab />
                   <Suspense fallback={<PageLoader />}>
-                    <Routes>
+                    <JobStepRoutes steps={stepRoutes}>
                       <Route path="/" element={<StartPage />} />
                       <Route path="/register" element={<Register />} />
                       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -495,118 +613,7 @@ const App = () => (
                           </ProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/job/:jobId/extra-point/:type/:seq/detail"
-                        element={
-                          <ProtectedRoute>
-                            <ExtraPointDetailPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/extra-point/:type/:seq"
-                        element={
-                          <ProtectedRoute>
-                            <ExtraPointCheckinPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/container-checkin"
-                        element={
-                          <ProtectedRoute>
-                            <ContainerCheckInPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/container-sop"
-                        element={
-                          <ProtectedRoute>
-                            <ContainerSOPPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/container-summary"
-                        element={
-                          <ProtectedRoute>
-                            <ContainerSummaryPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/add-expense"
-                        element={
-                          <ProtectedRoute>
-                            <AddExpensePage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/expenses"
-                        element={
-                          <ProtectedRoute>
-                            <JobExpensesPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/pickup"
-                        element={
-                          <ProtectedRoute>
-                            <PickupDetailPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/sop"
-                        element={
-                          <ProtectedRoute>
-                            <SOPCheckInPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/pickup-summary"
-                        element={
-                          <ProtectedRoute>
-                            <PickupSummaryPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/delivery"
-                        element={
-                          <ProtectedRoute>
-                            <DeliveryDetailPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/delivery/:destinationId"
-                        element={
-                          <ProtectedRoute>
-                            <DeliveryDetailPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/delivery-sop"
-                        element={
-                          <ProtectedRoute>
-                            <DeliverySOPCheckInPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/job/:jobId/delivery-sop/:destinationId"
-                        element={
-                          <ProtectedRoute>
-                            <DeliverySOPCheckInPage />
-                          </ProtectedRoute>
-                        }
-                      />
+                      {stepRoutes}
                       <Route
                         path="/dashboard/finance"
                         element={
@@ -814,7 +821,7 @@ const App = () => (
                       />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<RepairUnencodedJobRoute />} />
-                    </Routes>
+                    </JobStepRoutes>
                   </Suspense>
                   <VersionBadge />
                 </div>
