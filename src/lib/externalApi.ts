@@ -279,7 +279,10 @@ export async function driverCheckin(body: {
   seal_number_2?: string;
   destination_sequence_number?: number;
   extra_point_sequence?: number;
-  payment_method?: string;
+  payment_method?: string | null;
+  payment_amount?: number | null;
+  cod_proof_url?: string;
+  cod_proof_urls?: string[];
 }) {
   // Map driver_id to the correct field based on driver_type
   const { driver_id, driver_type, container_number, seal_number, container_number_2, seal_number_2, ...restBody } = body;
