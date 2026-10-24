@@ -13,7 +13,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { usePendingCodClears } from '@/hooks/usePendingCodClears';
 import { submitCodClear, codAmountMatches, type CodClearRecord } from '@/lib/codClear';
-import { useOCR } from '@/hooks/useOCR';
 
 type Tx = Record<string, string>;
 export const COD_CLEAR_TXT: Record<string, Tx> = {
@@ -23,6 +22,12 @@ export const COD_CLEAR_TXT: Record<string, Tx> = {
   ko: { reading: '영수증에서 금액 읽는 중...', ocrFail: '금액을 읽을 수 없습니다. 확인/입력해 주세요', mismatch: '정산할 금액과 일치하지 않습니다', title: 'COD 정산', none: '정산할 금액이 없습니다', howTitle: '정산 방법', how1: '수금한 COD를 회사 계좌로 이체하세요', how2: '작업을 누르고 이체 영수증을 촬영하거나 선택하세요', how3: '금액 확인 후 "정산 확인"을 누르세요', order: '작업', due: '정산할 금액', amount: '실제 정산 금액', notes: '메모', proof: '증빙 사진 (최소 1장 필수)', take: '사진 촬영', pick: '사진 선택', confirm: '정산 확인', success: '정산 완료', uploadErr: '업로드 실패, 다시 시도하세요', PROOF_REQUIRED: '증빙 사진을 1장 이상 첨부하세요', ORDER_NOT_CLOSED: '아직 종료되지 않은 작업입니다', ORDER_NOT_FOUND: '작업을 찾을 수 없습니다', COD_NOT_FOUND: '이 작업에는 COD가 없습니다', failed: '전송 실패, 다시 시도하세요', pendingCount: '정산 대기 작업' },
 };
 
+const fileToBase64 = (f: Blob) => new Promise<string>((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(String(r.result).split(',')[1] || '');
+  r.onerror = rej;
+  r.readAsDataURL(f);
+});
 const fmt = (n?: number | null) => (n ?? 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
 export default function CodClearPage() {
@@ -96,7 +101,6 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
 }) {
   const { isNative, takePhoto, selectFromGallery } = useNativeCamera();
   const [amount, setAmount] = useState('');
-  const { fileToBase64 } = useOCR();
   const [reading, setReading] = useState(false);
   const [ocrFailed, setOcrFailed] = useState(false);
   const matches = codAmountMatches(amount, record.expected_total);
@@ -178,7 +182,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
               className={amount !== '' && !matches ? 'border-destructive focus-visible:ring-destructive' : ''}
               onChange={(e) => { setOcrFailed(false); setAmount(e.target.value.replace(/[^0-9.]/g, '')); }} />
             {reading && <p className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" />{tx.reading}</p>}
-            {!reading && ocrFailed && <p className="text-xs text-warning">{tx.ocrFail}</p>}
+            {!reading && ocrFailed && <p className="text-xs text-muted-foreground">{tx.ocrFail}</p>}
             {!reading && amount !== '' && !matches && <p className="text-xs text-destructive">{tx.mismatch} (฿{fmt(record.expected_total)})</p>}
           </div>
           <div className="space-y-1">
