@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const EXTERNAL_API_URL = 'https://xyfkwewtexnyskbkgsrq.supabase.co/functions/v1';
 // Same key the app uses for driver-checkin.
-const EXTERNAL_API_KEY = Deno.env.get('EXTERNAL_API_KEY') || 'fld_sk_2026_xY9kWewT3xNySk8kGsRq_live';
+const EXTERNAL_API_KEY = Deno.env.get('EXPRESS_RENT_API_KEY') || Deno.env.get('EXTERNAL_API_KEY')!;
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
 const H = { apikey: ANON, Authorization: `Bearer ${ANON}`, 'x-api-key': EXTERNAL_API_KEY };
 
@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
           const r = await fetch(`${EXTERNAL_API_URL}/driver-cod-clear?${on}`, { headers: H });
           if (!r.ok) return;
           const d = (await r.json())?.data;
-          if (d?.status !== 'pending' || (d.order_status && d.order_status !== 'closed')) return;
+          if (d?.status !== 'pending' || (d.order_status && !['closed','completed','delivered'].includes(String(d.order_status).toLowerCase()))) return;
           const drv = orderDriver.get(on)!;
           const cur = pendingByDriver.get(drv) || { count: 0, total: 0 };
           cur.count++; cur.total += Number(d.expected_total) || 0;

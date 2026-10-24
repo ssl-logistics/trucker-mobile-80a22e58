@@ -1,4 +1,8 @@
-import { callExternalApi, getDriverCheckins } from '@/lib/externalApi';
+import { getDriverCheckins } from '@/lib/externalApi';
+import { supabase } from '@/integrations/supabase/client';
+
+const CLOSED = new Set(['closed', 'completed', 'delivered']);
+export function isClosedStatus(s?: string | null) { return !s || CLOSED.has(String(s).toLowerCase()); }
 
 export interface CodClearRecord {
   order_id?: string;
@@ -16,7 +20,7 @@ export type DriverType = 'internal' | 'external' | 'freelance';
 /** Keep only closed orders still waiting to be cleared. */
 export function filterPending(records: Array<CodClearRecord | null | undefined>): CodClearRecord[] {
   return records.filter(
-    (r): r is CodClearRecord => !!r && r.status === 'pending' && (!r.order_status || r.order_status === 'closed'),
+    (r): r is CodClearRecord => !!r && r.status === 'pending' && isClosedStatus(r.order_status),
   );
 }
 
@@ -49,10 +53,10 @@ export async function getCodClear(ref: string | CodOrderRef): Promise<CodClearRe
   const params: Record<string, string> = typeof ref === 'string'
     ? { order_number: ref }
     : ref.order_number ? { order_number: ref.order_number } : { order_id: String(ref.order_id) };
-  const { data } = await callExternalApi<{ success?: boolean; data?: CodClearRecord }>('driver-cod-clear', {
-    params,
-  });
-  return data?.data ?? null; // 404 COD_NOT_FOUND → no data.data → skipped
+  const qs = new URLSearchParams(params).toString();
+  const { data, error } = await supabase.functions.invoke(`cod-clear-proxy?${qs}`, { method: 'GET' });
+  if (error) return null; // 404 COD_NOT_FOUND etc.
+  return (data as any)?.data ?? null; // 404 COD_NOT_FOUND → no data.data → skipped
 }
 
 export async function submitCodClear(body: {
@@ -63,7 +67,13 @@ export async function submitCodClear(body: {
   driver_type?: DriverType;
   driver_id?: string;
 }) {
-  return callExternalApi<any>('driver-cod-clear', { method: 'POST', body });
+  const { data, error } = await supabase.functions.invoke('cod-clear-proxy', { method: 'POST', body });
+  if (error) {
+    let msg = error.message;
+    try { const t = await (error as any).context?.text?.(); const j = JSON.parse(t); msg = j?.error?.message || j?.message || j?.error || msg; } catch { /* noop */ }
+    return { data: null, error: { message: String(msg) } } as any;
+  }
+  return { data, error: null } as any;
 }
 
 const CACHE_KEY = 'cod_clear_pending_v1';

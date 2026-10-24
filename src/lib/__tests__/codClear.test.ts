@@ -8,8 +8,9 @@ describe('codClear', () => {
       { order_number: 'B', status: 'cleared', order_status: 'closed' },
       null,
       { order_number: 'C', status: 'pending', order_status: 'in_progress' },
+      { order_number: 'D', status: 'pending', order_status: 'completed' },
     ]);
-    expect(r.map((x) => x.order_number)).toEqual(['A']);
+    expect(r.map((x) => x.order_number)).toEqual(['A', 'D']);
   });
 
   it('collects orders with payment check-ins within 30 days', () => {
