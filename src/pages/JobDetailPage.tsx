@@ -110,6 +110,7 @@ interface JobDetail {
   booking_no?: string | null;
   bl_no?: string | null;
   destinations?: JobDestination[];
+  cod?: any;
   extra_cargo_points?: any[] | null;
   extra_drop_points?: any[] | null;
   origins?: JobOrigin[];
@@ -386,6 +387,7 @@ export default function JobDetailPage() {
           // Handle different field names from different APIs
           const mappedJob: JobDetail = {
             id: foundJob.id,
+            cod: foundJob.cod ?? stateJob?.cod ?? undefined,
             order_code: foundJob.order_number || foundJob.order_code || jobId!,
             job_type: (foundJob.booking_no || foundJob.bl_no) ? 'international' : (foundJob.job_type || foundJob.transport_category || 'domestic'),
             employer_name: foundJob.factory_name || foundJob.sender_name || foundJob.employer_name || '',
@@ -590,6 +592,7 @@ export default function JobDetailPage() {
                   : d.goods_type || d.product_name || null;
                 return {
                   id: destId,
+                  cod: d.cod ?? (rawDests.length === 1 ? foundJob.cod : undefined),
                   sequence_number: d.sequence_number || idx + 1,
                   company_name: d.company_name || d.companyName || d.deliveryLocation || null,
                   contact_name: d.contact_name || d.contactName || null,
