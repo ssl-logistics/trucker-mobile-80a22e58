@@ -1,7 +1,8 @@
+import { getCodForPoint } from '@/lib/cod';
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { translateUnit } from '@/utils/apiDataTranslations';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2, Eye, Mic, MicOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, Navigation, CheckCircle, Circle, Loader2, Scan, Camera, Image as ImageIcon, XCircle, MapPin, User, Package, Clock, FileText, Calendar, GripVertical, Repeat2, Eye, Mic, MicOff, Banknote } from 'lucide-react';
 import { useVoiceReorder } from '@/hooks/useVoiceReorder';
 import {
   Dialog,
@@ -2490,6 +2491,7 @@ export default function DomesticJobDetail({
                     <div className={`px-4 py-2.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isPreviousCompleted ? 'bg-teal-600' : 'bg-gray-400'}`}>
                       <h3 className="font-semibold text-sm text-white truncate">
                         {t('jobDetail.deliveryPoint')} {displayDestinations.length > 1 ? `#${index + 1}` : ''}
+                        {(((dest as any).cod?.enabled) || getCodForPoint(job, dest.sequence_number).enabled) && <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 align-middle">COD</span>}
                         {isReorderMode && (() => {
                           const generic = ['ผู้ส่ง','ลูกค้า','ผู้รับ','sender','customer','receiver'];
                           const company = dest.company_name && !generic.includes(dest.company_name.trim()) ? dest.company_name : null;
@@ -2575,6 +2577,12 @@ export default function DomesticJobDetail({
                             <span>{dest.invoice_number || '-'}</span>
                           </div>
                         )}
+                        {(() => { const cod = (dest as any).cod?.enabled ? getCodForPoint({ cod: (dest as any).cod }, null) : getCodForPoint(job, dest.sequence_number); if (!cod.enabled) return null; return (
+                          <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-2 py-1.5">
+                            <Banknote className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-700" />
+                            <span className="font-semibold text-amber-800">{t('job.cod_badge')}</span>
+                            <span className="text-amber-800">{cod.amount != null ? `฿${cod.amount.toLocaleString()}` : ''}{cod.method ? ` (${t(cod.method === 'qr' ? 'job.cod_qr' : 'job.cod_cash')})` : ''}</span>
+                          </div>); })()}
                         {(dest as any).customer && (() => {
                           const c: any = (dest as any).customer;
                           const addressLine = [c.province, c.district].filter(Boolean).join(' ');
@@ -2756,7 +2764,7 @@ export default function DomesticJobDetail({
               return (
                 <Card ref={(el) => {if (el) deliveryCardRefs.current.set('fallback', el);else deliveryCardRefs.current.delete('fallback');}} className={`overflow-hidden border-2 rounded-2xl ${isPodCompleted ? 'border-green-500' : isFallbackUnlocked ? 'border-teal-500' : 'border-gray-300'}`}>
                   <div className={`px-4 py-2.5 flex items-center justify-between ${isPodCompleted ? 'bg-green-500' : isFallbackUnlocked ? 'bg-teal-600' : 'bg-gray-400'}`}>
-                    <h3 className="font-semibold text-sm text-white">{t('jobDetail.deliveryPoint')}</h3>
+                    <h3 className="font-semibold text-sm text-white">{t('jobDetail.deliveryPoint')}{getCodForPoint(job, null).enabled && <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 align-middle">COD</span>}</h3>
                     {!isFallbackUnlocked ?
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap text-white/80 bg-white/20">
                         {t('jobDetail.waitingPreviousStep')}
