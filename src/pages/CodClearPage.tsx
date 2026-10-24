@@ -24,7 +24,7 @@ export const COD_CLEAR_TXT: Record<string, Tx> = {
 
 const fileToBase64 = (f: Blob) => new Promise<string>((res, rej) => {
   const r = new FileReader();
-  r.onload = () => res(String(r.result).split(',')[1] || '');
+  r.onload = () => res(String(r.result));
   r.onerror = rej;
   r.readAsDataURL(f);
 });
