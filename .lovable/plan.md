@@ -14,9 +14,9 @@
 API มีแค่เช็คทีละงาน จึงใช้: รายการงานที่ปิดแล้วของคนขับ (จากเส้นประวัติงานที่ใช้อยู่) → เช็ค `GET driver-cod-clear` ทีละงาน (จำกัด 30 วันล่าสุด, ทำพร้อมกันทีละไม่กี่งาน) → เก็บเฉพาะ `status: pending`; `COD_NOT_FOUND` = ข้าม
 
 ## Technical details
-- Edge function ใหม่ `cod-clear` (proxy, เก็บ `DRIVER_API_KEY` ฝั่ง server, CORS มี `x-app-secret`): GET check / POST clear
+- เรียก `driver-cod-clear` (GET/POST) ผ่าน `callExternalApi` ใน `src/lib/externalApi.ts` ด้วย key เดียวกับ `driver-checkin` — ไม่มี proxy ใหม่
 - `src/lib/codClear.ts`: `fetchPendingCodClears(driver)` + cache สั้นๆ ใน localStorage; hook `usePendingCodClears` ใช้ทั้งเมนูและหน้า
 - หน้าใหม่ `src/pages/CodClearPage.tsx` route `/cod-clear`; รูปอัปโหลด storage เดิม แล้วส่ง URL เป็น `proof_urls`
 - แจ้งเตือน: edge function `cod-clear-reminder` + pg_cron `0 22 * * *` และ `30 22 * * *` (UTC = 05:00/05:30 ไทย) วนคนขับที่มีงานปิดแล้ว → ถ้ามีค้างสร้าง notification `notification_type: 'cod_clear'` + push ผ่าน pipeline เดิม
-- ต้องมี secret `DRIVER_API_KEY` (จะขอถ้ายังไม่มี)
+- ฟังก์ชันแจ้งเตือนฝั่ง server ใช้ key เดียวกับที่ระบบเช็คอินใช้ (ไม่ขอ secret ใหม่)
 - แปล 4 ภาษา, test สำหรับการกรอง pending/cleared/COD_NOT_FOUND
