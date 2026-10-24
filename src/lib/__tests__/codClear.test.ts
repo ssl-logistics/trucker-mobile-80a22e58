@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterPending, codOrdersFromCheckins } from '../codClear';
+import { filterPending, codOrdersFromCheckins, codAmountMatches } from '../codClear';
 
 describe('codClear', () => {
   it('keeps only pending closed orders, skips cleared and missing COD', () => {
@@ -32,5 +32,11 @@ describe('codClear', () => {
       { checkin_type: 'delivery', payment_method: null, cod_proof_urls: null, transport_order_id: 'id2', checked_in_at: '2026-10-23T00:00:00Z' },
     ], 30, now);
     expect(r).toEqual([{ order_id: 'id1' }]);
+  });
+
+  it('confirm only when amount matches expected total', () => {
+    expect(codAmountMatches('120.00', 120)).toBe(true);
+    expect(codAmountMatches('100', 120)).toBe(false);
+    expect(codAmountMatches('', 120)).toBe(false);
   });
 });

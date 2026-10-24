@@ -104,3 +104,11 @@ export async function fetchPendingCodClears(driverId: string, driverType: Driver
   try { localStorage.setItem(CACHE_KEY, JSON.stringify({ driverId, items: pending, at: Date.now() })); } catch { /* noop */ }
   return pending;
 }
+
+/** Entered amount equals the expected COD total (to 2 decimals). */
+export function codAmountMatches(entered: string | number, expected?: number | null): boolean {
+  if (entered === '' || entered == null || expected == null) return false;
+  const a = Number(entered);
+  if (!Number.isFinite(a)) return false;
+  return Math.round(a * 100) === Math.round(Number(expected) * 100);
+}
