@@ -220,6 +220,11 @@ export default function NotificationsPage() {
       }
     }
 
+    if (notification.notification_type === 'cod_clear') {
+      navigate('/cod-clear');
+      return;
+    }
+
     // Try reference_id first, then extract from description
     const orderCode = notification.reference_id || extractOrderCodeFromDescription(notification);
 

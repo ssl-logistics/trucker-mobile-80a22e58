@@ -231,6 +231,7 @@ const MarketPage = lazyWithPreload(() => import("./pages/MarketPage"));
 const JobRouteExpensesPage = lazyWithPreload(() => import("./pages/JobRouteExpensesPage"));
 const JobExpensesPage = lazyWithPreload(() => import("./pages/JobExpensesPage"));
 const JobHistoryPage = lazyWithPreload(() => import("./pages/JobHistoryPage"));
+const CodClearPage = lazyWithPreload(() => import("./pages/CodClearPage"));
 const NotificationsPage = lazyWithPreload(() => import("./pages/NotificationsPage"));
 const NotificationDetailPage = lazyWithPreload(() => import("./pages/NotificationDetailPage"));
 const SettingsPage = lazyWithPreload(() => import("./pages/SettingsPage"));
@@ -683,6 +684,14 @@ const App = () => (
                         element={
                           <ProtectedRoute>
                             <JobRouteExpensesPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/cod-clear"
+                        element={
+                          <ProtectedRoute>
+                            <CodClearPage />
                           </ProtectedRoute>
                         }
                       />
