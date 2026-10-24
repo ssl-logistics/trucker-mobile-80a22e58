@@ -341,7 +341,6 @@ const SignIn = () => {
     }
   };
   return <div className="h-[100dvh] bg-background flex flex-col overflow-x-hidden overflow-y-auto overscroll-none" style={{
-    paddingTop: "env(safe-area-inset-top, 0px)",
     paddingBottom: "env(safe-area-inset-bottom, 0px)"
   }}>
       {/* Hero Section: always the image's true ratio so it is never cropped */}
