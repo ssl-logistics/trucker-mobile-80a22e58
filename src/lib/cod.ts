@@ -27,3 +27,10 @@ export function getCodForPoint(job: any, sequence: number | null | undefined): C
   if (dests.length === 1 && dests[0]?.cod?.enabled) return read(dests[0].cod);
   return read(job.cod);
 }
+
+/** True when the job or any of its delivery points collects cash on delivery. */
+export function jobHasCod(job: any): boolean {
+  if (!job) return false;
+  if (job.has_cod === true || job.cod?.enabled === true) return true;
+  return Array.isArray(job.destinations) && job.destinations.some((d: any) => d?.cod?.enabled === true);
+}

@@ -1,3 +1,4 @@
+import { jobHasCod } from '@/lib/cod';
 import { useState, useEffect, useCallback } from 'react';
 import { extractDistrictProvince } from '@/utils/addressExtraction';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -465,6 +466,7 @@ const isValidName = (val: any): string => {
           origin_lng: item.sender_longitude || item.origin_lng || undefined,
           destination_lat: item.destination_latitude || item.destination_lat || undefined,
           destination_lng: item.destination_longitude || item.destination_lng || undefined,
+          has_cod: jobHasCod(item),
           destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
             sequence: d.sequence_number || d.sequence || idx + 1,
             location: d.province || d.address || d.location || d.destination_location || '',
@@ -728,6 +730,7 @@ const isValidName = (val: any): string => {
           origin_lng: item.origin_lng || undefined,
           destination_lat: item.destination_lat || undefined,
           destination_lng: item.destination_lng || undefined,
+          has_cod: jobHasCod(item),
           destinations: Array.isArray(item.destinations) ? item.destinations.map((d: any, idx: number) => ({
             sequence: d.sequence_number || d.sequence || idx + 1,
             location: d.province || d.address || d.location || d.destination_location || '',

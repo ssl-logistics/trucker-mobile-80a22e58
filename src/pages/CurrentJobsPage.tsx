@@ -1,3 +1,4 @@
+import { jobHasCod } from '@/lib/cod';
 import React from 'react';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -643,6 +644,7 @@ export default function CurrentJobsPage() {
             updated_at: job.updated_at,
             lastCheckinTime: latestCheckinByTransportId[String(job.id)] || 0,
             // Multiple destinations support
+            has_cod: jobHasCod(job),
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               ...d,
               sequence: d.sequence_number || d.sequence || idx + 1,
@@ -773,6 +775,7 @@ export default function CurrentJobsPage() {
             job_type: isInternationalJob(job) ? 'international' : (job.job_type || job.transport_category || 'domestic'),
             bl_no: job.bl_no || job.bl_number || job.bill_of_lading || null,
             booking_no: job.booking_no || job.booking_number || null,
+            has_cod: jobHasCod(job),
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               ...d,
               sequence: d.sequence_number || d.sequence || idx + 1,
@@ -971,6 +974,7 @@ export default function CurrentJobsPage() {
             created_at: ticket.created_at,
             updated_at: ticket.updated_at || ticket.created_at,
             // Multiple destinations support
+            has_cod: jobHasCod(ticket),
             destinations: Array.isArray(ticket.destinations) ? ticket.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
