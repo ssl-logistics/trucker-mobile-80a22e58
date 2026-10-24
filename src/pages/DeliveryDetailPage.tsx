@@ -44,6 +44,8 @@ import checkInIcon from '@/assets/check-in-icon.png';
 import { compressImage } from '@/utils/imageCompression';
 import { notifyCheckinWaypoint, ensureRoomCode } from '@/lib/checkinWaypoint';
 import { isHistoryContext } from '@/lib/historyMode';
+import { getCodForPoint, type CodInfo } from '@/lib/cod';
+import CodCollectSection from '@/components/job/CodCollectSection';
 
 interface DestinationProduct {
   product_name: string;
@@ -121,6 +123,8 @@ export default function DeliveryDetailPage() {
   const [podPhoto, setPodPhoto] = useState<File | null>(null);
   const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
   const [isSubmittingPod, setIsSubmittingPod] = useState(false);
+  const [codInfo, setCodInfo] = useState<CodInfo>({ enabled: false, amount: null, method: null });
+  const [codState, setCodState] = useState<{ ready: boolean; urls: string[] }>({ ready: false, urls: [] });
   const [showSignature, setShowSignature] = useState(false);
   const signatureRef = useRef<SignatureResult | null>(null);
   const [containerReturn, setContainerReturn] = useState<{
@@ -401,6 +405,7 @@ export default function DeliveryDetailPage() {
             })(),
           };
           setJob(mappedJob);
+          setCodInfo(getCodForPoint(foundJob, hasMultipleDestinations ? targetDestination?.sequence_number : null));
 
           if (foundJob.requires_accident_evidence === true && !foundJob.accident_evidence_uploaded_at) {
             setAccidentOrderInfo({
@@ -702,6 +707,30 @@ export default function DeliveryDetailPage() {
       }
     }
 
+    // COD: send payment check-in with proof photos before POD (only when the point has COD)
+    if (codInfo.enabled) {
+      if (!codState.ready) { setIsSubmittingPod(false); return; }
+      const dt: 'internal' | 'external' | 'freelance' = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
+      const { error: payErr } = await driverCheckin({
+        order_number: job.order_code,
+        checkin_type: 'payment',
+        driver_id: user.id,
+        driver_type: dt,
+        payment_method: 'cod',
+        payment_amount: codInfo.amount,
+        latitude: podLatitude,
+        longitude: podLongitude,
+        notes: codInfo.method === 'qr' ? 'ลูกค้าชำระผ่าน QR แล้ว' : 'ลูกค้าชำระเงินสดแล้ว',
+        cod_proof_urls: codState.urls,
+        ...(isMultiDestination && destination?.sequence_number ? { destination_sequence_number: destination.sequence_number } : {}),
+      });
+      if (payErr) {
+        toast({ title: '❌ ส่งข้อมูลเก็บเงินไม่สำเร็จ', description: String(payErr), variant: 'destructive' });
+        setIsSubmittingPod(false);
+        return;
+      }
+    }
+
     // Send POD to external API directly (same API as check-in)
     let podSubmitSuccess = false;
     let podApiResponse: any = null;
@@ -723,6 +752,7 @@ export default function DeliveryDetailPage() {
         notes: 'จัดส่งสำเร็จ',
         photo_url: photoUrl,
         payment_method: selectedPaymentMethod,
+        ...(codInfo.enabled && codState.urls.length ? { cod_proof_urls: codState.urls } : {}),
       };
       
       // Only include destination_sequence_number for multi-destination jobs
@@ -1135,6 +1165,17 @@ export default function DeliveryDetailPage() {
           </div>
         )}
 
+        {/* COD collection - only for delivery points with cod.enabled */}
+        {codInfo.enabled && isCheckedIn && !isSopCompleted && job && (
+          <CodCollectSection
+            cod={codInfo}
+            storageKey={`cod_proof_${job.order_code}_${isMultiDestination ? destination?.sequence_number ?? 1 : 0}`}
+            filenamePrefix={`${user?.id}-${job.order_code}`}
+            readOnly={isFromHistory}
+            onChange={setCodState}
+          />
+        )}
+
         {/* POD Upload Section - Show after check-in, hide after POD completed */}
         {isCheckedIn && !isSopCompleted && (
           <div className="bg-white rounded-xl shadow-md p-4 space-y-4">
@@ -1338,7 +1379,7 @@ export default function DeliveryDetailPage() {
           <Button
             className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
             onClick={() => setShowSignature(true)}
-            disabled={!podPhoto || isSubmittingPod || statusSyncing}
+            disabled={!podPhoto || isSubmittingPod || statusSyncing || (codInfo.enabled && !codState.ready)}
           >
             {isSubmittingPod ? (
               <span className="inline-flex items-center justify-center gap-2">
