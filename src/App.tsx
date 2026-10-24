@@ -88,6 +88,15 @@ const StartPage = lazyWithPreload(() => import("./pages/StartPage"));
 function VersionBadge() {
   const location = useLocation();
   const isLoginPage = location.pathname === "/";
+  const [dialogOpen, setDialogOpen] = useState(false);
+  useEffect(() => {
+    const check = () => setDialogOpen(!!document.querySelector('[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]'));
+    check();
+    const obs = new MutationObserver(check);
+    obs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-state"] });
+    return () => obs.disconnect();
+  }, []);
+  if (dialogOpen) return null;
 
   const badge = (
     <div
