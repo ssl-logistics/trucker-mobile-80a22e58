@@ -110,6 +110,7 @@ interface JobDetail {
   booking_no?: string | null;
   bl_no?: string | null;
   destinations?: JobDestination[];
+  cod?: any;
   extra_cargo_points?: any[] | null;
   extra_drop_points?: any[] | null;
   origins?: JobOrigin[];
