@@ -1272,7 +1272,7 @@ export default function CurrentJobsPage() {
                       </span>
                     )}
                     {jobHasCod(job) && (
-                      <span className="inline-block ml-2 px-2 py-0.5 rounded-md text-sm font-medium bg-amber-100 text-amber-800">💵 {t('job.cod_badge')}</span>
+                      <span className="inline-block ml-2 px-2 py-0.5 rounded-md text-sm font-medium bg-amber-100 text-amber-800">{t('job.cod_badge')}</span>
                     )}
                     {(() => {
                       const j: any = job;
