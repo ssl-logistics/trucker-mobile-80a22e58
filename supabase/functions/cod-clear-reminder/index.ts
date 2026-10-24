@@ -26,10 +26,13 @@ Deno.serve(async (req) => {
     // order -> driver
     const orderDriver = new Map<string, string>();
     for (const c of checkins) {
-      if (c?.checkin_type !== 'payment') continue;
+      const isCod = c?.checkin_type === 'payment' || String(c?.payment_method || '').toLowerCase() === 'cod'
+        || (Array.isArray(c?.cod_proof_urls) && c.cod_proof_urls.length > 0);
+      if (!isCod) continue;
       const t = new Date(c.checked_in_at || c.created_at || 0).getTime();
       if (t && t < cutoff) continue;
-      const on = c.transport_orders?.order_number || c.order_number;
+      const num = c.transport_orders?.order_number || c.order_number;
+      const on = num ? `order_number=${encodeURIComponent(num)}` : (c.transport_order_id ? `order_id=${encodeURIComponent(c.transport_order_id)}` : '');
       const d = c.freelance_driver_id || c.internal_driver_id || c.external_driver_id || c.driver_id;
       if (on && d) orderDriver.set(on, d);
     }
@@ -39,7 +42,7 @@ Deno.serve(async (req) => {
     for (let i = 0; i < orders.length; i += 5) {
       await Promise.all(orders.slice(i, i + 5).map(async (on) => {
         try {
-          const r = await fetch(`${EXTERNAL_API_URL}/driver-cod-clear?order_number=${encodeURIComponent(on)}`, { headers: H });
+          const r = await fetch(`${EXTERNAL_API_URL}/driver-cod-clear?${on}`, { headers: H });
           if (!r.ok) return;
           const d = (await r.json())?.data;
           if (d?.status !== 'pending' || (d.order_status && d.order_status !== 'closed')) return;
