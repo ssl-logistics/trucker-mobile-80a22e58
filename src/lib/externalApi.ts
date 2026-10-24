@@ -20,6 +20,7 @@ const ENDPOINT_API_KEY_MAP: Record<string, keyof typeof API_KEYS> = {
   'login': 'LOGIN_API_KEY',
   'logout': 'LOGIN_API_KEY',
   'driver-checkin': 'EXPRESS_RENT_API_KEY',
+  'driver-cod-clear': 'EXPRESS_RENT_API_KEY',
   'driver-signatures': 'EXPRESS_RENT_API_KEY',
   'driver-sop': 'FREELANCE_DRIVER_API_KEY',
   'get-driver-assigned-jobs': 'EXPRESS_RENT_API_KEY',
