@@ -20,23 +20,37 @@ export function filterPending(records: Array<CodClearRecord | null | undefined>)
   );
 }
 
-/** Order numbers that had a COD payment check-in in the last `days` days. */
-export function codOrdersFromCheckins(checkins: any[], days = 30, now = Date.now()): string[] {
+export function isCodCheckin(c: any): boolean {
+  if (!c) return false;
+  return c.checkin_type === 'payment' || String(c.payment_method || '').toLowerCase() === 'cod'
+    || (Array.isArray(c.cod_proof_urls) && c.cod_proof_urls.length > 0);
+}
+
+export type CodOrderRef = { order_number?: string; order_id?: string };
+
+/** Orders (by number, else by id) that had a COD check-in in the last `days` days. */
+export function codOrdersFromCheckins(checkins: any[], days = 30, now = Date.now()): CodOrderRef[] {
   const cutoff = now - days * 86400000;
-  const set = new Set<string>();
+  const map = new Map<string, CodOrderRef>();
   for (const c of checkins || []) {
-    if (c?.checkin_type !== 'payment') continue;
+    if (!isCodCheckin(c)) continue;
     const t = new Date(c.checked_in_at || c.created_at || 0).getTime();
     if (t && t < cutoff) continue;
     const on = c.transport_orders?.order_number || c.order_number;
-    if (on) set.add(on);
+    const id = c.transport_order_id;
+    const key = on || id;
+    if (!key || map.has(key)) continue;
+    map.set(key, on ? { order_number: on } : { order_id: id });
   }
-  return [...set];
+  return [...map.values()];
 }
 
-export async function getCodClear(orderNumber: string): Promise<CodClearRecord | null> {
+export async function getCodClear(ref: string | CodOrderRef): Promise<CodClearRecord | null> {
+  const params: Record<string, string> = typeof ref === 'string'
+    ? { order_number: ref }
+    : ref.order_number ? { order_number: ref.order_number } : { order_id: String(ref.order_id) };
   const { data } = await callExternalApi<{ success?: boolean; data?: CodClearRecord }>('driver-cod-clear', {
-    params: { order_number: orderNumber },
+    params,
   });
   return data?.data ?? null; // 404 COD_NOT_FOUND → no data.data → skipped
 }
@@ -70,7 +84,13 @@ export async function fetchPendingCodClears(driverId: string, driverType: Driver
     const chunk = await Promise.all(orders.slice(i, i + 5).map((o) => getCodClear(o).catch(() => null)));
     results.push(...chunk);
   }
-  const pending = filterPending(results);
+  const seen = new Set<string>();
+  const pending = filterPending(results).filter((r) => {
+    const k = r.order_number || r.order_id || '';
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
   try { localStorage.setItem(CACHE_KEY, JSON.stringify({ driverId, items: pending, at: Date.now() })); } catch { /* noop */ }
   return pending;
 }
