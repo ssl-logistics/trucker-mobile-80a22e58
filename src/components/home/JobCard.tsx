@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { jobHasCod } from '@/lib/cod';
 import { useNavigate } from 'react-router-dom';
 import { Clock, MapPin, CircleDot, Banknote, Truck, Calendar, Eye, Package, Zap, Gavel, Hand } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
@@ -176,6 +177,12 @@ export const JobCard = ({ job, onAccept, autoOpenDetail = false, onDetailClosed,
               : translateJobType(job.job_type, language)
             }
           </span>
+          {jobHasCod(job) && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-sm font-medium bg-amber-100 text-amber-800">
+              <Banknote className="w-3.5 h-3.5" />
+              {t('job.cod_badge')}
+            </span>
+          )}
           {job.marketType && (
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-sm font-medium ${
               job.marketType === 'urgent'

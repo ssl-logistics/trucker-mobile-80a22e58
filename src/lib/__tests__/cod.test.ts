@@ -23,3 +23,10 @@ describe('getCodForPoint', () => {
     expect(getCodForPoint({ destinations: [] }, null).enabled).toBe(false);
   });
 });
+
+import { jobHasCod } from '../cod';
+describe('jobHasCod', () => {
+  it('single trip cod', () => expect(jobHasCod({ cod: { enabled: true } })).toBe(true));
+  it('one destination cod', () => expect(jobHasCod({ destinations: [{}, { cod: { enabled: true } }] })).toBe(true));
+  it('no cod', () => expect(jobHasCod({ cod: { enabled: false }, destinations: [{}] })).toBe(false));
+});
