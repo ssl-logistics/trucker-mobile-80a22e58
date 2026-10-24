@@ -6,9 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 const SHOP_ID = '581c4aa6-cd23-432d-a60e-748111e0514a';
+const API_URL = 'https://qbamcmcbmmmsdkzebtbw.supabase.co/functions/v1/public-payment-api';
 
 const Body = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('create'), amount: z.number().positive().max(1_000_000) }),
+  z.object({ action: z.literal('create'), amount: z.number().positive().max(1_000_000), reference: z.string().max(100).optional() }),
   z.object({ action: z.literal('status'), payment_id: z.string().min(1).max(100) }),
 ]);
 
@@ -17,17 +18,17 @@ const json = (b: unknown, status = 200) =>
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
-  const url = Deno.env.get('SAHAPHAN_PAYMENT_API_URL');
+  const url = API_URL;
   const id = Deno.env.get('SAHAPHAN_CLIENT_ID');
   const secret = Deno.env.get('SAHAPHAN_CLIENT_SECRET');
-  if (!url || !id || !secret) return json({ success: false, error: 'payment not configured' }, 500);
+  if (!id || !secret) return json({ success: false, error: 'payment not configured' }, 500);
 
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json({ success: false, error: parsed.error.flatten().fieldErrors }, 400);
   const p = parsed.data;
   const payload = p.action === 'create'
-    ? { action: 'create_and_process', mode: 'live', amount: Math.round(p.amount * 100) / 100, payment_method: 'qr_code', qr_provider: 'bot_qr', shop_id: SHOP_ID }
-    : { action: 'status', mode: 'live', payment_id: p.payment_id };
+    ? { action: 'create_and_process', amount: Math.round(p.amount * 100) / 100, payment_method: 'qr_code', qr_provider: 'bot_qr', shop_id: SHOP_ID, description: 'COD', reference: p.reference }
+    : { action: 'status', payment_id: p.payment_id };
 
   try {
     const r = await fetch(url, {
@@ -37,12 +38,15 @@ Deno.serve(async (req) => {
     });
     const text = await r.text();
     let data: any; try { data = JSON.parse(text); } catch { data = { raw: text.slice(0, 500) }; }
+    const qr = data?.qr_code ?? data?.data?.qr_code;
     const out = {
       success: r.ok && data?.success !== false,
       http_status: r.status,
-      payment_id: data?.payment_id ?? data?.data?.payment_id ?? p.action === 'status' && p.payment_id || null,
+      payment_id: data?.payment_id ?? data?.data?.payment_id ?? (p.action === 'status' ? p.payment_id : null),
       status: data?.status ?? data?.data?.status ?? null,
-      qr_code: data?.qr_code ?? data?.data?.qr_code ?? null,
+      qr_image_url: typeof qr === 'object' ? qr?.qr_image_url ?? null : null,
+      qr_raw_data: typeof qr === 'object' ? qr?.qr_raw_data ?? null : (typeof qr === 'string' ? qr : null),
+      expires_at: (typeof qr === 'object' ? qr?.expires_at : null) ?? data?.expires_at ?? null,
       error: r.ok ? undefined : (data?.error?.message || data?.error || data?.message || 'error'),
       request_id: data?.request_id,
     };
