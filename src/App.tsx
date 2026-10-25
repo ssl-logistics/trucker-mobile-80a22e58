@@ -241,6 +241,7 @@ const JobRouteExpensesPage = lazyWithPreload(() => import("./pages/JobRouteExpen
 const JobExpensesPage = lazyWithPreload(() => import("./pages/JobExpensesPage"));
 const JobHistoryPage = lazyWithPreload(() => import("./pages/JobHistoryPage"));
 const CodClearPage = lazyWithPreload(() => import("./pages/CodClearPage"));
+const KpiPage = lazyWithPreload(() => import("./pages/KpiPage"));
 const NotificationsPage = lazyWithPreload(() => import("./pages/NotificationsPage"));
 const NotificationDetailPage = lazyWithPreload(() => import("./pages/NotificationDetailPage"));
 const SettingsPage = lazyWithPreload(() => import("./pages/SettingsPage"));
@@ -693,6 +694,14 @@ const App = () => (
                         element={
                           <ProtectedRoute>
                             <JobRouteExpensesPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/kpi"
+                        element={
+                          <ProtectedRoute>
+                            <KpiPage />
                           </ProtectedRoute>
                         }
                       />
