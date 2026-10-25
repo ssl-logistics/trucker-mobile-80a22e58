@@ -34,3 +34,17 @@ export function jobHasCod(job: any): boolean {
   if (job.has_cod === true || job.cod?.enabled === true) return true;
   return Array.isArray(job.destinations) && job.destinations.some((d: any) => d?.cod?.enabled === true);
 }
+
+/** Total COD amount across the job's delivery points; null total when no amount is known. */
+export function codTotal(job: any): { total: number | null; points: number } {
+  if (!job) return { total: null, points: 0 };
+  const dests: any[] = Array.isArray(job.destinations) ? job.destinations : [];
+  const infos = dests.length > 1
+    ? dests.map((d) => read(d?.cod)).filter((c) => c.enabled)
+    : [getCodForPoint(job, null)].filter((c) => c.enabled);
+  const amts = infos.map((c) => c.amount).filter((a): a is number => a != null);
+  return { total: amts.length ? amts.reduce((s, a) => s + a, 0) : null, points: infos.length };
+}
+
+/** Tab badge text: 0 when empty, capped at 99+. */
+export function tabCount(n: number): string { return n > 99 ? '99+' : String(Math.max(0, n)); }

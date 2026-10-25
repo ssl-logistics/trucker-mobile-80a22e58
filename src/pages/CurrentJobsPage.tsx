@@ -1,4 +1,4 @@
-import { jobHasCod } from '@/lib/cod';
+import { jobHasCod, codTotal, tabCount } from "@/lib/cod";
 import React from 'react';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -213,6 +213,7 @@ export default function CurrentJobsPage() {
   const getApiLocationName = getApiLocationNameShared;
 
   // Filter states
+  const [codTab, setCodTab] = useState<"normal" | "cod">("normal");
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
   const [selectedTransportType, setSelectedTransportType] = useState<string>('all');
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -645,6 +646,7 @@ export default function CurrentJobsPage() {
             lastCheckinTime: latestCheckinByTransportId[String(job.id)] || 0,
             // Multiple destinations support
             has_cod: jobHasCod(job),
+            cod_summary: codTotal(job),
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               ...d,
               sequence: d.sequence_number || d.sequence || idx + 1,
@@ -776,6 +778,7 @@ export default function CurrentJobsPage() {
             bl_no: job.bl_no || job.bl_number || job.bill_of_lading || null,
             booking_no: job.booking_no || job.booking_number || null,
             has_cod: jobHasCod(job),
+            cod_summary: codTotal(job),
             destinations: Array.isArray(job.destinations) ? job.destinations.map((d: any, idx: number) => ({
               ...d,
               sequence: d.sequence_number || d.sequence || idx + 1,
@@ -975,6 +978,7 @@ export default function CurrentJobsPage() {
             updated_at: ticket.updated_at || ticket.created_at,
             // Multiple destinations support
             has_cod: jobHasCod(ticket),
+            cod_summary: codTotal(ticket),
             destinations: Array.isArray(ticket.destinations) ? ticket.destinations.map((d: any, idx: number) => ({
               sequence: d.sequence_number || d.sequence || idx + 1,
               location: d.district && d.province ? `${d.district}, ${d.province}` : (d.address || d.location || ''),
@@ -1100,7 +1104,7 @@ export default function CurrentJobsPage() {
   // 3. Jobs with delivery_confirmed are already filtered out during data loading
   const excludedStatuses = ['cancelled', 'closed', 'ยกเลิก', 'ปิดงาน'];
   
-  const filteredJobs = acceptedJobs.filter((job: any) => {
+  const filteredAll = acceptedJobs.filter((job: any) => {
     // Only filter out cancelled/closed jobs, NOT completed
     const jobStatus = (job.status || '').toLowerCase().trim();
     if (excludedStatuses.some(s => jobStatus.includes(s.toLowerCase()))) {
@@ -1181,6 +1185,8 @@ export default function CurrentJobsPage() {
     const dateB = parseDate(b.sender_pickup_date || b.created_at, b.sender_pickup_time);
     return dateB - dateA;
   });
+  const codCount = filteredAll.filter((j: any) => jobHasCod(j)).length;
+  const filteredJobs = filteredAll.filter((j: any) => (codTab === 'cod') === jobHasCod(j));
 
   // First visible job — target of the intro card (queue button shows on every card)
   const firstQueueJobId = !queueIntroAcked
@@ -1221,7 +1227,16 @@ export default function CurrentJobsPage() {
 
       {/* Content */}
       <div className="px-4 py-4">
-        {loading ? <JobListSkeleton count={3} /> : filteredJobs.length === 0 ? <EmptyState /> : <div className="space-y-4">
+        {loading ? <JobListSkeleton count={3} /> : <>
+        <div className="grid grid-cols-2 gap-2 mb-4 p-1 rounded-xl bg-muted">
+          {(["normal", "cod"] as const).map((k) => (
+            <button key={k} onClick={() => setCodTab(k)} className={`h-10 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition ${codTab === k ? "bg-background text-foreground shadow" : "text-muted-foreground"}`}>
+              {t(k === "cod" ? "currentJobs.tab_cod" : "currentJobs.tab_normal")}
+              <span className={`min-w-6 h-6 px-1.5 rounded-full text-xs flex items-center justify-center ${k === "cod" ? "bg-amber-100 text-amber-800" : "bg-primary/10 text-primary"}`}>{tabCount(k === "cod" ? codCount : filteredAll.length - codCount)}</span>
+            </button>
+          ))}
+        </div>
+        {filteredJobs.length === 0 ? <EmptyState /> : <div className="space-y-4">
             {filteredJobs.map(job => {
           const pickupDate = job.sender_pickup_date || '';
           const pickupTime = job.sender_pickup_time || '';
@@ -1273,6 +1288,12 @@ export default function CurrentJobsPage() {
                     )}
                     {jobHasCod(job) && (
                       <span className="inline-block ml-2 px-2 py-0.5 rounded-md text-sm font-medium bg-amber-100 text-amber-800">{t('job.cod_badge')}</span>
+                    )}
+                    {(job as any).cod_summary?.total != null && (
+                      <div className="mt-1.5 text-sm font-semibold text-amber-800">
+                        {t('job.cod_total')} ฿{(job as any).cod_summary.total.toLocaleString()}
+                        {(job as any).cod_summary.points > 1 ? ` (${(job as any).cod_summary.points} ${t('job.cod_points')})` : ''}
+                      </div>
                     )}
                     {(() => {
                       const j: any = job;
@@ -1497,6 +1518,7 @@ export default function CurrentJobsPage() {
                 </React.Fragment>;
         })}
           </div>}
+        </>}
       </div>
 
       </PullToRefresh>
