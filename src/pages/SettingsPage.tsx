@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send, Bug, Bot, Wrench } from 'lucide-react';
+import { ChevronRight, User, Truck, Bell, Globe, Info, HelpCircle, Power, Loader2, Send, Bug, Bot, Wrench, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -286,6 +286,7 @@ export default function SettingsPage() {
           path: '/vehicle-info',
           subtitle: vehiclePlate || vehicleBrand ? `${vehicleBrand} ${vehiclePlate}`.trim() : undefined
         },
+        { icon: BarChart3, label: t('settings.kpi'), path: '/kpi' },
       ]
     },
     {
