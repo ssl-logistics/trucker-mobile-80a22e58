@@ -1185,6 +1185,8 @@ export default function CurrentJobsPage() {
     const dateB = parseDate(b.sender_pickup_date || b.created_at, b.sender_pickup_time);
     return dateB - dateA;
   });
+  const codCount = filteredAll.filter((j: any) => jobHasCod(j)).length;
+  const filteredJobs = filteredAll.filter((j: any) => (codTab === 'cod') === jobHasCod(j));
 
   // First visible job — target of the intro card (queue button shows on every card)
   const firstQueueJobId = !queueIntroAcked
