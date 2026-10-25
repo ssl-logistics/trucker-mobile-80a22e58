@@ -1289,6 +1289,12 @@ export default function CurrentJobsPage() {
                     {jobHasCod(job) && (
                       <span className="inline-block ml-2 px-2 py-0.5 rounded-md text-sm font-medium bg-amber-100 text-amber-800">{t('job.cod_badge')}</span>
                     )}
+                    {(job as any).cod_summary?.total != null && (
+                      <div className="mt-1.5 text-sm font-semibold text-amber-800">
+                        {t('job.cod_total')} ฿{(job as any).cod_summary.total.toLocaleString()}
+                        {(job as any).cod_summary.points > 1 ? ` (${(job as any).cod_summary.points} ${t('job.cod_points')})` : ''}
+                      </div>
+                    )}
                     {(() => {
                       const j: any = job;
                       const isIntl = j.job_type === 'international' || !!j.bl_no || !!j.booking_no;
