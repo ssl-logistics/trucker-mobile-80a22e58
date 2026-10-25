@@ -1512,6 +1512,7 @@ export default function CurrentJobsPage() {
                 </React.Fragment>;
         })}
           </div>}
+        </>}
       </div>
 
       </PullToRefresh>
