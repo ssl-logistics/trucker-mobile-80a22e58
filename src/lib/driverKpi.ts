@@ -33,3 +33,11 @@ export function aggregateKpi(rows: KpiRow[]) {
 }
 
 export const kpiTone = (p: number | null) => (p == null ? 'none' : p >= 80 ? 'good' : p >= 50 ? 'mid' : 'bad');
+
+export const bangkokDay = (t: number) => new Date(t + 7 * 3600e3).toISOString().slice(0, 10);
+export const isSameBangkokDay = (a: number, b: number) => bangkokDay(a) === bangkokDay(b);
+export const kpiCacheKey = (who: string, range: number) => `kpiCache:${who}:${range}`;
+export const overallPct = (a: number | null, b: number | null) => {
+  const v = [a, b].filter((x): x is number => x != null);
+  return v.length ? Math.round((v.reduce((s, x) => s + x, 0) / v.length) * 100) / 100 : null;
+};

@@ -19,3 +19,17 @@ describe('aggregateKpi', () => {
     expect([kpiTone(80), kpiTone(50), kpiTone(49), kpiTone(null)]).toEqual(['good', 'mid', 'bad', 'none']);
   });
 });
+
+import { isSameBangkokDay, overallPct } from '../driverKpi';
+describe('kpi cache day', () => {
+  it('same Bangkok day reuses cache, midnight Bangkok refetches', () => {
+    const a = Date.parse('2026-10-25T17:30:00Z'); // 00:30 BKK 26th
+    expect(isSameBangkokDay(a, Date.parse('2026-10-26T10:00:00Z'))).toBe(true);
+    expect(isSameBangkokDay(Date.parse('2026-10-25T16:59:00Z'), a)).toBe(false);
+  });
+  it('overall averages non-null', () => {
+    expect(overallPct(80, 60)).toBe(70);
+    expect(overallPct(null, 40)).toBe(40);
+    expect(overallPct(null, null)).toBeNull();
+  });
+});
