@@ -91,7 +91,7 @@ export default function KpiPage() {
     <div className="min-h-screen bg-background pb-24">
       <div className="sticky top-0 z-10 bg-background border-b px-3 py-3" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}>
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate(-1)} className="p-1"><ChevronLeft className="w-6 h-6" /></button>
+          <button aria-label="Back" onClick={() => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate('/settings', { replace: true }))} className="w-11 h-11 -ml-2 flex items-center justify-center relative z-20 rounded-full active:bg-muted"><ChevronLeft className="w-6 h-6" /></button>
           <h1 className="font-semibold text-lg">{tx.title}</h1>
         </div>
         {data && <div className="text-[11px] text-muted-foreground pl-9">{tx.updated}: {new Date(data.fetchedAt).toLocaleString(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>}
