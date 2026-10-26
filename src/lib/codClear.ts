@@ -77,10 +77,27 @@ export async function submitCodClear(body: {
   const { data, error } = await supabase.functions.invoke('cod-clear-proxy', { method: 'POST', body });
   if (error) {
     let msg = error.message;
-    try { const t = await (error as any).context?.text?.(); const j = JSON.parse(t); msg = j?.error?.message || j?.message || j?.error || msg; } catch { /* noop */ }
-    return { data: null, error: { message: String(msg) } } as any;
+    let j: any = null;
+    try { const t = await (error as any).context?.text?.(); j = JSON.parse(t); } catch { /* noop */ }
+    if (j) msg = codClearErrorMessage(j) || msg;
+    return { data: j, error: { message: String(msg) } } as any;
+  }
+  if (data && (data as any).success === false) {
+    return { data, error: { message: codClearErrorMessage(data) || 'failed' } } as any;
   }
   return { data, error: null } as any;
+}
+
+/** Human-readable reason from the main server's error body (plain string or zod fieldErrors). */
+export function codClearErrorMessage(j: any): string {
+  if (!j) return '';
+  const e = j.error;
+  if (typeof e === 'string') return e;
+  if (e?.fieldErrors) {
+    return Object.entries(e.fieldErrors as Record<string, string[]>)
+      .map(([k, v]) => `${k}: ${(v || []).join(', ')}`).join(' · ');
+  }
+  return e?.message || j.message || '';
 }
 
 const CACHE_KEY = 'cod_clear_pending_v1';
