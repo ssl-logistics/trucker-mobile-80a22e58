@@ -140,38 +140,50 @@ export function codAmountMatches(entered: string | number, expected?: number | n
   return Math.round(a * 100) === Math.round(Number(expected) * 100);
 }
 
-export interface CodPoint { name?: string; amount?: number | null; payment_method?: string | null; sequence_number?: number | null; destination_id?: string | null }
-export interface CodSummaryPoint extends CodPoint { collected: boolean }
+export interface CodPoint { name?: string; amount?: number | null; payment_method?: string | null; paid_method?: string | null; no_clear_needed?: boolean | null; sequence_number?: number | null; destination_id?: string | null }
+export interface CodSummaryPoint extends CodPoint { collected: boolean; qr: boolean }
+export type CodRecordFull = CodClearRecord & { points?: CodPoint[]; clear_required_total?: number | null; qr_paid_total?: number | null; no_clear_needed?: boolean | null };
 export interface CodSummary {
-  record: CodClearRecord & { points?: CodPoint[] };
+  record: CodRecordFull;
   total: number; collected: number; outstanding: number;
+  /** Paid by QR (already in company account) — counts as collected, no clear needed. */
+  qrPaid: number;
+  /** Cash amount the driver must clear. */
+  clearRequired: number;
+  noClearNeeded: boolean;
   points: CodSummaryPoint[]; closed: boolean; canClear: boolean;
   reason: 'ready' | 'not_collected' | 'not_closed';
 }
 
 const orderKeyOf = (c: any) => c?.transport_orders?.order_number || c?.order_number || c?.transport_order_id || '';
 const isCollectCheckin = (c: any) => isCodCheckin(c) || ['payment', 'pod', 'delivery_confirmed'].includes(c?.checkin_type);
+const isQrMethod = (m?: string | null) => !!m && m.toLowerCase() !== 'cash';
 
 /** Per-order COD totals: a point counts as collected once a COD/payment check-in exists for it. */
-export function summarizeCod(record: CodClearRecord & { points?: CodPoint[] }, checkins: any[]): CodSummary {
+export function summarizeCod(record: CodRecordFull, checkins: any[]): CodSummary {
   const mine = (checkins || []).filter((c) => {
     const k = orderKeyOf(c);
     return (k === record.order_number || (record.order_id && k === record.order_id)) && isCollectCheckin(c);
   });
   const raw: CodPoint[] = record.points?.length ? record.points : [{ amount: record.expected_total ?? 0, sequence_number: null }];
   const single = raw.length === 1;
-  const points = raw.map((p) => ({
-    ...p,
-    collected: mine.some((c) => single || c.destination_sequence_number == null
-      ? single : Number(c.destination_sequence_number) === Number(p.sequence_number)),
-  }));
-  const sum = (a: CodPoint[]) => Math.round(a.reduce((s, p) => s + (Number(p.amount) || 0), 0) * 100) / 100;
+  const points = raw.map((p) => {
+    const qr = p.no_clear_needed != null ? !!p.no_clear_needed : isQrMethod(p.paid_method ?? p.payment_method);
+    const hasCi = mine.some((c) => single || c.destination_sequence_number == null
+      ? single : Number(c.destination_sequence_number) === Number(p.sequence_number));
+    return { ...p, qr, collected: hasCi || p.no_clear_needed === true };
+  });
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  const sum = (a: CodPoint[]) => r2(a.reduce((s, p) => s + (Number(p.amount) || 0), 0));
   const total = record.expected_total != null ? Number(record.expected_total) : sum(points);
   const collected = Math.min(total, sum(points.filter((p) => p.collected)));
-  const outstanding = Math.round((total - collected) * 100) / 100;
+  const outstanding = r2(total - collected);
+  const qrPaid = record.qr_paid_total != null ? Number(record.qr_paid_total) : sum(points.filter((p) => p.qr && p.collected));
+  const clearRequired = record.clear_required_total != null ? Number(record.clear_required_total) : sum(points.filter((p) => !p.qr));
+  const noClearNeeded = record.no_clear_needed != null ? !!record.no_clear_needed : points.every((p) => p.qr && p.collected);
   const closed = isClosedStatus(record.order_status);
   const reason = outstanding > 0 ? 'not_collected' : !isClearableStatus(record.order_status) ? 'not_closed' : 'ready';
-  return { record, total, collected, outstanding, points, closed, canClear: reason === 'ready' && record.status === 'pending', reason };
+  return { record, total, collected, outstanding, qrPaid, clearRequired, noClearNeeded, points, closed, canClear: !noClearNeeded && reason === 'ready' && record.status === 'pending', reason };
 }
 
 const ALL_KEY = 'cod_summary_v1';
@@ -256,8 +268,8 @@ export function mergeCodSummaries(cached: CodSummary[], fresh: CodSummary[], che
 /** Split summaries into not-yet-cleared and cleared lists. */
 export function splitCodSummaries(list: CodSummary[]): { pending: CodSummary[]; cleared: CodSummary[] } {
   return {
-    pending: list.filter((s) => s.record.status !== 'cleared'),
-    cleared: list.filter((s) => s.record.status === 'cleared'),
+    pending: list.filter((s) => s.record.status !== 'cleared' && !s.noClearNeeded),
+    cleared: list.filter((s) => s.record.status === 'cleared' || s.noClearNeeded),
   };
 }
 
