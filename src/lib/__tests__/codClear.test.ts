@@ -57,3 +57,12 @@ describe('summarizeCod', () => {
     expect(summarizeCod(rec('completed'), [ci(1), ci(2)]).canClear).toBe(true);
   });
 });
+
+import { mergeCodSummaries } from '../codClear';
+describe('mergeCodSummaries', () => {
+  const s = (on: string, collected: number) => ({ record: { order_number: on, status: 'pending' }, total: 100, collected, outstanding: 100 - collected, points: [], closed: true, canClear: false, reason: 'not_collected' }) as any;
+  it('fresh replaces cached, checked-but-cleared drops, unchecked stays', () => {
+    const r = mergeCodSummaries([s('A', 0), s('B', 0), s('C', 0)], [s('A', 100)], new Set(['A', 'B']));
+    expect(r.map((x) => [x.record.order_number, x.collected])).toEqual([['A', 100], ['C', 0]]);
+  });
+});
