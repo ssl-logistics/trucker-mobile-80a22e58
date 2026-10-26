@@ -124,7 +124,7 @@ export default function DeliveryDetailPage() {
   const [podPhotoPreview, setPodPhotoPreview] = useState<string | null>(null);
   const [isSubmittingPod, setIsSubmittingPod] = useState(false);
   const [codInfo, setCodInfo] = useState<CodInfo>({ enabled: false, amount: null, method: null });
-  const [codState, setCodState] = useState<{ ready: boolean; urls: string[]; qrPaymentId?: string }>({ ready: false, urls: [] });
+  const [codState, setCodState] = useState<{ ready: boolean; urls: string[]; qrPaymentId?: string; method?: string }>({ ready: false, urls: [] });
   const [showSignature, setShowSignature] = useState(false);
   const signatureRef = useRef<SignatureResult | null>(null);
   const [containerReturn, setContainerReturn] = useState<{
@@ -721,7 +721,7 @@ export default function DeliveryDetailPage() {
         payment_amount: codInfo.amount,
         latitude: podLatitude,
         longitude: podLongitude,
-        notes: codInfo.method === 'qr' ? 'ลูกค้าชำระผ่าน QR แล้ว' : 'ลูกค้าชำระเงินสดแล้ว',
+        notes: codState.method === 'mint_qr' ? 'ลูกค้าชำระผ่าน QR Mint แล้ว' : codState.method === 'static_qr' ? 'ลูกค้าชำระผ่าน QR โค้ก แล้ว' : 'ลูกค้าชำระเงินสดแล้ว',
         ...(codState.qrPaymentId ? { qr_payment_id: codState.qrPaymentId } : {}),
         cod_proof_urls: codState.urls,
         ...(isMultiDestination && destination?.sequence_number ? { destination_sequence_number: destination.sequence_number } : {}),
@@ -1185,7 +1185,7 @@ export default function DeliveryDetailPage() {
             storageKey={`cod_proof_${job.order_code}_${isMultiDestination ? destination?.sequence_number ?? 1 : 0}`}
             filenamePrefix={`${user?.id}-${job.order_code}`}
             readOnly={isFromHistory}
-            onChange={(s) => setCodState({ ready: s.ready, urls: s.urls, qrPaymentId: s.qrConfirmed ? s.qr?.paymentId : undefined })}
+            onChange={(s) => setCodState({ ready: s.ready, urls: s.urls, qrPaymentId: s.method === 'mint_qr' && s.qrConfirmed ? s.qr?.paymentId : undefined, method: s.method })}
           />
         )}
 
