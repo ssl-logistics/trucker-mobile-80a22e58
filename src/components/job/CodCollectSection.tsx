@@ -33,12 +33,28 @@ interface Props {
   onChange: (s: CodState & { ready: boolean }) => void;
 }
 
+/** Texts for the "already paid, don't close yet" warning on the step popup */
+export const COD_CLOSE_TXT: Record<string, { title: string; body: string; stay: string; leave: string }> = {
+  th: { title: 'ลูกค้าชำระแล้ว', body: 'ลูกค้าชำระผ่าน QR Mint แล้ว กรุณาแนบหลักฐานและยืนยันให้ครบก่อน ถ้าปิดไปก่อน ระบบจะจำสถานะไว้ให้', stay: 'อยู่ต่อ', leave: 'ปิดไปก่อน' },
+  en: { title: 'Customer has paid', body: 'The customer already paid via Mint QR. Please finish the proof and confirm first. If you close now, the status is kept.', stay: 'Stay', leave: 'Close anyway' },
+  zh: { title: '客户已付款', body: '客户已通过 Mint 二维码付款，请先完成凭证并确认。现在关闭也会保留状态。', stay: '留下', leave: '仍然关闭' },
+  ko: { title: '고객 결제 완료', body: '고객이 Mint QR로 결제했습니다. 증빙과 확인을 먼저 완료하세요. 지금 닫아도 상태는 유지됩니다.', stay: '계속하기', leave: '그래도 닫기' },
+};
+
+/** Restore saved COD state; the tab always restarts from the job's own method unless Mint QR is already paid. */
+function loadCodState(key: string): CodState {
+  try {
+    const s = JSON.parse(localStorage.getItem(key) || '') as CodState;
+    return { ...s, urls: s.urls || [], method: s.qrConfirmed ? 'mint_qr' : undefined };
+  } catch { return { qrConfirmed: false, urls: [] }; }
+}
+
 export default function CodCollectSection({ cod, storageKey, filenamePrefix, readOnly, onChange }: Props) {
   const tx = useCodText();
   const { isNative, takePhoto, selectFromGallery } = useNativeCamera();
-  const [state, setState] = useState<CodState>(() => {
-    try { return JSON.parse(localStorage.getItem(storageKey) || '') as CodState; } catch { return { qrConfirmed: false, urls: [] }; }
-  });
+  const [state, setState] = useState<CodState>(() => loadCodState(storageKey));
+  const keyRef = useRef(storageKey);
+  const locked = !!state.qrConfirmed;
   const [uploading, setUploading] = useState(false);
   const camRef = useRef<HTMLInputElement>(null);
   const galRef = useRef<HTMLInputElement>(null);
@@ -96,9 +112,15 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
   }, [qrOpen, state.qr?.paymentId, state.qrConfirmed, expired]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (keyRef.current !== storageKey) {
+      // Key changed (data finished loading): load that slot instead of overwriting it with current state
+      keyRef.current = storageKey;
+      setState(loadCodState(storageKey));
+      return;
+    }
     try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch { /* noop */ }
     onChange({ ...state, method, ready: needQr ? (state.qrConfirmed || state.urls.length > 0) : state.urls.length > 0 });
-  }, [state, method]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state, method, storageKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const upload = async (files: File[]) => {
     if (!files.length) return;
