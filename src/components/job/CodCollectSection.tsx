@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Banknote, Camera, ImageIcon, Loader2, QrCode, X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { compressImage } from '@/utils/imageCompression';
 import { useNativeCamera } from '@/hooks/useNativeCamera';
@@ -40,13 +39,12 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
   const [state, setState] = useState<CodState>(() => {
     try { return JSON.parse(localStorage.getItem(storageKey) || '') as CodState; } catch { return { qrConfirmed: false, urls: [] }; }
   });
-  const [qrOpen, setQrOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const camRef = useRef<HTMLInputElement>(null);
   const galRef = useRef<HTMLInputElement>(null);
   const method: CodMethod = state.method || (cod.method === 'qr' ? 'mint_qr' : 'cash');
   const needQr = method === 'mint_qr';
-  const [staticOpen, setStaticOpen] = useState(false);
+  const qrOpen = needQr && !readOnly;
   const [creating, setCreating] = useState(false);
   const [now, setNow] = useState(Date.now());
   const left = secondsLeft(state.qr?.expiresAt, now);
@@ -64,9 +62,13 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
     } finally { setCreating(false); }
   };
   const openQr = () => {
-    setQrOpen(true);
     if (!state.qr || secondsLeft(state.qr.expiresAt) === 0) makeQr();
   };
+
+  // auto-create the QR when Mint QR is shown
+  useEffect(() => {
+    if (qrOpen && !state.qrConfirmed && !state.qr && !creating) makeQr();
+  }, [qrOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // countdown tick
   useEffect(() => {
@@ -84,7 +86,7 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
       try {
         const r = await checkCodQr(pid);
         fails = 0;
-        if (r.paid) { setState((s) => ({ ...s, qrConfirmed: true })); setQrOpen(false); }
+        if (r.paid) { setState((s) => ({ ...s, qrConfirmed: true })); }
       } catch {
         fails += 1;
         if (fails >= 3) { setState((s) => ({ ...s, qrFailed: true })); }
