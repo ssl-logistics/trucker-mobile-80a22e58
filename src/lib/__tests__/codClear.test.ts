@@ -109,3 +109,19 @@ describe('splitCodSummaries', () => {
     expect(r.cleared[0].record.cleared_amount).toBe(120);
   });
 });
+
+describe('QR-paid points need no clearing', () => {
+  const { summarizeCod, splitCodSummaries } = require('@/lib/codClear');
+  it('all-QR order needs no clear and counts as collected', () => {
+    const s = summarizeCod({ order_number: 'A', status: 'pending', order_status: 'closed', expected_total: 2, qr_paid_total: 2, clear_required_total: 0, no_clear_needed: true,
+      points: [{ sequence_number: 1, amount: 2, payment_method: 'qr', paid_method: 'mint_qr', no_clear_needed: true }] }, []);
+    expect(s.canClear).toBe(false); expect(s.collected).toBe(2); expect(s.qrPaid).toBe(2);
+    expect(splitCodSummaries([s]).pending.length).toBe(0);
+  });
+  it('mixed order clears only the cash amount', () => {
+    const s = summarizeCod({ order_number: 'B', status: 'pending', order_status: 'closed', expected_total: 3, qr_paid_total: 2, clear_required_total: 1, no_clear_needed: false,
+      points: [{ sequence_number: 1, amount: 1, payment_method: 'cash', paid_method: 'cash', no_clear_needed: false }, { sequence_number: 2, amount: 2, payment_method: 'qr', paid_method: 'mint_qr', no_clear_needed: true }] },
+      [{ order_number: 'B', checkin_type: 'payment', destination_sequence_number: 1 }]);
+    expect(s.clearRequired).toBe(1); expect(s.qrPaid).toBe(2); expect(s.collected).toBe(3); expect(s.canClear).toBe(true);
+  });
+});
