@@ -1299,6 +1299,7 @@ export default function DeliveryDetailPage() {
                 method: codPaid?.method || local?.method || (local?.qrConfirmed ? 'mint_qr' : null),
                 urls: codPaid?.urls?.length ? codPaid.urls : (local?.urls || []),
                 at: codPaid?.at || null,
+                ref: codPaid?.ref || (local?.qrConfirmed ? local?.qr?.paymentId : null) || null,
               } : null;
               return <CodPaidSummary cod={codInfo} paid={paid} formatTime={(t) => formatDateTime(t, language)} />;
             })()}
