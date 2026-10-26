@@ -1,7 +1,11 @@
-import { ReactNode, Suspense, useEffect, useRef, useState } from 'react';
+import { ReactNode, Suspense, createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Routes, useLocation, useNavigate, type Location } from 'react-router-dom';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Loader2, X } from 'lucide-react';
+
+/** True when a step page is rendered inside the job-step popup */
+export const StepModalContext = createContext(false);
+export const useInStepModal = () => useContext(StepModalContext);
 
 const JOB_RE = /^\/job\/([^/]+)$/;
 const STEP_RE = /^\/job\/([^/]+)\/.+/;
@@ -49,7 +53,7 @@ export default function JobStepRoutes({ children, steps }: { children: ReactNode
               <X className="h-5 w-5" />
             </button></div>
             <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
-              <Routes location={location}>{steps}</Routes>
+              <StepModalContext.Provider value={true}><Routes location={location}>{steps}</Routes></StepModalContext.Provider>
             </Suspense>
           </DialogContent>
         </Dialog>

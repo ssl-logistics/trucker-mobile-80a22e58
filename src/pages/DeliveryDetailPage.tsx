@@ -16,6 +16,7 @@ import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates, updateOrderStatus } from '@/lib/externalApi';
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
+import { useInStepModal } from '@/components/layout/JobStepRoutes';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
 import SignatureDialog, { type SignatureResult } from '@/components/job/SignatureDialog';
@@ -106,6 +107,7 @@ interface JobApplication {
 
 export default function DeliveryDetailPage() {
   const navigate = useNavigate();
+  const inStepModal = useInStepModal();
   const location = useLocation();
   const { jobId, destinationId } = useParams();
   const { user } = useAuth();
@@ -1080,7 +1082,13 @@ export default function DeliveryDetailPage() {
         description: t('delivery.checkInSuccessMessage'),
       });
       setShowConfirmDialog(false);
-      
+
+      if (inStepModal) {
+        // Opened as a popup from the job page: close it right away; the job page shows the new status
+        const backRoute = (location.state as any)?.isBidJob ? `/bid-job/${encodeURIComponent(job.order_code)}` : `/job/${encodeURIComponent(job.order_code)}`;
+        navigate(backRoute, { state: { jobData: (location.state as any)?.jobData || job, isBidJob: (location.state as any)?.isBidJob }, replace: true });
+        return;
+      }
       // Reload current page to show POD section
       loadJobDetail();
     } catch (error) {
