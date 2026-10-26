@@ -575,6 +575,7 @@ export default function DeliveryDetailPage() {
                   setCodPaid({
                     amount: Number.isFinite(amt) && payCi.payment_amount != null ? amt : null,
                     method: payCi.cod_method || null,
+                    ref: payCi.cod_reference || payCi.qr_payment_id || null,
                     urls: Array.isArray(payCi.cod_proof_urls) ? payCi.cod_proof_urls : (payCi.photo_url ? [payCi.photo_url] : []),
                     at: payCi.checkin_time || payCi.checked_in_at || payCi.created_at || null,
                   });
@@ -745,7 +746,7 @@ export default function DeliveryDetailPage() {
         latitude: podLatitude,
         longitude: podLongitude,
         notes: codState.method === 'mint_qr' ? 'ลูกค้าชำระผ่าน QR Mint แล้ว' : codState.method === 'static_qr' ? 'ลูกค้าชำระผ่าน QR โค้ก แล้ว' : 'ลูกค้าชำระเงินสดแล้ว',
-        ...(codState.qrPaymentId ? { qr_payment_id: codState.qrPaymentId } : {}),
+        ...(codState.qrPaymentId ? { qr_payment_id: codState.qrPaymentId, cod_reference: codState.qrPaymentId.slice(0, 200) } : {}),
         cod_method: (codState.method as 'cash' | 'static_qr' | 'mint_qr') || 'cash',
         cod_proof_urls: codState.urls,
         ...(isMultiDestination && destination?.sequence_number ? { destination_sequence_number: destination.sequence_number } : {}),
@@ -1298,6 +1299,7 @@ export default function DeliveryDetailPage() {
                 method: codPaid?.method || local?.method || (local?.qrConfirmed ? 'mint_qr' : null),
                 urls: codPaid?.urls?.length ? codPaid.urls : (local?.urls || []),
                 at: codPaid?.at || null,
+                ref: codPaid?.ref || (local?.qrConfirmed ? local?.qr?.paymentId : null) || null,
               } : null;
               return <CodPaidSummary cod={codInfo} paid={paid} formatTime={(t) => formatDateTime(t, language)} />;
             })()}

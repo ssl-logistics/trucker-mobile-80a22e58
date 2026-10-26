@@ -102,7 +102,7 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
       try {
         const r = await checkCodQr(pid);
         fails = 0;
-        if (r.paid) { setState((s) => ({ ...s, qrConfirmed: true })); }
+        if (r.paid) { setState((s) => ({ ...s, qrConfirmed: true, qr: s.qr ? { ...s.qr, paymentId: r.paymentId } : s.qr })); }
       } catch {
         fails += 1;
         if (fails >= 3) { setState((s) => ({ ...s, qrFailed: true })); }
@@ -185,7 +185,7 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
 
       {needQr && !readOnly && (
         state.qrConfirmed ? (
-          <div className="flex items-center gap-2 text-sm text-primary"><CheckCircle2 className="w-4 h-4" />{tx.qrDone}</div>
+          <div className="flex items-center gap-2 text-sm text-primary"><CheckCircle2 className="w-4 h-4 shrink-0" /><span>{tx.qrDone}{state.qr?.paymentId && <span className="block text-xs text-muted-foreground break-all">Ref: {state.qr.paymentId}</span>}</span></div>
         ) : (
           <div className="flex flex-col items-center gap-3">
             {creating ? (

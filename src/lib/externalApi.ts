@@ -285,6 +285,7 @@ export async function driverCheckin(body: {
   cod_proof_url?: string;
   cod_proof_urls?: string[];
   cod_method?: 'cash' | 'static_qr' | 'mint_qr';
+  cod_reference?: string;
 }) {
   // Map driver_id to the correct field based on driver_type
   const { driver_id, driver_type, container_number, seal_number, container_number_2, seal_number_2, ...restBody } = body;
