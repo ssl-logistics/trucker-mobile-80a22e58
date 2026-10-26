@@ -2,10 +2,16 @@ import { ReactNode, Suspense, createContext, useContext, useEffect, useRef, useS
 import { Routes, useLocation, useNavigate, type Location } from 'react-router-dom';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Loader2, X } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 /** True when a step page is rendered inside the job-step popup */
 export const StepModalContext = createContext(false);
 export const useInStepModal = () => useContext(StepModalContext);
+
+export type CloseGuard = { title: string; body: string; stay: string; leave: string } | null;
+const CloseGuardContext = createContext<((g: CloseGuard) => void) | null>(null);
+/** Step pages call the returned setter to ask for confirmation before the popup closes. Null outside the popup. */
+export const useStepCloseGuard = () => useContext(CloseGuardContext);
 
 const JOB_RE = /^\/job\/([^/]+)$/;
 const STEP_RE = /^\/job\/([^/]+)\/.+/;
@@ -35,7 +41,17 @@ export default function JobStepRoutes({ children, steps }: { children: ReactNode
     else if (wasSheet.current) { wasSheet.current = false; setReloadKey((k) => k + 1); }
   }, [isSheet]);
 
+  const guardRef = useRef<CloseGuard>(null);
+  const [setGuard] = useState(() => (g: CloseGuard) => { guardRef.current = g; });
+  const [confirm, setConfirm] = useState<CloseGuard>(null);
+  const forceClose = () => {
+    guardRef.current = null;
+    setConfirm(null);
+    const b = bgRef.current;
+    if (b) navigate(b.pathname + b.search, { state: b.state, replace: true });
+  };
   const close = () => {
+    if (guardRef.current) { setConfirm(guardRef.current); return; }
     const b = bgRef.current;
     if (b) navigate(b.pathname + b.search, { state: b.state, replace: true });
   };
@@ -53,11 +69,23 @@ export default function JobStepRoutes({ children, steps }: { children: ReactNode
               <X className="h-5 w-5" />
             </button></div>
             <Suspense fallback={<div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
-              <StepModalContext.Provider value={true}><Routes location={location}>{steps}</Routes></StepModalContext.Provider>
+              <StepModalContext.Provider value={true}><CloseGuardContext.Provider value={setGuard}><Routes location={location}>{steps}</Routes></CloseGuardContext.Provider></StepModalContext.Provider>
             </Suspense>
           </DialogContent>
         </Dialog>
       )}
+      <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
+        <AlertDialogContent className="w-[90vw] max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirm?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirm?.body}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setConfirm(null)}>{confirm?.stay}</AlertDialogAction>
+            <AlertDialogCancel onClick={forceClose}>{confirm?.leave}</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
