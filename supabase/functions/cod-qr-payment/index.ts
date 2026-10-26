@@ -9,7 +9,7 @@ const SHOP_ID = Deno.env.get('SAHAPHAN_SHOP_ID') || '24257929-346e-415c-a6e0-e64
 const API_URL = 'https://qbamcmcbmmmsdkzebtbw.supabase.co/functions/v1/public-payment-api';
 
 const Body = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('create'), amount: z.number().positive().max(1_000_000), reference: z.string().max(100).optional(), qr_provider: z.enum(['thai_qr', 'bot_qr']).optional() }),
+  z.object({ action: z.literal('create'), amount: z.number().positive().max(1_000_000), reference: z.string().max(100).optional(), qr_provider: z.enum(['thai_qr', 'bot_qr']).optional(), shop: z.enum(['test', 'live', 'default']).optional() }),
   z.object({ action: z.literal('status'), payment_id: z.string().min(1).max(100) }),
 ]);
 
@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   if (!parsed.success) return json({ success: false, error: parsed.error.flatten().fieldErrors }, 400);
   const p = parsed.data;
   const payload = p.action === 'create'
-    ? { action: 'create_and_process', amount: Math.round(p.amount * 100) / 100, payment_method: 'qr_code', qr_provider: p.qr_provider ?? 'bot_qr', shop_id: SHOP_ID, description: 'COD', reference: p.reference }
+    ? { action: 'create_and_process', amount: Math.round(p.amount * 100) / 100, payment_method: 'qr_code', qr_provider: p.qr_provider ?? 'bot_qr', ...(p.shop === 'default' ? {} : { shop_id: p.shop === 'live' ? '581c4aa6-cd23-432d-a60e-748111e0514a' : SHOP_ID }), description: 'COD', reference: p.reference }
     : { action: 'status', payment_id: p.payment_id };
 
   try {
@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
       expires_at: (typeof qr === 'object' ? qr?.expires_at : null) ?? data?.expires_at ?? null,
       error: r.ok ? undefined : (data?.error?.message || data?.error || data?.message || 'error'),
       request_id: data?.request_id,
+      detail: r.ok ? undefined : (data?.details ?? data?.error?.details ?? data),
     };
     return json(out, r.ok ? 200 : r.status);
   } catch (e) {
