@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   if (!parsed.success) return json({ success: false, error: parsed.error.flatten().fieldErrors }, 400);
   const p = parsed.data;
   const payload = p.action === 'create'
-    ? { action: 'create_and_process', amount: Math.round(p.amount * 100) / 100, payment_method: 'qr', qr_provider: p.qr_provider ?? 'bot_qr', ...(p.shop === 'default' ? {} : { shop_id: p.shop === 'live' ? '581c4aa6-cd23-432d-a60e-748111e0514a' : SHOP_ID }), description: 'COD', reference: p.reference }
+    ? { action: 'create_and_process', amount: Math.round(p.amount * 100) / 100, payment_method: 'qr', qr_provider: p.qr_provider ?? 'bot_qr', ...(p.shop === 'default' ? {} : { shop_id: p.shop === 'test' ? SHOP_ID : '581c4aa6-cd23-432d-a60e-748111e0514a' }), description: 'COD', reference: p.reference }
     : { action: 'status', payment_id: p.payment_id };
 
   try {
@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
       http_status: r.status,
       payment_id: data?.payment_id ?? d?.payment_id ?? (p.action === 'status' ? p.payment_id : null),
       status: data?.status ?? d?.status ?? null,
+      payment_status: d?.paymentStatus ?? data?.kbank_status ?? null,
       qr_image_url: d?.qrCodeUrl ?? (d?.qrImgBase64 ? `data:image/png;base64,${d.qrImgBase64}` : null) ?? (typeof qr === 'object' ? qr?.qr_image_url ?? null : null),
       qr_raw_data: d?.qrCode ?? (typeof qr === 'object' ? qr?.qr_raw_data ?? null : (typeof qr === 'string' ? qr : null)),
       expires_at: exp ?? (typeof qr === 'object' ? qr?.expires_at : null) ?? data?.expires_at ?? null,
