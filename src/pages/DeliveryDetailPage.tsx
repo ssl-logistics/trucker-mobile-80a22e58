@@ -18,6 +18,7 @@ import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAc
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
 import { useInStepModal, useStepCloseGuard } from '@/components/layout/JobStepRoutes';
 import { COD_CLOSE_TXT } from '@/components/job/CodCollectSection';
+import CodPaidSummary, { type CodPaid } from '@/components/job/CodPaidSummary';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
 import SignatureDialog, { type SignatureResult } from '@/components/job/SignatureDialog';
@@ -129,6 +130,7 @@ export default function DeliveryDetailPage() {
   const [codInfo, setCodInfo] = useState<CodInfo>({ enabled: false, amount: null, method: null });
   const [codState, setCodState] = useState<{ ready: boolean; urls: string[]; qrPaymentId?: string; method?: string }>({ ready: false, urls: [] });
   const [showSignature, setShowSignature] = useState(false);
+  const [codPaid, setCodPaid] = useState<CodPaid | null>(null);
   // Warn before closing the step popup when the customer already paid via Mint QR but the stop isn't confirmed yet
   const setCloseGuard = useStepCloseGuard();
   const mintPaidPending = !!codState.qrPaymentId && !isSubmittingPod;
@@ -567,6 +569,16 @@ export default function DeliveryDetailPage() {
                 deliveryConfirmedTime = deliveryConfirmed?.checkin_time || deliveryConfirmed?.checked_in_at || deliveryConfirmed?.created_at || null;
                 deliveryConfirmedPhotoUrl = deliveryConfirmed?.photo_url || null;
                 deliveryConfirmedPaymentMethod = deliveryConfirmed?.payment_method || null;
+                const payCi: any = filteredCheckins.find((c: any) => c.checkin_type === 'payment' && (c.destination_sequence_number != null ? c.destination_sequence_number === currentSequenceNumber : currentSequenceNumber === 1));
+                if (payCi) {
+                  const amt = Number(payCi.payment_amount);
+                  setCodPaid({
+                    amount: Number.isFinite(amt) && payCi.payment_amount != null ? amt : null,
+                    method: payCi.cod_method || null,
+                    urls: Array.isArray(payCi.cod_proof_urls) ? payCi.cod_proof_urls : (payCi.photo_url ? [payCi.photo_url] : []),
+                    at: payCi.checkin_time || payCi.checked_in_at || payCi.created_at || null,
+                  });
+                }
                 deliveryConfirmedDriverId = deliveryConfirmed?.internal_driver_id || deliveryConfirmed?.external_driver_id || deliveryConfirmed?.freelance_driver_id || deliveryConfirmed?.driver_id || null;
                 console.log('Delivery confirmed for sequence', currentSequenceNumber, ':', deliveryConfirmed ? 'found' : 'not found');
               }
@@ -1276,6 +1288,19 @@ export default function DeliveryDetailPage() {
                 {formatDateTime(jobApplication.delivery_sop_completed_at, language)}
               </span>
             </div>
+
+            {codInfo.enabled && job && (() => {
+              // Fill gaps from the locally saved COD box state (method / photos)
+              let local: any = null;
+              try { local = JSON.parse(localStorage.getItem(`cod_proof_${job.order_code}_${destinationId ?? (isMultiDestination ? destination?.sequence_number ?? 1 : 0)}`) || 'null'); } catch { /* noop */ }
+              const paid: CodPaid | null = codPaid || local ? {
+                amount: codPaid?.amount ?? null,
+                method: codPaid?.method || local?.method || (local?.qrConfirmed ? 'mint_qr' : null),
+                urls: codPaid?.urls?.length ? codPaid.urls : (local?.urls || []),
+                at: codPaid?.at || null,
+              } : null;
+              return <CodPaidSummary cod={codInfo} paid={paid} formatTime={(t) => formatDateTime(t, language)} />;
+            })()}
 
             {/* Payment Info - only show for freelance drivers */}
             {canViewPrice && (
