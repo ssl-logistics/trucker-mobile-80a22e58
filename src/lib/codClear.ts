@@ -208,7 +208,7 @@ export async function fetchCodSummaries(driverId: string, driverType: DriverType
       const rec = await getCodClear(r).catch(() => null);
       if (!rec || rec.status !== 'pending') return null;
       const c: any = await getDriverCheckins(driverId, driverType, rec.order_number, { allDrivers: true }).catch(() => null);
-      return summarizeCod(rec as any, c?.data?.data || []);
+      return summarizeCod(rec as any, (c?.data?.data || []).map((x: any) => ({ ...x, order_number: rec.order_number })));
     }));
     slice.forEach((r) => checked.add(String(r.order_number || r.order_id)));
     for (const s of res) if (s && !seen.has(s.record.order_number)) { seen.add(s.record.order_number); out.push(s); }
