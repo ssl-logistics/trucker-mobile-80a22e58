@@ -40,3 +40,20 @@ describe('codClear', () => {
     expect(codAmountMatches('', 120)).toBe(false);
   });
 });
+
+import { summarizeCod } from '../codClear';
+describe('summarizeCod', () => {
+  const rec = (order_status: string) => ({ order_number: 'OR1', status: 'pending', order_status, expected_total: 1200,
+    points: [{ amount: 500, sequence_number: 1 }, { amount: 700, sequence_number: 2 }] });
+  const ci = (seq: number) => ({ order_number: 'OR1', checkin_type: 'delivery', payment_method: 'cod', destination_sequence_number: seq });
+  it('partly collected: outstanding 700, cannot clear', () => {
+    const s = summarizeCod(rec('completed'), [ci(1)]);
+    expect([s.total, s.collected, s.outstanding, s.canClear, s.reason]).toEqual([1200, 500, 700, false, 'not_collected']);
+  });
+  it('all collected but job open: cannot clear', () => {
+    expect(summarizeCod(rec('in_transit'), [ci(1), ci(2)]).reason).toBe('not_closed');
+  });
+  it('all collected and closed: can clear', () => {
+    expect(summarizeCod(rec('completed'), [ci(1), ci(2)]).canClear).toBe(true);
+  });
+});

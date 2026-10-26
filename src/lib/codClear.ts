@@ -112,3 +112,69 @@ export function codAmountMatches(entered: string | number, expected?: number | n
   if (!Number.isFinite(a)) return false;
   return Math.round(a * 100) === Math.round(Number(expected) * 100);
 }
+
+export interface CodPoint { name?: string; amount?: number | null; payment_method?: string | null; sequence_number?: number | null; destination_id?: string | null }
+export interface CodSummaryPoint extends CodPoint { collected: boolean }
+export interface CodSummary {
+  record: CodClearRecord & { points?: CodPoint[] };
+  total: number; collected: number; outstanding: number;
+  points: CodSummaryPoint[]; closed: boolean; canClear: boolean;
+  reason: 'ready' | 'not_collected' | 'not_closed';
+}
+
+const orderKeyOf = (c: any) => c?.transport_orders?.order_number || c?.order_number || c?.transport_order_id || '';
+const isCollectCheckin = (c: any) => isCodCheckin(c) || ['payment', 'pod', 'delivery_confirmed'].includes(c?.checkin_type);
+
+/** Per-order COD totals: a point counts as collected once a COD/payment check-in exists for it. */
+export function summarizeCod(record: CodClearRecord & { points?: CodPoint[] }, checkins: any[]): CodSummary {
+  const mine = (checkins || []).filter((c) => {
+    const k = orderKeyOf(c);
+    return (k === record.order_number || (record.order_id && k === record.order_id)) && isCollectCheckin(c);
+  });
+  const raw: CodPoint[] = record.points?.length ? record.points : [{ amount: record.expected_total ?? 0, sequence_number: null }];
+  const single = raw.length === 1;
+  const points = raw.map((p) => ({
+    ...p,
+    collected: mine.some((c) => single || c.destination_sequence_number == null
+      ? single : Number(c.destination_sequence_number) === Number(p.sequence_number)),
+  }));
+  const sum = (a: CodPoint[]) => Math.round(a.reduce((s, p) => s + (Number(p.amount) || 0), 0) * 100) / 100;
+  const total = record.expected_total != null ? Number(record.expected_total) : sum(points);
+  const collected = Math.min(total, sum(points.filter((p) => p.collected)));
+  const outstanding = Math.round((total - collected) * 100) / 100;
+  const closed = isClosedStatus(record.order_status);
+  const reason = outstanding > 0 ? 'not_collected' : !closed ? 'not_closed' : 'ready';
+  return { record, total, collected, outstanding, points, closed, canClear: reason === 'ready' && record.status === 'pending', reason };
+}
+
+const ALL_KEY = 'cod_summary_v1';
+export function readSummaryCache(driverId: string): CodSummary[] | null {
+  try { const c = JSON.parse(localStorage.getItem(ALL_KEY) || 'null'); if (c?.driverId === driverId) return c.items; } catch { /* noop */ }
+  return null;
+}
+
+/** Every order with COD (open or closed) not yet cleared, from the last 30 days of check-ins. */
+export async function fetchCodSummaries(driverId: string, driverType: DriverType): Promise<CodSummary[]> {
+  const { data } = await getDriverCheckins(driverId, driverType, 'all', { limit: 2000 });
+  const checkins: any[] = data?.data || [];
+  const cutoff = Date.now() - 30 * 86400000;
+  const refs = new Map<string, CodOrderRef>();
+  for (const c of checkins) {
+    const t = new Date(c.checked_in_at || c.created_at || 0).getTime();
+    if (t && t < cutoff) continue;
+    const on = c.transport_orders?.order_number || c.order_number;
+    const key = on || c.transport_order_id;
+    if (key && !refs.has(key)) refs.set(key, on ? { order_number: on } : { order_id: c.transport_order_id });
+  }
+  const list = [...refs.values()];
+  const recs: Array<CodClearRecord | null> = [];
+  for (let i = 0; i < list.length; i += 6) recs.push(...await Promise.all(list.slice(i, i + 6).map((r) => getCodClear(r).catch(() => null))));
+  const seen = new Set<string>();
+  const out = recs.filter((r): r is CodClearRecord => !!r && r.status === 'pending' && !seen.has(r.order_number) && !!seen.add(r.order_number))
+    .map((r) => summarizeCod(r as any, checkins));
+  try {
+    localStorage.setItem(ALL_KEY, JSON.stringify({ driverId, items: out }));
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ driverId, items: out.filter((s) => s.canClear).map((s) => s.record), at: Date.now() }));
+  } catch { /* noop */ }
+  return out;
+}
