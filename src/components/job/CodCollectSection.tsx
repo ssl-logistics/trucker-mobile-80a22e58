@@ -144,7 +144,7 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
             {([['cash', tx.mCash], ['mint_qr', tx.mMint], ['static_qr', tx.mStatic]] as [CodMethod, string][]).map(([m, l]) => (
               <button key={m} type="button" onClick={() => {
                 setState((s) => ({ ...s, method: m }));
-                if (m === 'mint_qr' && !state.qrConfirmed) openQr();
+                if (m === 'mint_qr' && !state.qrConfirmed && state.qr && secondsLeft(state.qr.expiresAt) === 0) makeQr();
               }}
                 className={`h-10 rounded-md text-sm font-medium transition-colors ${method === m ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground'}`}>{l}</button>
             ))}
