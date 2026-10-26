@@ -64,6 +64,7 @@ export default function CodClearPage() {
   const T = TAB_TXT[language] || TAB_TXT.th;
   const all = tab === 'pending' ? pendingList : cleared;
   const tot = all.reduce((a, s) => ({ t: a.t + s.total, c: a.c + s.collected, o: a.o + s.outstanding }), { t: 0, c: 0, o: 0 });
+  const clearedSum = Math.round(cleared.reduce((a, s) => a + (Number(s.record.cleared_amount ?? s.collected) || 0), 0) * 100) / 100;
   const fmtDate = (d?: string | null) => { if (!d) return ''; const x = new Date(d); return isNaN(x.getTime()) ? '' : x.toLocaleString(language === 'th' ? 'th-TH' : language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' }); };
 
   return (
@@ -92,7 +93,14 @@ export default function CodClearPage() {
           })}
         </div>
         <>
-            <div className="grid grid-cols-3 gap-2">
+            {tab === 'cleared' ? (
+              <div className="bg-card rounded-xl p-4 shadow-sm border text-center">
+                <div className="text-sm text-muted-foreground">{T.total}</div>
+                {!loaded && all.length === 0
+                  ? <div className="h-8 mt-1 mx-auto w-24 rounded bg-muted animate-pulse" />
+                  : <div className="text-2xl font-bold text-green-600">฿{fmt(clearedSum)}</div>}
+              </div>
+            ) : <div className="grid grid-cols-3 gap-2">
               {[[S.total, tot.t, 'text-foreground'], [S.collected, tot.c, 'text-green-600'], [S.outstanding, tot.o, tot.o > 0 ? 'text-destructive' : 'text-foreground']].map(([l, v, c]) => (
                 <div key={String(l)} className="bg-card rounded-xl p-3 shadow-sm border text-center">
                   <div className="text-xs text-muted-foreground">{l}</div>
@@ -101,7 +109,7 @@ export default function CodClearPage() {
                     : <div className={`text-lg font-bold ${c}`}>฿{fmt(v as number)}</div>}
                 </div>
               ))}
-            </div>
+            </div>}
             {tab === 'pending' && <div className="bg-card rounded-xl p-4 shadow-sm ring-1 ring-primary/20 space-y-2">
               <div className="flex items-center gap-2 font-semibold text-foreground"><Info className="w-4 h-4 text-primary" />{tx.howTitle}</div>
               <ol className="list-decimal pl-5 text-sm text-muted-foreground space-y-1">
