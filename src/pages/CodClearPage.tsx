@@ -87,16 +87,16 @@ export default function CodClearPage() {
                 </div>
               ))}
             </div>
-            <div className="bg-card rounded-xl p-4 shadow-sm ring-1 ring-primary/20 space-y-2">
+            {tab === 'pending' && <div className="bg-card rounded-xl p-4 shadow-sm ring-1 ring-primary/20 space-y-2">
               <div className="flex items-center gap-2 font-semibold text-foreground"><Info className="w-4 h-4 text-primary" />{tx.howTitle}</div>
               <ol className="list-decimal pl-5 text-sm text-muted-foreground space-y-1">
                 <li>{tx.how1}</li><li>{S.how2}</li><li>{tx.how3}</li>
               </ol>
-            </div>
+            </div>}
             {loaded && !loading && all.length === 0 && (
               <div className="flex flex-col items-center gap-3 py-10 text-muted-foreground">
                 <CheckCircle2 className="w-12 h-12 text-primary/60" />
-                <p className="text-base">{S.none}</p>
+                <p className="text-base">{tab === 'pending' ? T.nonePending : T.noneCleared}</p>
               </div>
             )}
             {!loaded && loading && Array.from({ length: all.length ? 1 : 2 }).map((_, i) => (
@@ -106,17 +106,21 @@ export default function CodClearPage() {
                 <div className="h-3 w-full rounded bg-muted" />
               </div>
             ))}
-            {all.map((s) => (
-              <div key={s.record.order_number} className={`bg-card rounded-xl p-4 shadow-md border-2 space-y-3 ${s.canClear ? 'border-green-500/50' : 'border-destructive/30'}`}>
+            {all.map((s) => {
+              const done = s.record.status === 'cleared';
+              return (
+              <div key={s.record.order_number} className={`bg-card rounded-xl p-4 shadow-md border-2 space-y-3 ${done || s.canClear ? 'border-green-500/50' : 'border-destructive/30'}`}>
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-foreground truncate">{s.record.order_number}</div>
-                    <span className={`inline-block mt-1 text-xs rounded-full px-2 py-0.5 ${s.closed ? 'bg-muted text-foreground' : 'bg-primary/10 text-primary'}`}>{s.closed ? S.closed : S.running}</span>
+                    {done
+                      ? <span className="inline-flex items-center gap-1 mt-1 text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700"><CheckCircle2 className="w-3 h-3" />{T.cleared}</span>
+                      : <span className={`inline-block mt-1 text-xs rounded-full px-2 py-0.5 ${s.closed ? 'bg-muted text-foreground' : 'bg-primary/10 text-primary'}`}>{s.closed ? S.closed : S.running}</span>}
                   </div>
-                  <button aria-label={tx.confirm} disabled={!s.canClear} onClick={() => setSelected(s.record)}
+                  {!done && <button aria-label={tx.confirm} disabled={!s.canClear} onClick={() => setSelected(s.record)}
                     className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${s.canClear ? 'bg-green-600 text-primary-foreground shadow active:scale-95' : 'bg-muted text-muted-foreground'}`}>
                     <Wallet className="w-6 h-6" />
-                  </button>
+                  </button>}
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center bg-muted rounded-lg p-2">
                   <div><div className="text-[11px] text-muted-foreground">{S.total}</div><div className="font-bold">฿{fmt(s.total)}</div></div>
@@ -129,17 +133,40 @@ export default function CodClearPage() {
                       <span className="flex-1 min-w-0 truncate">{p.sequence_number ? `${p.sequence_number}. ` : ''}{p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point}</span>
                       <span className="text-xs text-muted-foreground">{p.payment_method === 'qr' ? 'QR' : p.payment_method === 'cash' ? S.cash : ''}</span>
                       <span className="font-semibold">฿{fmt(p.amount)}</span>
-                      <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>
+                      {!done && <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>}
                     </div>
                   ))}
                 </div>
-                <div className={`text-xs font-medium ${s.canClear ? 'text-green-600' : 'text-destructive'}`}>
-                  {s.canClear ? S.ready : `${S.notReady}: ${s.reason === 'not_collected' ? S.whyCollect : S.whyOpen}`}
-                </div>
+                {done ? (
+                  <div className="space-y-2 border-t pt-2">
+                    <div className="flex justify-between text-sm"><span className="text-muted-foreground">{T.amount}</span><span className="font-bold text-green-600">฿{fmt(s.record.cleared_amount ?? s.total)}</span></div>
+                    {s.record.cleared_at && <div className="flex justify-between text-sm"><span className="text-muted-foreground">{T.at}</span><span>{fmtDate(s.record.cleared_at)}</span></div>}
+                    {!!s.record.proof_urls?.length && (
+                      <div className="flex gap-2 overflow-x-auto">
+                        {s.record.proof_urls.map((u) => (
+                          <button key={u} onClick={() => setZoom(u)} className="w-16 h-16 rounded-lg overflow-hidden bg-muted shrink-0"><img src={u} alt="" className="w-full h-full object-cover" /></button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className={`text-xs font-medium ${s.canClear ? 'text-green-600' : 'text-destructive'}`}>
+                    {s.canClear ? S.ready : `${S.notReady}: ${s.reason === 'not_collected' ? S.whyCollect : S.whyOpen}`}
+                  </div>
+                )}
               </div>
-            ))}
+              );
+            })}
         </>
       </PullToRefresh>
+
+      {zoom && (
+        <Dialog open onOpenChange={(o) => !o && setZoom(null)}>
+          <DialogContent className="w-[94vw] max-w-lg max-h-[90vh] p-2 rounded-2xl">
+            <img src={zoom} alt="" className="w-full max-h-[85vh] object-contain rounded-xl" />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {selected && (
         <ClearDialog
@@ -148,7 +175,7 @@ export default function CodClearPage() {
           driverId={driverId}
           driverType={driverType}
           onClose={() => setSelected(null)}
-          onDone={() => { removeOrder(selected.order_number); setSelected(null); reload(); }}
+          onDone={(amt, urls) => { markOrderCleared(selected.order_number, amt, urls); setSelected(null); reload(); }}
         />
       )}
     </div>
