@@ -366,7 +366,10 @@ function TabPreloader() {
 function ScrollToTopOnRouteChange() {
   const location = useLocation();
   useEffect(() => {
+    const startedAt = Date.now();
     const reset = () => {
+      const skip = (window as any).__skipScrollReset as number | undefined;
+      if (skip && skip >= startedAt) return;
       const root = document.getElementById("root");
       if (root) root.scrollTop = 0;
       window.scrollTo(0, 0);

@@ -1444,9 +1444,7 @@ export default function DomesticJobDetail({
     const orderKey = job.order_code || '';
     if (!orderKey || autoScrolledOrderRef.current === orderKey) return;
     autoScrolledOrderRef.current = orderKey;
-    // Always start at the top of the page first, then scroll to the current step.
-    document.getElementById('root')?.scrollTo({ top: 0 });
-    window.scrollTo({ top: 0 });
+    // Route-change reset handles the top-of-page start; we scroll after it finishes.
     let tries = 0;
     let timer: ReturnType<typeof setTimeout>;
     const attempt = () => {
@@ -1491,13 +1489,14 @@ export default function DomesticJobDetail({
       }
       if (isFirstStep) return;
       if (target) {
+        (window as any).__skipScrollReset = Date.now();
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else if (tries < 14) {
         // Card not rendered yet — retry briefly.
         timer = setTimeout(attempt, 150);
       }
     };
-    timer = setTimeout(attempt, 200);
+    timer = setTimeout(attempt, 500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoadingCheckinStatus, job.order_code]);
