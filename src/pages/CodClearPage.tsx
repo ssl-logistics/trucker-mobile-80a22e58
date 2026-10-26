@@ -14,6 +14,13 @@ import { toast } from '@/hooks/use-toast';
 import { usePendingCodClears } from '@/hooks/usePendingCodClears';
 import { submitCodClear, codAmountMatches, type CodClearRecord } from '@/lib/codClear';
 
+const SUM_TXT: Record<string, Tx> = {
+  th: { title: 'สรุปยอดเงิน', none: 'ไม่มียอด COD', total: 'ต้องเก็บ', collected: 'เก็บแล้ว', outstanding: 'ค้าง', running: 'กำลังวิ่ง', closed: 'ปิดงานแล้ว', got: 'เก็บแล้ว', notGot: 'ยังไม่เก็บ', cash: 'เงินสด', point: 'จุดส่ง', ready: 'พร้อมเคลียร์ กดไอคอนเพื่อเคลียร์ยอด', notReady: 'ยังเคลียร์ไม่ได้', whyCollect: 'ยังเก็บไม่ครบ', whyOpen: 'งานยังไม่ปิด', how2: 'เมื่อเก็บครบและปิดงานแล้ว กดไอคอนเคลียร์ที่งาน แล้วแนบรูปสลิป' },
+  en: { title: 'Payment Summary', none: 'No COD amounts', total: 'To collect', collected: 'Collected', outstanding: 'Outstanding', running: 'In progress', closed: 'Closed', got: 'Collected', notGot: 'Not yet', cash: 'Cash', point: 'Stop', ready: 'Ready — tap the icon to clear', notReady: 'Cannot clear yet', whyCollect: 'not fully collected', whyOpen: 'job not closed', how2: 'Once fully collected and closed, tap the clear icon and attach the slip' },
+  zh: { title: '款项汇总', none: '没有货到付款', total: '应收', collected: '已收', outstanding: '未收', running: '进行中', closed: '已完成', got: '已收', notGot: '未收', cash: '现金', point: '送货点', ready: '可结清，点击图标结清', notReady: '暂不能结清', whyCollect: '尚未收齐', whyOpen: '订单未关闭', how2: '收齐并关闭订单后，点击结清图标并上传凭证' },
+  ko: { title: '금액 요약', none: 'COD 금액이 없습니다', total: '수금액', collected: '수금 완료', outstanding: '미수금', running: '진행 중', closed: '종료됨', got: '수금 완료', notGot: '미수금', cash: '현금', point: '배송지', ready: '정산 가능 — 아이콘을 누르세요', notReady: '아직 정산 불가', whyCollect: '수금 미완료', whyOpen: '작업 미종료', how2: '수금 완료 및 작업 종료 후 정산 아이콘을 누르고 영수증을 첨부하세요' },
+};
+
 type Tx = Record<string, string>;
 export const COD_CLEAR_TXT: Record<string, Tx> = {
   th: { reading: 'กำลังอ่านยอดจากสลิป...', ocrFail: 'อ่านยอดไม่ได้ กรุณาตรวจ/กรอกยอดเอง', mismatch: 'ยอดไม่ตรงกับยอดที่ต้องเคลียร์', title: 'เคลียร์ยอด', none: 'ไม่มียอดค้างเคลียร์', howTitle: 'วิธีเคลียร์ยอด', how1: 'โอนยอด COD ที่เก็บได้เข้าบัญชีบริษัท', how2: 'กดที่งาน แล้วถ่ายรูปหรือเลือกรูปสลิป', how3: 'ตรวจยอดแล้วกด "ยืนยันเคลียร์ยอด"', order: 'งาน', due: 'ยอดที่ต้องเคลียร์', amount: 'ยอดที่เคลียร์จริง', notes: 'หมายเหตุ', proof: 'รูปหลักฐาน (บังคับอย่างน้อย 1 รูป)', take: 'ถ่ายรูป', pick: 'เลือกรูป', confirm: 'ยืนยันเคลียร์ยอด', success: 'เคลียร์ยอดเรียบร้อย', uploadErr: 'อัปโหลดรูปไม่สำเร็จ ลองใหม่อีกครั้ง', PROOF_REQUIRED: 'กรุณาแนบรูปหลักฐานอย่างน้อย 1 รูป', ORDER_NOT_CLOSED: 'งานนี้ยังไม่ปิด ยังเคลียร์ยอดไม่ได้', ORDER_NOT_FOUND: 'ไม่พบงานนี้', COD_NOT_FOUND: 'งานนี้ไม่มียอด COD', failed: 'ส่งไม่สำเร็จ ลองใหม่อีกครั้ง', pendingCount: 'งานค้างเคลียร์' },
@@ -34,8 +41,10 @@ export default function CodClearPage() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const tx = COD_CLEAR_TXT[language] || COD_CLEAR_TXT.th;
-  const { items, loading, reload, driverId, driverType } = usePendingCodClears();
+  const { all, loading, reload, driverId, driverType } = usePendingCodClears();
   const [selected, setSelected] = useState<CodClearRecord | null>(null);
+  const S = SUM_TXT[language] || SUM_TXT.th;
+  const tot = all.reduce((a, s) => ({ t: a.t + s.total, c: a.c + s.collected, o: a.o + s.outstanding }), { t: 0, c: 0, o: 0 });
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -44,39 +53,65 @@ export default function CodClearPage() {
           <button onClick={() => navigate('/home')} className="absolute left-0 p-2 rounded-full">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">{tx.title}</h1>
+          <h1 className="text-xl font-semibold">{S.title}</h1>
         </div>
       </header>
 
       <PullToRefresh onRefresh={reload} className="px-4 pt-5 space-y-4">
-        {loading && items.length === 0 ? (
+        {loading && all.length === 0 ? (
           <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-        ) : items.length === 0 ? (
+        ) : all.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
             <CheckCircle2 className="w-12 h-12 text-primary/60" />
-            <p className="text-base">{tx.none}</p>
+            <p className="text-base">{S.none}</p>
           </div>
         ) : (
           <>
+            <div className="grid grid-cols-3 gap-2">
+              {[[S.total, tot.t, 'text-foreground'], [S.collected, tot.c, 'text-green-600'], [S.outstanding, tot.o, tot.o > 0 ? 'text-destructive' : 'text-foreground']].map(([l, v, c]) => (
+                <div key={String(l)} className="bg-card rounded-xl p-3 shadow-sm border text-center">
+                  <div className="text-xs text-muted-foreground">{l}</div>
+                  <div className={`text-lg font-bold ${c}`}>฿{fmt(v as number)}</div>
+                </div>
+              ))}
+            </div>
             <div className="bg-card rounded-xl p-4 shadow-sm ring-1 ring-primary/20 space-y-2">
               <div className="flex items-center gap-2 font-semibold text-foreground"><Info className="w-4 h-4 text-primary" />{tx.howTitle}</div>
               <ol className="list-decimal pl-5 text-sm text-muted-foreground space-y-1">
-                <li>{tx.how1}</li><li>{tx.how2}</li><li>{tx.how3}</li>
+                <li>{tx.how1}</li><li>{S.how2}</li><li>{tx.how3}</li>
               </ol>
             </div>
-            {items.map((it) => (
-              <button key={it.order_number} onClick={() => setSelected(it)} className="w-full text-left bg-card rounded-xl p-4 border-2 border-destructive/30 shadow-md active:border-destructive/60 transition-colors flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0"><Wallet className="w-5 h-5 text-primary" /></div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-muted-foreground">{tx.order}</div>
-                  <div className="font-semibold text-foreground truncate">{it.order_number}</div>
+            {all.map((s) => (
+              <div key={s.record.order_number} className={`bg-card rounded-xl p-4 shadow-md border-2 space-y-3 ${s.canClear ? 'border-green-500/50' : 'border-destructive/30'}`}>
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-foreground truncate">{s.record.order_number}</div>
+                    <span className={`inline-block mt-1 text-xs rounded-full px-2 py-0.5 ${s.closed ? 'bg-muted text-foreground' : 'bg-primary/10 text-primary'}`}>{s.closed ? S.closed : S.running}</span>
+                  </div>
+                  <button aria-label={tx.confirm} disabled={!s.canClear} onClick={() => setSelected(s.record)}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${s.canClear ? 'bg-green-600 text-primary-foreground shadow active:scale-95' : 'bg-muted text-muted-foreground'}`}>
+                    <Wallet className="w-6 h-6" />
+                  </button>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs text-muted-foreground">{tx.due}</div>
-                  <div className="font-bold text-destructive">฿{fmt(it.expected_total)}</div>
+                <div className="grid grid-cols-3 gap-2 text-center bg-muted rounded-lg p-2">
+                  <div><div className="text-[11px] text-muted-foreground">{S.total}</div><div className="font-bold">฿{fmt(s.total)}</div></div>
+                  <div><div className="text-[11px] text-muted-foreground">{S.collected}</div><div className="font-bold text-green-600">฿{fmt(s.collected)}</div></div>
+                  <div><div className="text-[11px] text-muted-foreground">{S.outstanding}</div><div className={`font-bold ${s.outstanding > 0 ? 'text-destructive' : ''}`}>฿{fmt(s.outstanding)}</div></div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-              </button>
+                <div className="space-y-1.5">
+                  {s.points.map((p, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      <span className="flex-1 min-w-0 truncate">{p.sequence_number ? `${p.sequence_number}. ` : ''}{p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point}</span>
+                      <span className="text-xs text-muted-foreground">{p.payment_method === 'qr' ? 'QR' : p.payment_method === 'cash' ? S.cash : ''}</span>
+                      <span className="font-semibold">฿{fmt(p.amount)}</span>
+                      <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className={`text-xs font-medium ${s.canClear ? 'text-green-600' : 'text-destructive'}`}>
+                  {s.canClear ? S.ready : `${S.notReady}: ${s.reason === 'not_collected' ? S.whyCollect : S.whyOpen}`}
+                </div>
+              </div>
             ))}
           </>
         )}
