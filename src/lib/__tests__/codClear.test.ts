@@ -66,3 +66,11 @@ describe('mergeCodSummaries', () => {
     expect(r.map((x) => [x.record.order_number, x.collected])).toEqual([['A', 100], ['C', 0]]);
   });
 });
+
+import { checkinsForDriver } from '../codClear';
+describe('checkinsForDriver', () => {
+  it("drops other drivers' check-ins", () => {
+    const r = checkinsForDriver([{ freelance_driver_id: 'me', id: 1 }, { internal_driver_id: 'other', id: 2 }, { external_driver_id: 'me', id: 3 }], 'me');
+    expect(r.map((x) => x.id)).toEqual([1, 3]);
+  });
+});
