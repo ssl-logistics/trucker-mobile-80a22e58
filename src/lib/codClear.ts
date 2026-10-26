@@ -195,10 +195,11 @@ async function driverJobs(driverId: string, driverType: DriverType): Promise<any
 export async function fetchCodSummaries(driverId: string, driverType: DriverType, onProgress?: (items: CodSummary[], checked: Set<string>) => void): Promise<CodSummary[]> {
   const [jobs, ci] = await Promise.all([
     driverJobs(driverId, driverType),
-    getDriverCheckins(driverId, driverType, 'all', { limit: 2000 }).catch(() => ({ data: null, error: 'x' } as any)),
+    getDriverCheckins(driverId, driverType, 'all', { allDrivers: true, limit: 5000 }).catch(() => ({ data: null, error: 'x' } as any)),
   ]);
+  const allCi: any[] = ci?.data?.data || [];
   if (!jobs.length && ci?.error && !ci?.data) throw new Error('load failed');
-  const list = collectOrderRefs(jobs, checkinsForDriver(ci?.data?.data || [], driverId));
+  const list = collectOrderRefs(jobs, checkinsForDriver(allCi, driverId));
   const out: CodSummary[] = [];
   const seen = new Set<string>();
   const checked = new Set<string>();
@@ -207,8 +208,7 @@ export async function fetchCodSummaries(driverId: string, driverType: DriverType
     const res = await Promise.all(slice.map(async (r) => {
       const rec = await getCodClear(r).catch(() => null);
       if (!rec || rec.status !== 'pending') return null;
-      const c: any = await getDriverCheckins(driverId, driverType, rec.order_number, { allDrivers: true }).catch(() => null);
-      return summarizeCod(rec as any, (c?.data?.data || []).filter((x: any) => (x.transport_orders?.order_number || x.order_number) === rec.order_number || (rec.order_id && x.transport_order_id === rec.order_id)).map((x: any) => ({ ...x, order_number: rec.order_number })));
+      return summarizeCod(rec as any, allCi.filter((x: any) => (x.transport_orders?.order_number || x.order_number) === rec.order_number || (rec.order_id && x.transport_order_id === rec.order_id)).map((x: any) => ({ ...x, order_number: rec.order_number })));
     }));
     slice.forEach((r) => checked.add(String(r.order_number || r.order_id)));
     for (const s of res) if (s && !seen.has(s.record.order_number)) { seen.add(s.record.order_number); out.push(s); }
