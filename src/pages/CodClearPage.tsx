@@ -30,10 +30,10 @@ const TAB_TXT: Record<string, Tx> = {
 };
 
 const SUM_TXT: Record<string, Tx> = {
-  th: { delivered: 'ส่งครบแล้ว', stale: 'ดึงข้อมูลไม่สำเร็จ ปัดลงเพื่อลองใหม่', title: 'สรุปยอดเงิน', none: 'ไม่มียอด COD', total: 'ต้องเก็บ', collected: 'เก็บแล้ว', outstanding: 'ค้าง', running: 'กำลังวิ่ง', closed: 'ปิดงานแล้ว', got: 'เก็บแล้ว', notGot: 'ยังไม่เก็บ', cash: 'เงินสด', point: 'จุดส่ง', ready: 'พร้อมเคลียร์ กดไอคอนเพื่อเคลียร์ยอด', notReady: 'ยังเคลียร์ไม่ได้', whyCollect: 'ยังเก็บไม่ครบ', whyOpen: 'งานยังไม่ปิด', how2: 'เมื่อเก็บครบและปิดงานแล้ว กดไอคอนเคลียร์ที่งาน แล้วแนบรูปสลิป' },
-  en: { delivered: 'Delivered', stale: 'Could not load — pull down to retry', title: 'Payment Summary', none: 'No COD amounts', total: 'To collect', collected: 'Collected', outstanding: 'Outstanding', running: 'In progress', closed: 'Closed', got: 'Collected', notGot: 'Not yet', cash: 'Cash', point: 'Stop', ready: 'Ready — tap the icon to clear', notReady: 'Cannot clear yet', whyCollect: 'not fully collected', whyOpen: 'job not closed', how2: 'Once fully collected and closed, tap the clear icon and attach the slip' },
-  zh: { delivered: '已送达', stale: '加载失败，下拉重试', title: '款项汇总', none: '没有货到付款', total: '应收', collected: '已收', outstanding: '未收', running: '进行中', closed: '已完成', got: '已收', notGot: '未收', cash: '现金', point: '送货点', ready: '可结清，点击图标结清', notReady: '暂不能结清', whyCollect: '尚未收齐', whyOpen: '订单未关闭', how2: '收齐并关闭订单后，点击结清图标并上传凭证' },
-  ko: { delivered: '배송 완료', stale: '불러오기 실패 — 아래로 당겨 다시 시도', title: '금액 요약', none: 'COD 금액이 없습니다', total: '수금액', collected: '수금 완료', outstanding: '미수금', running: '진행 중', closed: '종료됨', got: '수금 완료', notGot: '미수금', cash: '현금', point: '배송지', ready: '정산 가능 — 아이콘을 누르세요', notReady: '아직 정산 불가', whyCollect: '수금 미완료', whyOpen: '작업 미종료', how2: '수금 완료 및 작업 종료 후 정산 아이콘을 누르고 영수증을 첨부하세요' },
+  th: { qrPaid: 'จ่าย QR แล้ว', mustClear: 'ต้องเคลียร์ (เงินสด)', noClear: 'ไม่ต้องเคลียร์ (จ่ายเข้าบัญชีแล้ว)', qrBadge: 'ไม่ต้องเคลียร์ · เข้าบัญชีแล้ว', delivered: 'ส่งครบแล้ว', stale: 'ดึงข้อมูลไม่สำเร็จ ปัดลงเพื่อลองใหม่', title: 'สรุปยอดเงิน', none: 'ไม่มียอด COD', total: 'ต้องเก็บ', collected: 'เก็บแล้ว', outstanding: 'ค้าง', running: 'กำลังวิ่ง', closed: 'ปิดงานแล้ว', got: 'เก็บแล้ว', notGot: 'ยังไม่เก็บ', cash: 'เงินสด', point: 'จุดส่ง', ready: 'พร้อมเคลียร์ กดไอคอนเพื่อเคลียร์ยอด', notReady: 'ยังเคลียร์ไม่ได้', whyCollect: 'ยังเก็บไม่ครบ', whyOpen: 'งานยังไม่ปิด', how2: 'เมื่อเก็บครบและปิดงานแล้ว กดไอคอนเคลียร์ที่งาน แล้วแนบรูปสลิป' },
+  en: { qrPaid: 'Paid by QR', mustClear: 'To clear (cash)', noClear: 'No clearing needed (paid to account)', qrBadge: 'No clear · in account', delivered: 'Delivered', stale: 'Could not load — pull down to retry', title: 'Payment Summary', none: 'No COD amounts', total: 'To collect', collected: 'Collected', outstanding: 'Outstanding', running: 'In progress', closed: 'Closed', got: 'Collected', notGot: 'Not yet', cash: 'Cash', point: 'Stop', ready: 'Ready — tap the icon to clear', notReady: 'Cannot clear yet', whyCollect: 'not fully collected', whyOpen: 'job not closed', how2: 'Once fully collected and closed, tap the clear icon and attach the slip' },
+  zh: { qrPaid: '已扫码支付', mustClear: '需结清（现金）', noClear: '无需结清（已入账）', qrBadge: '无需结清 · 已入账', delivered: '已送达', stale: '加载失败，下拉重试', title: '款项汇总', none: '没有货到付款', total: '应收', collected: '已收', outstanding: '未收', running: '进行中', closed: '已完成', got: '已收', notGot: '未收', cash: '现金', point: '送货点', ready: '可结清，点击图标结清', notReady: '暂不能结清', whyCollect: '尚未收齐', whyOpen: '订单未关闭', how2: '收齐并关闭订单后，点击结清图标并上传凭证' },
+  ko: { qrPaid: 'QR 결제 완료', mustClear: '정산 필요 (현금)', noClear: '정산 불필요 (계좌 입금 완료)', qrBadge: '정산 불필요 · 입금 완료', delivered: '배송 완료', stale: '불러오기 실패 — 아래로 당겨 다시 시도', title: '금액 요약', none: 'COD 금액이 없습니다', total: '수금액', collected: '수금 완료', outstanding: '미수금', running: '진행 중', closed: '종료됨', got: '수금 완료', notGot: '미수금', cash: '현금', point: '배송지', ready: '정산 가능 — 아이콘을 누르세요', notReady: '아직 정산 불가', whyCollect: '수금 미완료', whyOpen: '작업 미종료', how2: '수금 완료 및 작업 종료 후 정산 아이콘을 누르고 영수증을 첨부하세요' },
 };
 
 type Tx = Record<string, string>;
@@ -63,7 +63,7 @@ export default function CodClearPage() {
   const S = SUM_TXT[language] || SUM_TXT.th;
   const T = TAB_TXT[language] || TAB_TXT.th;
   const all = tab === 'pending' ? pendingList : cleared;
-  const tot = all.reduce((a, s) => ({ t: a.t + s.total, c: a.c + s.collected, o: a.o + s.outstanding }), { t: 0, c: 0, o: 0 });
+  const tot = all.reduce((a, s) => ({ t: a.t + s.total, c: a.c + s.collected, o: a.o + s.outstanding, q: a.q + (s.qrPaid ?? 0), r: a.r + (s.clearRequired ?? s.total) }), { t: 0, c: 0, o: 0, q: 0, r: 0 });
   const clearedSum = Math.round(cleared.reduce((a, s) => a + (Number(s.record.cleared_amount ?? s.collected) || 0), 0) * 100) / 100;
   const fmtDate = (d?: string | null) => { if (!d) return ''; const x = new Date(d); return isNaN(x.getTime()) ? '' : x.toLocaleString(language === 'th' ? 'th-TH' : language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' }); };
 
@@ -110,6 +110,10 @@ export default function CodClearPage() {
                 </div>
               ))}
             </div>}
+            {tab === 'pending' && loaded && tot.q > 0 && <div className="grid grid-cols-2 gap-2">
+              <div className="bg-card rounded-xl p-3 shadow-sm border text-center"><div className="text-xs text-muted-foreground">{S.qrPaid}</div><div className="text-lg font-bold text-green-600">฿{fmt(tot.q)}</div></div>
+              <div className="bg-card rounded-xl p-3 shadow-sm border text-center"><div className="text-xs text-muted-foreground">{S.mustClear}</div><div className="text-lg font-bold text-foreground">฿{fmt(tot.r)}</div></div>
+            </div>}
             {tab === 'pending' && <div className="bg-card rounded-xl p-4 shadow-sm ring-1 ring-primary/20 space-y-2">
               <div className="flex items-center gap-2 font-semibold text-foreground"><Info className="w-4 h-4 text-primary" />{tx.howTitle}</div>
               <ol className="list-decimal pl-5 text-sm text-muted-foreground space-y-1">
@@ -130,17 +134,18 @@ export default function CodClearPage() {
               </div>
             ))}
             {all.map((s) => {
-              const done = s.record.status === 'cleared';
+              const noClear = !!s.noClearNeeded && s.record.status !== 'cleared';
+              const done = s.record.status === 'cleared' || noClear;
               return (
               <div key={s.record.order_number} className={`bg-card rounded-xl p-4 shadow-md border-2 space-y-3 ${done || s.canClear ? 'border-green-500/50' : 'border-destructive/30'}`}>
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-foreground truncate">{s.record.order_number}</div>
                     {done
-                      ? <span className="inline-flex items-center gap-1 mt-1 text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700"><CheckCircle2 className="w-3 h-3" />{T.cleared}</span>
+                      ? <span className="inline-flex items-center gap-1 mt-1 text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700"><CheckCircle2 className="w-3 h-3" />{noClear ? S.noClear : T.cleared}</span>
                       : <span className={`inline-block mt-1 text-xs rounded-full px-2 py-0.5 ${s.closed ? 'bg-muted text-foreground' : 'bg-primary/10 text-primary'}`}>{s.closed ? S.closed : ['completed','delivered'].includes(String(s.record.order_status||'').toLowerCase()) ? S.delivered : S.running}</span>}
                   </div>
-                  {!done && <button aria-label={tx.confirm} disabled={!s.canClear} onClick={() => setSelected(s.record)}
+                  {!done && <button aria-label={tx.confirm} disabled={!s.canClear} onClick={() => setSelected({ ...s.record, expected_total: s.clearRequired ?? s.record.expected_total })}
                     className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${s.canClear ? 'bg-green-600 text-primary-foreground shadow active:scale-95' : 'bg-muted text-muted-foreground'}`}>
                     <Wallet className="w-6 h-6" />
                   </button>}
@@ -150,17 +155,26 @@ export default function CodClearPage() {
                   <div><div className="text-[11px] text-muted-foreground">{S.collected}</div><div className="font-bold text-green-600">฿{fmt(s.collected)}</div></div>
                   <div><div className="text-[11px] text-muted-foreground">{S.outstanding}</div><div className={`font-bold ${s.outstanding > 0 ? 'text-destructive' : ''}`}>฿{fmt(s.outstanding)}</div></div>
                 </div>
+                {(s.qrPaid ?? 0) > 0 && (
+                  <div className="flex flex-col gap-1 text-sm bg-green-50 rounded-lg px-3 py-2">
+                    <div className="flex justify-between"><span className="text-green-700">{S.qrPaid} <span className="text-xs">({S.qrBadge})</span></span><span className="font-bold text-green-700">฿{fmt(s.qrPaid)}</span></div>
+                    {!noClear && <div className="flex justify-between"><span className="text-muted-foreground">{S.mustClear}</span><span className="font-bold">฿{fmt(s.clearRequired)}</span></div>}
+                  </div>
+                )}
                 <div className="space-y-1.5">
                   {s.points.map((p, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
                       <span className="flex-1 min-w-0 truncate">{p.sequence_number ? `${p.sequence_number}. ` : ''}{p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point}</span>
                       <span className="text-xs text-muted-foreground">{p.payment_method === 'qr' ? 'QR' : p.payment_method === 'cash' ? S.cash : ''}</span>
                       <span className="font-semibold">฿{fmt(p.amount)}</span>
-                      {!done && <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>}
+                      {p.qr && p.collected && <span className="text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700">{S.qrBadge}</span>}
+                      {!done && !(p.qr && p.collected) && <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>}
                     </div>
                   ))}
                 </div>
-                {done ? (
+                {noClear ? (
+                  <div className="text-xs font-medium text-green-600 border-t pt-2">{S.noClear}</div>
+                ) : done ? (
                   <div className="space-y-2 border-t pt-2">
                     <div className="flex justify-between text-sm"><span className="text-muted-foreground">{T.amount}</span><span className="font-bold text-green-600">฿{fmt(s.record.cleared_amount ?? s.total)}</span></div>
                     {s.record.cleared_at && <div className="flex justify-between text-sm"><span className="text-muted-foreground">{T.at}</span><span>{fmtDate(s.record.cleared_at)}</span></div>}
