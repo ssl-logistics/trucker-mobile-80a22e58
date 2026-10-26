@@ -24,6 +24,13 @@ export function filterPending(records: Array<CodClearRecord | null | undefined>)
   );
 }
 
+/** Keep only check-ins made by this driver (the API may return other drivers' rows). */
+export function checkinsForDriver(checkins: any[], driverId: string): any[] {
+  const id = String(driverId);
+  return (checkins || []).filter((c) => [c?.freelance_driver_id, c?.internal_driver_id, c?.external_driver_id, c?.driver_id]
+    .some((v) => v != null && String(v) === id));
+}
+
 export function isCodCheckin(c: any): boolean {
   if (!c) return false;
   return c.checkin_type === 'payment' || String(c.payment_method || '').toLowerCase() === 'cod'
@@ -88,7 +95,7 @@ export function readPendingCache(driverId: string): CodClearRecord[] | null {
 
 export async function fetchPendingCodClears(driverId: string, driverType: DriverType): Promise<CodClearRecord[]> {
   const { data } = await getDriverCheckins(driverId, driverType, 'all', { limit: 2000 });
-  const orders = codOrdersFromCheckins(data?.data || []);
+  const orders = codOrdersFromCheckins(checkinsForDriver(data?.data || [], driverId));
   const results: Array<CodClearRecord | null> = [];
   for (let i = 0; i < orders.length; i += 5) {
     const chunk = await Promise.all(orders.slice(i, i + 5).map((o) => getCodClear(o).catch(() => null)));
@@ -157,7 +164,7 @@ export function readSummaryCache(driverId: string): CodSummary[] | null {
 export async function fetchCodSummaries(driverId: string, driverType: DriverType, onProgress?: (items: CodSummary[], checked: Set<string>) => void): Promise<CodSummary[]> {
   const { data, error } = await getDriverCheckins(driverId, driverType, 'all', { limit: 2000 });
   if (error && !data) throw new Error('checkins failed');
-  const checkins: any[] = data?.data || [];
+  const checkins: any[] = checkinsForDriver(data?.data || [], driverId);
   const cutoff = Date.now() - 30 * 86400000;
   const refs = new Map<string, CodOrderRef>();
   for (const c of checkins) {
