@@ -107,6 +107,7 @@ interface JobApplication {
 
 export default function DeliveryDetailPage() {
   const navigate = useNavigate();
+  const inStepModal = useInStepModal();
   const location = useLocation();
   const { jobId, destinationId } = useParams();
   const { user } = useAuth();
