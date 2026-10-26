@@ -140,7 +140,11 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
           <div className="text-sm font-medium">{tx.mLabel}</div>
           <div className="grid grid-cols-3 gap-1 p-1 rounded-lg bg-muted">
             {([['cash', tx.mCash], ['static_qr', tx.mStatic], ['mint_qr', tx.mMint]] as [CodMethod, string][]).map(([m, l]) => (
-              <button key={m} type="button" onClick={() => setState((s) => ({ ...s, method: m }))}
+              <button key={m} type="button" onClick={() => {
+                setState((s) => ({ ...s, method: m }));
+                if (m === 'static_qr') setStaticOpen(true);
+                else if (m === 'mint_qr' && !state.qrConfirmed) openQr();
+              }}
                 className={`h-10 rounded-md text-sm font-medium transition-colors ${method === m ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground'}`}>{l}</button>
             ))}
           </div>
