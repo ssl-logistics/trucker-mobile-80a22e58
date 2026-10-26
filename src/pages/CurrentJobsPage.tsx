@@ -3,7 +3,7 @@ import React from 'react';
 import { JobListSkeleton } from '@/components/job/JobListSkeleton';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide, ListOrdered, Container, Tag } from 'lucide-react';
+import { ChevronLeft, Search, Filter, Clock, MapPin, CircleDot, X, CalendarIcon, Calendar as CalendarIconLucide, ListOrdered, Container, Tag, Banknote } from 'lucide-react';
 import coinsIcon from '@/assets/coins-icon.png';
 import { supabase } from '@/integrations/supabase/client';
 import { createTrackingRoom } from '@/lib/trackingRoomClient';
