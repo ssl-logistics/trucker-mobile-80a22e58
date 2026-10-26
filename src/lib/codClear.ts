@@ -53,7 +53,7 @@ export async function getCodClear(ref: string | CodOrderRef): Promise<CodClearRe
   const params: Record<string, string> = typeof ref === 'string'
     ? { order_number: ref }
     : ref.order_number ? { order_number: ref.order_number } : { order_id: String(ref.order_id) };
-  const qs = new URLSearchParams(params).toString();
+  const qs = new URLSearchParams({ ...params, _t: String(Date.now()) }).toString();
   const { data, error } = await supabase.functions.invoke(`cod-clear-proxy?${qs}`, { method: 'GET' });
   if (error) return null; // 404 COD_NOT_FOUND etc.
   return (data as any)?.data ?? null; // 404 COD_NOT_FOUND → no data.data → skipped
@@ -154,8 +154,9 @@ export function readSummaryCache(driverId: string): CodSummary[] | null {
 }
 
 /** Every order with COD (open or closed) not yet cleared, from the last 30 days of check-ins. */
-export async function fetchCodSummaries(driverId: string, driverType: DriverType, onProgress?: (items: CodSummary[]) => void): Promise<CodSummary[]> {
-  const { data } = await getDriverCheckins(driverId, driverType, 'all', { limit: 2000 });
+export async function fetchCodSummaries(driverId: string, driverType: DriverType, onProgress?: (items: CodSummary[], checked: Set<string>) => void): Promise<CodSummary[]> {
+  const { data, error } = await getDriverCheckins(driverId, driverType, 'all', { limit: 2000 });
+  if (error && !data) throw new Error('checkins failed');
   const checkins: any[] = data?.data || [];
   const cutoff = Date.now() - 30 * 86400000;
   const refs = new Map<string, CodOrderRef>();
@@ -168,14 +169,17 @@ export async function fetchCodSummaries(driverId: string, driverType: DriverType
   }
   const list = [...refs.values()];
   const recs: Array<CodClearRecord | null> = [];
+  const checked = new Set<string>();
   const build = () => {
     const seen = new Set<string>();
     return recs.filter((r): r is CodClearRecord => !!r && r.status === 'pending' && !seen.has(r.order_number) && !!seen.add(r.order_number))
       .map((r) => summarizeCod(r as any, checkins));
   };
   for (let i = 0; i < list.length; i += 6) {
-    recs.push(...await Promise.all(list.slice(i, i + 6).map((r) => getCodClear(r).catch(() => null))));
-    onProgress?.(build());
+    const slice = list.slice(i, i + 6);
+    recs.push(...await Promise.all(slice.map((r) => getCodClear(r).catch(() => null))));
+    slice.forEach((r) => checked.add(String(r.order_number || r.order_id)));
+    onProgress?.(build(), checked);
   }
   const seen = new Set<string>();
   const out = recs.filter((r): r is CodClearRecord => !!r && r.status === 'pending' && !seen.has(r.order_number) && !!seen.add(r.order_number))
@@ -185,4 +189,25 @@ export async function fetchCodSummaries(driverId: string, driverType: DriverType
     localStorage.setItem(CACHE_KEY, JSON.stringify({ driverId, items: out.filter((s) => s.canClear).map((s) => s.record), at: Date.now() }));
   } catch { /* noop */ }
   return out;
+}
+
+/** While refreshing: orders already re-checked use fresh data (or drop if cleared); others keep cached values. */
+export function mergeCodSummaries(cached: CodSummary[], fresh: CodSummary[], checkedKeys: Set<string>): CodSummary[] {
+  const freshMap = new Map(fresh.map((s) => [s.record.order_number, s]));
+  const out: CodSummary[] = [];
+  for (const c of cached) {
+    const k = c.record.order_number;
+    if (freshMap.has(k)) { out.push(freshMap.get(k)!); freshMap.delete(k); }
+    else if (!checkedKeys.has(k) && !checkedKeys.has(String(c.record.order_id || ''))) out.push(c);
+  }
+  return [...out, ...freshMap.values()];
+}
+
+export function removeFromCodCache(driverId: string, orderNumber: string) {
+  try {
+    const a = readSummaryCache(driverId);
+    if (a) localStorage.setItem(ALL_KEY, JSON.stringify({ driverId, items: a.filter((s) => s.record.order_number !== orderNumber) }));
+    const p = readPendingCache(driverId);
+    if (p) localStorage.setItem(CACHE_KEY, JSON.stringify({ driverId, items: p.filter((r) => r.order_number !== orderNumber), at: Date.now() }));
+  } catch { /* noop */ }
 }

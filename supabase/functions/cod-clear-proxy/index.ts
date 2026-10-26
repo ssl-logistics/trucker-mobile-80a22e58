@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
       body,
     });
     const text = await r.text();
-    return new Response(text, { status: r.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(text, { status: r.status, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
   } catch (e) {
     return json({ success: false, error: String(e) }, 500);
   }
