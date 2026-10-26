@@ -16,7 +16,8 @@ import { formatDate, formatDateTime } from "@/lib/dateUtils";
 import { sendJobStatus } from '@/lib/jobStatusService';
 import { getDriverCheckins, driverCheckin, getDriverAssignedJobs, getFreelanceAcceptedJobs, updateDestinationCoordinates, updateOrderStatus } from '@/lib/externalApi';
 import { addOptimisticCheckin } from '@/utils/optimisticCheckins';
-import { useInStepModal } from '@/components/layout/JobStepRoutes';
+import { useInStepModal, useStepCloseGuard } from '@/components/layout/JobStepRoutes';
+import { COD_CLOSE_TXT } from '@/components/job/CodCollectSection';
 import AccidentEvidenceModal from '@/components/job/AccidentEvidenceModal';
 import { getAccidentEvidenceInfo } from '@/utils/accidentEvidence';
 import SignatureDialog, { type SignatureResult } from '@/components/job/SignatureDialog';
@@ -128,6 +129,14 @@ export default function DeliveryDetailPage() {
   const [codInfo, setCodInfo] = useState<CodInfo>({ enabled: false, amount: null, method: null });
   const [codState, setCodState] = useState<{ ready: boolean; urls: string[]; qrPaymentId?: string; method?: string }>({ ready: false, urls: [] });
   const [showSignature, setShowSignature] = useState(false);
+  // Warn before closing the step popup when the customer already paid via Mint QR but the stop isn't confirmed yet
+  const setCloseGuard = useStepCloseGuard();
+  const mintPaidPending = !!codState.qrPaymentId && !isSubmittingPod;
+  useEffect(() => {
+    if (!setCloseGuard) return;
+    setCloseGuard(mintPaidPending ? (COD_CLOSE_TXT[language] || COD_CLOSE_TXT.th) : null);
+    return () => setCloseGuard(null);
+  }, [setCloseGuard, mintPaidPending, language]);
   const signatureRef = useRef<SignatureResult | null>(null);
   const [containerReturn, setContainerReturn] = useState<{
     location: string | null;
@@ -1191,7 +1200,7 @@ export default function DeliveryDetailPage() {
         {codInfo.enabled && isCheckedIn && !isSopCompleted && job && (
           <CodCollectSection
             cod={codInfo}
-            storageKey={`cod_proof_${job.order_code}_${isMultiDestination ? destination?.sequence_number ?? 1 : 0}`}
+            storageKey={`cod_proof_${job.order_code}_${destinationId ?? (isMultiDestination ? destination?.sequence_number ?? 1 : 0)}`}
             filenamePrefix={`${user?.id}-${job.order_code}`}
             readOnly={isFromHistory}
             onChange={(s) => setCodState({ ready: s.ready, urls: s.urls, qrPaymentId: s.method === 'mint_qr' && s.qrConfirmed ? s.qr?.paymentId : undefined, method: s.method })}
