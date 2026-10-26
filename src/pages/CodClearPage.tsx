@@ -93,7 +93,14 @@ export default function CodClearPage() {
           })}
         </div>
         <>
-            <div className="grid grid-cols-3 gap-2">
+            {tab === 'cleared' ? (
+              <div className="bg-card rounded-xl p-4 shadow-sm border text-center">
+                <div className="text-sm text-muted-foreground">{T.total}</div>
+                {!loaded && all.length === 0
+                  ? <div className="h-8 mt-1 mx-auto w-24 rounded bg-muted animate-pulse" />
+                  : <div className="text-2xl font-bold text-green-600">฿{fmt(clearedSum)}</div>}
+              </div>
+            ) : <div className="grid grid-cols-3 gap-2">
               {[[S.total, tot.t, 'text-foreground'], [S.collected, tot.c, 'text-green-600'], [S.outstanding, tot.o, tot.o > 0 ? 'text-destructive' : 'text-foreground']].map(([l, v, c]) => (
                 <div key={String(l)} className="bg-card rounded-xl p-3 shadow-sm border text-center">
                   <div className="text-xs text-muted-foreground">{l}</div>
@@ -102,7 +109,7 @@ export default function CodClearPage() {
                     : <div className={`text-lg font-bold ${c}`}>฿{fmt(v as number)}</div>}
                 </div>
               ))}
-            </div>
+            </div>}
             {tab === 'pending' && <div className="bg-card rounded-xl p-4 shadow-sm ring-1 ring-primary/20 space-y-2">
               <div className="flex items-center gap-2 font-semibold text-foreground"><Info className="w-4 h-4 text-primary" />{tx.howTitle}</div>
               <ol className="list-decimal pl-5 text-sm text-muted-foreground space-y-1">
