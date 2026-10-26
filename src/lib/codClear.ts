@@ -16,6 +16,8 @@ export interface CodClearRecord {
   cleared_amount?: number | null;
   proof_urls?: string[];
   cleared_at?: string | null;
+  clear_method?: string | null;
+  clear_reference?: string | null;
 }
 
 export type DriverType = 'internal' | 'external' | 'freelance';
@@ -76,6 +78,8 @@ export async function submitCodClear(body: {
   proof_urls: string[];
   driver_type?: DriverType;
   driver_id?: string;
+  clear_method?: 'cash' | 'static_qr' | 'mint_qr';
+  clear_reference?: string;
 }) {
   const { data, error } = await supabase.functions.invoke('cod-clear-proxy', { method: 'POST', body });
   if (error) {
@@ -285,4 +289,10 @@ export function removeFromCodCache(driverId: string, orderNumber: string) {
     const p = readPendingCache(driverId);
     if (p) localStorage.setItem(CACHE_KEY, JSON.stringify({ driverId, items: p.filter((r) => r.order_number !== orderNumber), at: Date.now() }));
   } catch { /* noop */ }
+}
+
+/** Extra POST fields per clear tab: slip tab sends nothing new; Mint QR sends method + Mint payment_id as reference. */
+export function clearMethodFields(tab: 'slip' | 'mint_qr', mintPaymentId?: string | null): { clear_method?: 'mint_qr'; clear_reference?: string } {
+  if (tab !== 'mint_qr' || !mintPaymentId) return {};
+  return { clear_method: 'mint_qr', clear_reference: String(mintPaymentId).slice(0, 200) };
 }
