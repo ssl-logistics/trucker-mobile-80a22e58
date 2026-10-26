@@ -164,11 +164,12 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
           <div className="text-sm font-medium">{tx.mLabel}</div>
           <div className="grid grid-cols-3 gap-1 p-1 rounded-lg bg-muted">
             {([['cash', tx.mCash], ['mint_qr', tx.mMint], ['static_qr', tx.mStatic]] as [CodMethod, string][]).map(([m, l]) => (
-              <button key={m} type="button" onClick={() => {
+              <button key={m} type="button" disabled={locked && m !== 'mint_qr'} onClick={() => {
+                if (locked) return;
                 setState((s) => ({ ...s, method: m }));
                 if (m === 'mint_qr' && !state.qrConfirmed && state.qr && secondsLeft(state.qr.expiresAt) === 0) makeQr();
               }}
-                className={`h-10 rounded-md text-sm font-medium transition-colors ${method === m ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground'}`}>{l}</button>
+                className={`h-10 rounded-md text-sm font-medium transition-colors ${method === m ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground'} disabled:opacity-40`}>{l}</button>
             ))}
           </div>
         </div>
