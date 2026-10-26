@@ -54,7 +54,8 @@ describe('summarizeCod', () => {
     expect(summarizeCod(rec('in_transit'), [ci(1), ci(2)]).reason).toBe('not_closed');
   });
   it('all collected and closed: can clear', () => {
-    expect(summarizeCod(rec('completed'), [ci(1), ci(2)]).canClear).toBe(true);
+    expect(summarizeCod(rec('closed'), [ci(1), ci(2)]).canClear).toBe(true);
+    expect(summarizeCod(rec('completed'), [ci(1), ci(2)]).canClear).toBe(false);
   });
 });
 
