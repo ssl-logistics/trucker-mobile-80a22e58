@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Banknote, Camera, ImageIcon, Loader2, QrCode, X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { compressImage } from '@/utils/imageCompression';
 import { useNativeCamera } from '@/hooks/useNativeCamera';
@@ -40,13 +39,12 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
   const [state, setState] = useState<CodState>(() => {
     try { return JSON.parse(localStorage.getItem(storageKey) || '') as CodState; } catch { return { qrConfirmed: false, urls: [] }; }
   });
-  const [qrOpen, setQrOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const camRef = useRef<HTMLInputElement>(null);
   const galRef = useRef<HTMLInputElement>(null);
   const method: CodMethod = state.method || (cod.method === 'qr' ? 'mint_qr' : 'cash');
   const needQr = method === 'mint_qr';
-  const [staticOpen, setStaticOpen] = useState(false);
+  const qrOpen = needQr && !readOnly;
   const [creating, setCreating] = useState(false);
   const [now, setNow] = useState(Date.now());
   const left = secondsLeft(state.qr?.expiresAt, now);
@@ -64,9 +62,13 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
     } finally { setCreating(false); }
   };
   const openQr = () => {
-    setQrOpen(true);
     if (!state.qr || secondsLeft(state.qr.expiresAt) === 0) makeQr();
   };
+
+  // auto-create the QR when Mint QR is shown
+  useEffect(() => {
+    if (qrOpen && !state.qrConfirmed && !state.qr && !creating) makeQr();
+  }, [qrOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // countdown tick
   useEffect(() => {
@@ -84,7 +86,7 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
       try {
         const r = await checkCodQr(pid);
         fails = 0;
-        if (r.paid) { setState((s) => ({ ...s, qrConfirmed: true })); setQrOpen(false); }
+        if (r.paid) { setState((s) => ({ ...s, qrConfirmed: true })); }
       } catch {
         fails += 1;
         if (fails >= 3) { setState((s) => ({ ...s, qrFailed: true })); }
@@ -139,11 +141,10 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
         <div className="space-y-1">
           <div className="text-sm font-medium">{tx.mLabel}</div>
           <div className="grid grid-cols-3 gap-1 p-1 rounded-lg bg-muted">
-            {([['cash', tx.mCash], ['static_qr', tx.mStatic], ['mint_qr', tx.mMint]] as [CodMethod, string][]).map(([m, l]) => (
+            {([['cash', tx.mCash], ['mint_qr', tx.mMint], ['static_qr', tx.mStatic]] as [CodMethod, string][]).map(([m, l]) => (
               <button key={m} type="button" onClick={() => {
                 setState((s) => ({ ...s, method: m }));
-                if (m === 'static_qr') setStaticOpen(true);
-                else if (m === 'mint_qr' && !state.qrConfirmed) openQr();
+                if (m === 'mint_qr' && !state.qrConfirmed && state.qr && secondsLeft(state.qr.expiresAt) === 0) makeQr();
               }}
                 className={`h-10 rounded-md text-sm font-medium transition-colors ${method === m ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground'}`}>{l}</button>
             ))}
@@ -153,14 +154,39 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
       {readOnly && <div className="text-xs text-muted-foreground">{method === 'cash' ? tx.mCash : method === 'static_qr' ? tx.mStatic : tx.mMint}</div>}
 
       {method === 'static_qr' && !readOnly && (
-        <Button variant="outline" className="w-full h-11 gap-2" onClick={() => setStaticOpen(true)}><QrCode className="w-5 h-5" />{tx.openStatic}</Button>
+        <div className="flex flex-col items-center gap-2">
+          <div className="bg-background p-3 rounded-xl ring-1 ring-border"><QRCodeSVG value="COKE-QR-PLACEHOLDER" size={200} level="M" /></div>
+          <div className="text-xs text-muted-foreground">{tx.staticMock}</div>
+        </div>
       )}
 
       {needQr && !readOnly && (
         state.qrConfirmed ? (
           <div className="flex items-center gap-2 text-sm text-primary"><CheckCircle2 className="w-4 h-4" />{tx.qrDone}</div>
         ) : (
-          <Button variant="outline" className="w-full h-11 gap-2" onClick={openQr}><QrCode className="w-5 h-5" />{tx.openQr}</Button>
+          <div className="flex flex-col items-center gap-3">
+            {creating ? (
+              <div className="w-[200px] h-[200px] flex flex-col items-center justify-center gap-2 text-muted-foreground"><Loader2 className="w-8 h-8 animate-spin" />{tx.creating}</div>
+            ) : state.qr && !expired ? (
+              <div className="bg-background p-3 rounded-xl ring-1 ring-border">
+                {state.qr.qrRaw ? <QRCodeSVG value={state.qr.qrRaw} size={200} level="M" /> : <img src={state.qr.qrImage!} alt="QR" className="w-[200px] h-[200px]" />}
+              </div>
+            ) : state.qr && expired ? (
+              <div className="w-[200px] h-[200px] flex flex-col items-center justify-center gap-3 rounded-xl bg-muted text-destructive font-semibold">{tx.expired}</div>
+            ) : (
+              <div className="w-[200px] h-[200px] flex items-center justify-center text-center text-sm text-destructive px-4">{tx.fail}</div>
+            )}
+            <div className="text-2xl font-bold">฿{cod.amount != null ? cod.amount.toLocaleString() : '-'}</div>
+            {state.qr && !expired && !creating && (
+              <>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" />{tx.waiting}</div>
+                {left != null && <div className="text-sm">{tx.expiresIn} <span className="font-bold tabular-nums">{formatCountdown(left)}</span></div>}
+              </>
+            )}
+            {!creating && (expired || !state.qr) && (
+              <Button className="w-full h-12" onClick={makeQr}>{state.qr ? tx.regen : tx.retry}</Button>
+            )}
+          </div>
         )
       )}
 
@@ -196,46 +222,6 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
       <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onInput} />
       <input ref={galRef} type="file" accept="image/*" multiple className="hidden" onChange={onInput} />
 
-      <Dialog open={staticOpen} onOpenChange={setStaticOpen}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader><DialogTitle className="text-center">{tx.mStatic}</DialogTitle></DialogHeader>
-          <div className="flex flex-col items-center gap-3">
-            <div className="bg-background p-3 rounded-xl ring-1 ring-border"><QRCodeSVG value="COKE-QR-PLACEHOLDER" size={220} level="M" /></div>
-            <div className="text-xs text-muted-foreground">{tx.staticMock}</div>
-            <div className="text-2xl font-bold">฿{cod.amount != null ? cod.amount.toLocaleString() : '-'}</div>
-            <div className="text-xs text-destructive">{tx.needPhoto}</div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
-        <DialogContent className="max-w-sm rounded-2xl">
-          <DialogHeader><DialogTitle className="text-center">{tx.qrTitle}</DialogTitle></DialogHeader>
-          <div className="flex flex-col items-center gap-3">
-            {creating ? (
-              <div className="w-[220px] h-[220px] flex flex-col items-center justify-center gap-2 text-muted-foreground"><Loader2 className="w-8 h-8 animate-spin" />{tx.creating}</div>
-            ) : state.qr && !expired ? (
-              <div className="bg-background p-3 rounded-xl ring-1 ring-border">
-                {state.qr.qrRaw ? <QRCodeSVG value={state.qr.qrRaw} size={220} level="M" /> : <img src={state.qr.qrImage!} alt="QR" className="w-[220px] h-[220px]" />}
-              </div>
-            ) : state.qr && expired ? (
-              <div className="w-[220px] h-[220px] flex flex-col items-center justify-center gap-3 rounded-xl bg-muted text-destructive font-semibold">{tx.expired}</div>
-            ) : (
-              <div className="w-[220px] h-[220px] flex items-center justify-center text-center text-sm text-destructive px-4">{tx.fail}</div>
-            )}
-            <div className="text-2xl font-bold">฿{cod.amount != null ? cod.amount.toLocaleString() : '-'}</div>
-            {state.qr && !expired && !creating && (
-              <>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" />{tx.waiting}</div>
-                {left != null && <div className="text-sm">{tx.expiresIn} <span className="font-bold tabular-nums">{formatCountdown(left)}</span></div>}
-              </>
-            )}
-            {!creating && (expired || !state.qr) && (
-              <Button className="w-full h-12" onClick={makeQr}>{state.qr ? tx.regen : tx.retry}</Button>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
