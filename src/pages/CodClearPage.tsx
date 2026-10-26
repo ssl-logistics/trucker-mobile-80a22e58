@@ -64,6 +64,7 @@ export default function CodClearPage() {
   const T = TAB_TXT[language] || TAB_TXT.th;
   const all = tab === 'pending' ? pendingList : cleared;
   const tot = all.reduce((a, s) => ({ t: a.t + s.total, c: a.c + s.collected, o: a.o + s.outstanding }), { t: 0, c: 0, o: 0 });
+  const clearedSum = Math.round(cleared.reduce((a, s) => a + (Number(s.record.cleared_amount ?? s.collected) || 0), 0) * 100) / 100;
   const fmtDate = (d?: string | null) => { if (!d) return ''; const x = new Date(d); return isNaN(x.getTime()) ? '' : x.toLocaleString(language === 'th' ? 'th-TH' : language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' }); };
 
   return (
