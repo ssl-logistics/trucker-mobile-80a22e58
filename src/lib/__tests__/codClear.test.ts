@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterPending, codOrdersFromCheckins, codAmountMatches } from '../codClear';
+import { filterPending, codOrdersFromCheckins, codAmountMatches, summarizeCod, splitCodSummaries } from '../codClear';
 
 describe('codClear', () => {
   it('keeps only pending closed orders, skips cleared and missing COD', () => {
@@ -111,7 +111,7 @@ describe('splitCodSummaries', () => {
 });
 
 describe('QR-paid points need no clearing', () => {
-  const { summarizeCod, splitCodSummaries } = require('@/lib/codClear');
+
   it('all-QR order needs no clear and counts as collected', () => {
     const s = summarizeCod({ order_number: 'A', status: 'pending', order_status: 'closed', expected_total: 2, qr_paid_total: 2, clear_required_total: 0, no_clear_needed: true,
       points: [{ sequence_number: 1, amount: 2, payment_method: 'qr', paid_method: 'mint_qr', no_clear_needed: true }] }, []);
