@@ -1290,9 +1290,15 @@ export default function CurrentJobsPage() {
                       <span className="inline-block ml-2 px-2 py-0.5 rounded-md text-sm font-medium bg-amber-100 text-amber-800">{t('job.cod_badge')}</span>
                     )}
                     {(job as any).cod_summary?.total != null && (
-                      <div className="mt-1.5 text-sm font-semibold text-amber-800">
-                        {t('job.cod_total')} ฿{(job as any).cod_summary.total.toLocaleString()}
-                        {(job as any).cod_summary.points > 1 ? ` (${(job as any).cod_summary.points} ${t('job.cod_points')})` : ''}
+                      <div className="mt-2 flex items-center gap-2 rounded-xl border-2 border-amber-400 bg-amber-50 px-3 py-2">
+                        <Banknote className="w-6 h-6 shrink-0 text-amber-600" />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-medium text-amber-800">{t('job.cod_total')}</div>
+                          <div className="text-2xl font-extrabold leading-tight text-amber-700">฿{(job as any).cod_summary.total.toLocaleString()}</div>
+                        </div>
+                        {(job as any).cod_summary.points > 1 && (
+                          <span className="shrink-0 rounded-full bg-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-900">{(job as any).cod_summary.points} {t('job.cod_points')}</span>
+                        )}
                       </div>
                     )}
                     {(() => {
