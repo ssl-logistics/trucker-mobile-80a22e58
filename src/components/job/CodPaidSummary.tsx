@@ -5,7 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
 import type { CodInfo } from '@/lib/cod';
 
-export interface CodPaid { amount?: number | null; method?: string | null; urls?: string[]; at?: string | null }
+export interface CodPaid { amount?: number | null; method?: string | null; urls?: string[]; at?: string | null; ref?: string | null }
 
 const TXT: Record<string, Record<string, string>> = {
   th: { title: 'สรุปเก็บเงินปลายทาง (COD)', due: 'ยอดที่ต้องเก็บ', paid: 'จ่ายจริง', via: 'ผ่าน', cash: 'เงินสด', qr: 'QR', mint: 'QR Mint', coke: 'QR โค้ก', at: 'เวลารับเงิน', proof: 'รูปหลักฐานการรับเงิน', none: 'ยังไม่มีข้อมูลการรับเงิน' },
@@ -46,6 +46,7 @@ export default function CodPaidSummary({ cod, paid, formatTime }: { cod: CodInfo
             : <div className="text-muted-foreground">{tx.none}</div>}
         </div>
       </div>
+      {paid?.ref && <div className="text-xs text-muted-foreground break-all">Ref: {paid.ref}</div>}
       {paid?.at && <div className="text-xs text-muted-foreground">{tx.at}: {formatTime(paid.at)}</div>}
       {!!paid?.urls?.length && (
         <div className="space-y-1">

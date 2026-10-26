@@ -36,8 +36,8 @@ export async function createCodQr(amount: number, reference: string): Promise<Co
   return { paymentId: data.payment_id, qrImage: data.qr_image_url ?? null, qrRaw: data.qr_raw_data ?? null, expiresAt: data.expires_at ?? null };
 }
 
-export async function checkCodQr(paymentId: string): Promise<{ paid: boolean; status: string | null }> {
+export async function checkCodQr(paymentId: string): Promise<{ paid: boolean; status: string | null; paymentId: string }> {
   const { data, error } = await supabase.functions.invoke('cod-qr-payment', { body: { action: 'status', payment_id: paymentId } });
   if (error || !data?.success) throw new Error(error?.message || 'qr status failed');
-  return { paid: isQrPaid(data.payment_status) , status: data.payment_status ?? null };
+  return { paid: isQrPaid(data.payment_status) , status: data.payment_status ?? null, paymentId: String(data.payment_id || paymentId) };
 }
