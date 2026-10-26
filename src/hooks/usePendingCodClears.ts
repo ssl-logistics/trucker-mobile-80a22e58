@@ -11,19 +11,22 @@ export function usePendingCodClears() {
   const [all, setAll] = useState<CodSummary[]>(() => (driverId ? readSummaryCache(driverId) || [] : []));
   const [items, setItems] = useState<CodClearRecord[]>(() => (driverId ? readPendingCache(driverId) || [] : []));
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(() => !!(driverId && readSummaryCache(driverId)));
 
   const reload = useCallback(async () => {
     if (!driverId) { setLoading(false); return; }
     setLoading(true);
+    const hadCache = !!readSummaryCache(driverId);
     try {
-      const s = await fetchCodSummaries(driverId, driverType);
+      const s = await fetchCodSummaries(driverId, driverType, (partial) => { if (!hadCache) setAll(partial); });
       setAll(s);
       setItems(s.filter((x) => x.canClear).map((x) => x.record));
     } catch { /* keep cache */ }
+    setLoaded(true);
     setLoading(false);
   }, [driverId, driverType]);
 
   useEffect(() => { reload(); }, [reload]);
 
-  return { all, items, loading, reload, driverId, driverType };
+  return { all, items, loading, loaded, reload, driverId, driverType };
 }
