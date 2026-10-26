@@ -56,7 +56,7 @@ export default function CodClearPage() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const tx = COD_CLEAR_TXT[language] || COD_CLEAR_TXT.th;
-  const { all: pendingList, cleared, loading, loaded, failed, reload, markOrderCleared, driverId, driverType } = usePendingCodClears();
+  const { all: pendingList, cleared, loading, loaded, failed, reload, markOrderCleared, driverId, driverType } = usePendingCodClears({ alwaysFresh: true });
   const [selected, setSelected] = useState<CodClearRecord | null>(null);
   const [tab, setTab] = useState<'pending' | 'cleared'>('pending');
   const [zoom, setZoom] = useState<string | null>(null);
