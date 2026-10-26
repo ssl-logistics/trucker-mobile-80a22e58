@@ -14,6 +14,13 @@ import { toast } from '@/hooks/use-toast';
 import { usePendingCodClears } from '@/hooks/usePendingCodClears';
 import { tabCount } from '@/lib/cod';
 import { submitCodClear, codAmountMatches, type CodClearRecord } from '@/lib/codClear';
+import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
+
+function ProofImg({ url, className }: { url: string; className?: string }) {
+  const { url: signed } = usePresignedImageUrl(url);
+  if (!signed) return <div className={`${className} flex items-center justify-center`}><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>;
+  return <img src={signed} alt="" className={className} />;
+}
 
 const TAB_TXT: Record<string, Tx> = {
   th: { pending: 'ยังไม่เคลียร์', cleared: 'เคลียร์แล้ว', nonePending: 'ไม่มียอดค้างเคลียร์', noneCleared: 'ยังไม่มีรายการที่เคลียร์แล้ว', amount: 'ยอดที่เคลียร์', at: 'เวลาที่เคลียร์' },
@@ -152,7 +159,7 @@ export default function CodClearPage() {
                     {!!s.record.proof_urls?.length && (
                       <div className="flex gap-2 overflow-x-auto">
                         {s.record.proof_urls.map((u) => (
-                          <button key={u} onClick={() => setZoom(u)} className="w-16 h-16 rounded-lg overflow-hidden bg-muted shrink-0"><img src={u} alt="" className="w-full h-full object-cover" /></button>
+                          <button key={u} onClick={() => setZoom(u)} className="w-16 h-16 rounded-lg overflow-hidden bg-muted shrink-0"><ProofImg url={u} className="w-full h-full object-cover" /></button>
                         ))}
                       </div>
                     )}
@@ -171,7 +178,7 @@ export default function CodClearPage() {
       {zoom && (
         <Dialog open onOpenChange={(o) => !o && setZoom(null)}>
           <DialogContent className="w-[94vw] max-w-lg max-h-[90vh] p-2 rounded-2xl">
-            <img src={zoom} alt="" className="w-full max-h-[85vh] object-contain rounded-xl" />
+            <ProofImg url={zoom} className="w-full max-h-[85vh] object-contain rounded-xl" />
           </DialogContent>
         </Dialog>
       )}
@@ -201,6 +208,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
   const matches = codAmountMatches(amount, record.expected_total);
   const [notes, setNotes] = useState('');
   const [urls, setUrls] = useState<string[]>([]);
+  const [previews, setPreviews] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
   const [sending, setSending] = useState(false);
   const camRef = useRef<HTMLInputElement>(null);
@@ -210,6 +218,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
     if (!files.length) return;
     setUploading(true);
     const added: string[] = [];
+    const prev: Record<string, string> = {};
     for (const f of files) {
       const fd = new FormData();
       fd.append('file', await compressImage(f));
@@ -218,10 +227,11 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
       const { data, error } = await supabase.functions.invoke('upload-to-s3', { body: fd });
       if (error || !data?.url) { toast({ title: tx.uploadErr, variant: 'destructive' }); continue; }
       added.push(data.url);
+      prev[data.url] = URL.createObjectURL(f);
     }
     setUploading(false);
     readAmount(files[files.length - 1]);
-    if (added.length) setUrls((u) => [...u, ...added].slice(0, 20));
+    if (added.length) { setPreviews((p) => ({ ...p, ...prev })); setUrls((u) => [...u, ...added].slice(0, 20)); }
   };
   const readAmount = async (f: File) => {
     setReading(true); setOcrFailed(false);
@@ -290,7 +300,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
               <div className="grid grid-cols-3 gap-2">
                 {urls.map((u) => (
                   <div key={u} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
-                    <img src={u} alt="" className="w-full h-full object-cover" />
+                    {previews[u] ? <img src={previews[u]} alt="" className="w-full h-full object-cover" /> : <ProofImg url={u} className="w-full h-full object-cover" />}
                     <button onClick={() => setUrls((x) => x.filter((y) => y !== u))} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background/90 flex items-center justify-center">
                       <X className="w-3.5 h-3.5" />
                     </button>
