@@ -5,11 +5,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-app-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
-const SHOP_ID = '581c4aa6-cd23-432d-a60e-748111e0514a';
+const SHOP_ID = Deno.env.get('SAHAPHAN_SHOP_ID') || '24257929-346e-415c-a6e0-e64f90d78266'; // Test shop by default
 const API_URL = 'https://qbamcmcbmmmsdkzebtbw.supabase.co/functions/v1/public-payment-api';
 
 const Body = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('create'), amount: z.number().positive().max(1_000_000), reference: z.string().max(100).optional() }),
+  z.object({ action: z.literal('create'), amount: z.number().positive().max(1_000_000), reference: z.string().max(100).optional(), qr_provider: z.enum(['thai_qr', 'bot_qr']).optional() }),
   z.object({ action: z.literal('status'), payment_id: z.string().min(1).max(100) }),
 ]);
 
@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   if (!parsed.success) return json({ success: false, error: parsed.error.flatten().fieldErrors }, 400);
   const p = parsed.data;
   const payload = p.action === 'create'
-    ? { action: 'create_and_process', amount: Math.round(p.amount * 100) / 100, payment_method: 'qr_code', qr_provider: 'bot_qr', shop_id: SHOP_ID, description: 'COD', reference: p.reference }
+    ? { action: 'create_and_process', amount: Math.round(p.amount * 100) / 100, payment_method: 'qr_code', qr_provider: p.qr_provider ?? 'bot_qr', shop_id: SHOP_ID, description: 'COD', reference: p.reference }
     : { action: 'status', payment_id: p.payment_id };
 
   try {
