@@ -30,10 +30,10 @@ const TAB_TXT: Record<string, Tx> = {
 };
 
 const SUM_TXT: Record<string, Tx> = {
-  th: { stale: 'ดึงข้อมูลไม่สำเร็จ ปัดลงเพื่อลองใหม่', title: 'สรุปยอดเงิน', none: 'ไม่มียอด COD', total: 'ต้องเก็บ', collected: 'เก็บแล้ว', outstanding: 'ค้าง', running: 'กำลังวิ่ง', closed: 'ปิดงานแล้ว', got: 'เก็บแล้ว', notGot: 'ยังไม่เก็บ', cash: 'เงินสด', point: 'จุดส่ง', ready: 'พร้อมเคลียร์ กดไอคอนเพื่อเคลียร์ยอด', notReady: 'ยังเคลียร์ไม่ได้', whyCollect: 'ยังเก็บไม่ครบ', whyOpen: 'งานยังไม่ปิด', how2: 'เมื่อเก็บครบและปิดงานแล้ว กดไอคอนเคลียร์ที่งาน แล้วแนบรูปสลิป' },
-  en: { stale: 'Could not load — pull down to retry', title: 'Payment Summary', none: 'No COD amounts', total: 'To collect', collected: 'Collected', outstanding: 'Outstanding', running: 'In progress', closed: 'Closed', got: 'Collected', notGot: 'Not yet', cash: 'Cash', point: 'Stop', ready: 'Ready — tap the icon to clear', notReady: 'Cannot clear yet', whyCollect: 'not fully collected', whyOpen: 'job not closed', how2: 'Once fully collected and closed, tap the clear icon and attach the slip' },
-  zh: { stale: '加载失败，下拉重试', title: '款项汇总', none: '没有货到付款', total: '应收', collected: '已收', outstanding: '未收', running: '进行中', closed: '已完成', got: '已收', notGot: '未收', cash: '现金', point: '送货点', ready: '可结清，点击图标结清', notReady: '暂不能结清', whyCollect: '尚未收齐', whyOpen: '订单未关闭', how2: '收齐并关闭订单后，点击结清图标并上传凭证' },
-  ko: { stale: '불러오기 실패 — 아래로 당겨 다시 시도', title: '금액 요약', none: 'COD 금액이 없습니다', total: '수금액', collected: '수금 완료', outstanding: '미수금', running: '진행 중', closed: '종료됨', got: '수금 완료', notGot: '미수금', cash: '현금', point: '배송지', ready: '정산 가능 — 아이콘을 누르세요', notReady: '아직 정산 불가', whyCollect: '수금 미완료', whyOpen: '작업 미종료', how2: '수금 완료 및 작업 종료 후 정산 아이콘을 누르고 영수증을 첨부하세요' },
+  th: { delivered: 'ส่งครบแล้ว', stale: 'ดึงข้อมูลไม่สำเร็จ ปัดลงเพื่อลองใหม่', title: 'สรุปยอดเงิน', none: 'ไม่มียอด COD', total: 'ต้องเก็บ', collected: 'เก็บแล้ว', outstanding: 'ค้าง', running: 'กำลังวิ่ง', closed: 'ปิดงานแล้ว', got: 'เก็บแล้ว', notGot: 'ยังไม่เก็บ', cash: 'เงินสด', point: 'จุดส่ง', ready: 'พร้อมเคลียร์ กดไอคอนเพื่อเคลียร์ยอด', notReady: 'ยังเคลียร์ไม่ได้', whyCollect: 'ยังเก็บไม่ครบ', whyOpen: 'งานยังไม่ปิด', how2: 'เมื่อเก็บครบและปิดงานแล้ว กดไอคอนเคลียร์ที่งาน แล้วแนบรูปสลิป' },
+  en: { delivered: 'Delivered', stale: 'Could not load — pull down to retry', title: 'Payment Summary', none: 'No COD amounts', total: 'To collect', collected: 'Collected', outstanding: 'Outstanding', running: 'In progress', closed: 'Closed', got: 'Collected', notGot: 'Not yet', cash: 'Cash', point: 'Stop', ready: 'Ready — tap the icon to clear', notReady: 'Cannot clear yet', whyCollect: 'not fully collected', whyOpen: 'job not closed', how2: 'Once fully collected and closed, tap the clear icon and attach the slip' },
+  zh: { delivered: '已送达', stale: '加载失败，下拉重试', title: '款项汇总', none: '没有货到付款', total: '应收', collected: '已收', outstanding: '未收', running: '进行中', closed: '已完成', got: '已收', notGot: '未收', cash: '现金', point: '送货点', ready: '可结清，点击图标结清', notReady: '暂不能结清', whyCollect: '尚未收齐', whyOpen: '订单未关闭', how2: '收齐并关闭订单后，点击结清图标并上传凭证' },
+  ko: { delivered: '배송 완료', stale: '불러오기 실패 — 아래로 당겨 다시 시도', title: '금액 요약', none: 'COD 금액이 없습니다', total: '수금액', collected: '수금 완료', outstanding: '미수금', running: '진행 중', closed: '종료됨', got: '수금 완료', notGot: '미수금', cash: '현금', point: '배송지', ready: '정산 가능 — 아이콘을 누르세요', notReady: '아직 정산 불가', whyCollect: '수금 미완료', whyOpen: '작업 미종료', how2: '수금 완료 및 작업 종료 후 정산 아이콘을 누르고 영수증을 첨부하세요' },
 };
 
 type Tx = Record<string, string>;
@@ -130,7 +130,7 @@ export default function CodClearPage() {
                     <div className="font-semibold text-foreground truncate">{s.record.order_number}</div>
                     {done
                       ? <span className="inline-flex items-center gap-1 mt-1 text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700"><CheckCircle2 className="w-3 h-3" />{T.cleared}</span>
-                      : <span className={`inline-block mt-1 text-xs rounded-full px-2 py-0.5 ${s.closed ? 'bg-muted text-foreground' : 'bg-primary/10 text-primary'}`}>{s.closed ? S.closed : S.running}</span>}
+                      : <span className={`inline-block mt-1 text-xs rounded-full px-2 py-0.5 ${s.closed ? 'bg-muted text-foreground' : 'bg-primary/10 text-primary'}`}>{s.closed ? S.closed : ['completed','delivered'].includes(String(s.record.order_status||'').toLowerCase()) ? S.delivered : S.running}</span>}
                   </div>
                   {!done && <button aria-label={tx.confirm} disabled={!s.canClear} onClick={() => setSelected(s.record)}
                     className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${s.canClear ? 'bg-green-600 text-primary-foreground shadow active:scale-95' : 'bg-muted text-muted-foreground'}`}>

@@ -10,7 +10,7 @@ describe('codClear', () => {
       { order_number: 'C', status: 'pending', order_status: 'in_progress' },
       { order_number: 'D', status: 'pending', order_status: 'completed' },
     ]);
-    expect(r.map((x) => x.order_number)).toEqual(['A', 'D']);
+    expect(r.map((x) => x.order_number)).toEqual(['A']);
   });
 
   it('collects orders with payment check-ins within 30 days', () => {
@@ -54,7 +54,8 @@ describe('summarizeCod', () => {
     expect(summarizeCod(rec('in_transit'), [ci(1), ci(2)]).reason).toBe('not_closed');
   });
   it('all collected and closed: can clear', () => {
-    expect(summarizeCod(rec('completed'), [ci(1), ci(2)]).canClear).toBe(true);
+    expect(summarizeCod(rec('closed'), [ci(1), ci(2)]).canClear).toBe(true);
+    expect(summarizeCod(rec('completed'), [ci(1), ci(2)]).canClear).toBe(false);
   });
 });
 
