@@ -154,7 +154,7 @@ export function readSummaryCache(driverId: string): CodSummary[] | null {
 }
 
 /** Every order with COD (open or closed) not yet cleared, from the last 30 days of check-ins. */
-export async function fetchCodSummaries(driverId: string, driverType: DriverType): Promise<CodSummary[]> {
+export async function fetchCodSummaries(driverId: string, driverType: DriverType, onProgress?: (items: CodSummary[]) => void): Promise<CodSummary[]> {
   const { data } = await getDriverCheckins(driverId, driverType, 'all', { limit: 2000 });
   const checkins: any[] = data?.data || [];
   const cutoff = Date.now() - 30 * 86400000;
@@ -168,7 +168,15 @@ export async function fetchCodSummaries(driverId: string, driverType: DriverType
   }
   const list = [...refs.values()];
   const recs: Array<CodClearRecord | null> = [];
-  for (let i = 0; i < list.length; i += 6) recs.push(...await Promise.all(list.slice(i, i + 6).map((r) => getCodClear(r).catch(() => null))));
+  const build = () => {
+    const seen = new Set<string>();
+    return recs.filter((r): r is CodClearRecord => !!r && r.status === 'pending' && !seen.has(r.order_number) && !!seen.add(r.order_number))
+      .map((r) => summarizeCod(r as any, checkins));
+  };
+  for (let i = 0; i < list.length; i += 6) {
+    recs.push(...await Promise.all(list.slice(i, i + 6).map((r) => getCodClear(r).catch(() => null))));
+    onProgress?.(build());
+  }
   const seen = new Set<string>();
   const out = recs.filter((r): r is CodClearRecord => !!r && r.status === 'pending' && !seen.has(r.order_number) && !!seen.add(r.order_number))
     .map((r) => summarizeCod(r as any, checkins));

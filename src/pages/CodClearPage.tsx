@@ -41,7 +41,7 @@ export default function CodClearPage() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const tx = COD_CLEAR_TXT[language] || COD_CLEAR_TXT.th;
-  const { all, loading, reload, driverId, driverType } = usePendingCodClears();
+  const { all, loading, loaded, reload, driverId, driverType } = usePendingCodClears();
   const [selected, setSelected] = useState<CodClearRecord | null>(null);
   const S = SUM_TXT[language] || SUM_TXT.th;
   const tot = all.reduce((a, s) => ({ t: a.t + s.total, c: a.c + s.collected, o: a.o + s.outstanding }), { t: 0, c: 0, o: 0 });
@@ -53,25 +53,19 @@ export default function CodClearPage() {
           <button onClick={() => navigate('/home')} className="absolute left-0 p-2 rounded-full">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">{S.title}</h1>
+          <h1 className="text-xl font-semibold flex items-center gap-2">{S.title}{loading && (loaded || all.length > 0) && <Loader2 className="w-4 h-4 animate-spin opacity-70" />}</h1>
         </div>
       </header>
 
       <PullToRefresh onRefresh={reload} className="px-4 pt-5 space-y-4">
-        {loading && all.length === 0 ? (
-          <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-        ) : all.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-            <CheckCircle2 className="w-12 h-12 text-primary/60" />
-            <p className="text-base">{S.none}</p>
-          </div>
-        ) : (
-          <>
+        <>
             <div className="grid grid-cols-3 gap-2">
               {[[S.total, tot.t, 'text-foreground'], [S.collected, tot.c, 'text-green-600'], [S.outstanding, tot.o, tot.o > 0 ? 'text-destructive' : 'text-foreground']].map(([l, v, c]) => (
                 <div key={String(l)} className="bg-card rounded-xl p-3 shadow-sm border text-center">
                   <div className="text-xs text-muted-foreground">{l}</div>
-                  <div className={`text-lg font-bold ${c}`}>฿{fmt(v as number)}</div>
+                  {!loaded && all.length === 0
+                    ? <div className="h-6 mt-1 mx-auto w-16 rounded bg-muted animate-pulse" />
+                    : <div className={`text-lg font-bold ${c}`}>฿{fmt(v as number)}</div>}
                 </div>
               ))}
             </div>
@@ -81,6 +75,19 @@ export default function CodClearPage() {
                 <li>{tx.how1}</li><li>{S.how2}</li><li>{tx.how3}</li>
               </ol>
             </div>
+            {loaded && !loading && all.length === 0 && (
+              <div className="flex flex-col items-center gap-3 py-10 text-muted-foreground">
+                <CheckCircle2 className="w-12 h-12 text-primary/60" />
+                <p className="text-base">{S.none}</p>
+              </div>
+            )}
+            {!loaded && loading && Array.from({ length: all.length ? 1 : 2 }).map((_, i) => (
+              <div key={`sk${i}`} className="bg-card rounded-xl p-4 shadow-sm border space-y-3 animate-pulse">
+                <div className="flex items-center gap-3"><div className="flex-1 space-y-2"><div className="h-4 w-36 rounded bg-muted" /><div className="h-3 w-16 rounded bg-muted" /></div><div className="w-12 h-12 rounded-full bg-muted" /></div>
+                <div className="h-12 rounded-lg bg-muted" />
+                <div className="h-3 w-full rounded bg-muted" />
+              </div>
+            ))}
             {all.map((s) => (
               <div key={s.record.order_number} className={`bg-card rounded-xl p-4 shadow-md border-2 space-y-3 ${s.canClear ? 'border-green-500/50' : 'border-destructive/30'}`}>
                 <div className="flex items-start gap-3">
@@ -113,8 +120,7 @@ export default function CodClearPage() {
                 </div>
               </div>
             ))}
-          </>
-        )}
+        </>
       </PullToRefresh>
 
       {selected && (
