@@ -41,10 +41,15 @@ export default function CodClearPage() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const tx = COD_CLEAR_TXT[language] || COD_CLEAR_TXT.th;
-  const { all, loading, loaded, failed, reload, removeOrder, driverId, driverType } = usePendingCodClears();
+  const { all: pendingList, cleared, loading, loaded, failed, reload, markOrderCleared, driverId, driverType } = usePendingCodClears();
   const [selected, setSelected] = useState<CodClearRecord | null>(null);
+  const [tab, setTab] = useState<'pending' | 'cleared'>('pending');
+  const [zoom, setZoom] = useState<string | null>(null);
   const S = SUM_TXT[language] || SUM_TXT.th;
+  const T = TAB_TXT[language] || TAB_TXT.th;
+  const all = tab === 'pending' ? pendingList : cleared;
   const tot = all.reduce((a, s) => ({ t: a.t + s.total, c: a.c + s.collected, o: a.o + s.outstanding }), { t: 0, c: 0, o: 0 });
+  const fmtDate = (d?: string | null) => { if (!d) return ''; const x = new Date(d); return isNaN(x.getTime()) ? '' : x.toLocaleString(language === 'th' ? 'th-TH' : language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' }); };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -59,6 +64,18 @@ export default function CodClearPage() {
 
       <PullToRefresh onRefresh={reload} className="px-4 pt-5 space-y-4">
         {failed && !loading && <p className="text-xs text-destructive text-center">{S.stale}</p>}
+        <div className="grid grid-cols-2 gap-1 bg-muted rounded-xl p-1">
+          {(['pending', 'cleared'] as const).map((k) => {
+            const n = k === 'pending' ? pendingList.length : cleared.length;
+            return (
+              <button key={k} onClick={() => setTab(k)}
+                className={`h-10 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 ${tab === k ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
+                {k === 'pending' ? T.pending : T.cleared}
+                <span className={`min-w-5 h-5 px-1.5 rounded-full text-xs flex items-center justify-center ${tab === k ? (k === 'pending' ? 'bg-destructive text-destructive-foreground' : 'bg-green-600 text-primary-foreground') : 'bg-background text-muted-foreground'}`}>{tabCount(n)}</span>
+              </button>
+            );
+          })}
+        </div>
         <>
             <div className="grid grid-cols-3 gap-2">
               {[[S.total, tot.t, 'text-foreground'], [S.collected, tot.c, 'text-green-600'], [S.outstanding, tot.o, tot.o > 0 ? 'text-destructive' : 'text-foreground']].map(([l, v, c]) => (
