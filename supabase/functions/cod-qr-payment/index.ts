@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   if (!parsed.success) return json({ success: false, error: parsed.error.flatten().fieldErrors }, 400);
   const p = parsed.data;
   const payload = p.action === 'create'
-    ? { action: 'create_and_process', amount: Math.round(p.amount * 100) / 100, payment_method: 'qr_code', qr_provider: p.qr_provider ?? 'bot_qr', ...(p.shop === 'default' ? {} : { shop_id: p.shop === 'live' ? '581c4aa6-cd23-432d-a60e-748111e0514a' : SHOP_ID }), description: 'COD', reference: p.reference }
+    ? { action: 'create_and_process', amount: Math.round(p.amount * 100) / 100, payment_method: 'qr', qr_provider: p.qr_provider ?? 'bot_qr', ...(p.shop === 'default' ? {} : { shop_id: p.shop === 'live' ? '581c4aa6-cd23-432d-a60e-748111e0514a' : SHOP_ID }), description: 'COD', reference: p.reference }
     : { action: 'status', payment_id: p.payment_id };
 
   try {
