@@ -1,8 +1,8 @@
 import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getFactoryAssignedJobs } from '@/lib/externalApi';
 import { supabase } from '@/integrations/supabase/client';
 
-const CLOSED = new Set(['closed', 'completed', 'delivered']);
-export function isClosedStatus(s?: string | null) { return !s || CLOSED.has(String(s).toLowerCase()); }
+const CLOSED = new Set(['closed']);
+export function isClosedStatus(s?: string | null) { return !!s && CLOSED.has(String(s).toLowerCase()); }
 
 export interface CodClearRecord {
   order_id?: string;
