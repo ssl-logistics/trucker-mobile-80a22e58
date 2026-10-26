@@ -207,7 +207,7 @@ export async function fetchCodSummaries(driverId: string, driverType: DriverType
     const slice = list.slice(i, i + 10);
     const res = await Promise.all(slice.map(async (r) => {
       const rec = await getCodClear(r).catch(() => null);
-      if (!rec || rec.status !== 'pending') return null;
+      if (!rec || (rec.status !== 'pending' && rec.status !== 'cleared')) return null;
       return summarizeCod(rec as any, allCi.filter((x: any) => (x.transport_orders?.order_number || x.order_number) === rec.order_number || (rec.order_id && x.transport_order_id === rec.order_id)).map((x: any) => ({ ...x, order_number: rec.order_number })));
     }));
     slice.forEach((r) => checked.add(String(r.order_number || r.order_id)));
@@ -231,6 +231,19 @@ export function mergeCodSummaries(cached: CodSummary[], fresh: CodSummary[], che
     else if (!checkedKeys.has(k) && !checkedKeys.has(String(c.record.order_id || ''))) out.push(c);
   }
   return [...out, ...freshMap.values()];
+}
+
+/** Split summaries into not-yet-cleared and cleared lists. */
+export function splitCodSummaries(list: CodSummary[]): { pending: CodSummary[]; cleared: CodSummary[] } {
+  return {
+    pending: list.filter((s) => s.record.status !== 'cleared'),
+    cleared: list.filter((s) => s.record.status === 'cleared'),
+  };
+}
+
+/** Mark an order as cleared locally right after a successful clear. */
+export function markCleared(s: CodSummary, amount: number, proofUrls: string[], at = new Date().toISOString()): CodSummary {
+  return { ...s, canClear: false, record: { ...s.record, status: 'cleared', cleared_amount: amount, proof_urls: proofUrls, cleared_at: at } };
 }
 
 export function removeFromCodCache(driverId: string, orderNumber: string) {

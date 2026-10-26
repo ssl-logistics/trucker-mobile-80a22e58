@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { fetchCodSummaries, readPendingCache, removeFromCodCache, type CodClearRecord, type CodSummary, type DriverType } from '@/lib/codClear';
+import { fetchCodSummaries, readPendingCache, removeFromCodCache, splitCodSummaries, markCleared, type CodClearRecord, type CodSummary, type DriverType } from '@/lib/codClear';
 
 export function usePendingCodClears() {
   const { user } = useAuth();
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const driverId = user?.id ? String(user.id) : '';
   const driverType: DriverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
-  const [all, setAll] = useState<CodSummary[]>([]);
+  const [list, setList] = useState<CodSummary[]>([]);
   const [items, setItems] = useState<CodClearRecord[]>(() => (driverId ? readPendingCache(driverId) || [] : []));
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -23,8 +23,8 @@ export function usePendingCodClears() {
     setLoading(true);
     const first = !loadedRef.current;
     try {
-      const s = await fetchCodSummaries(driverId, driverType, (partial) => { if (first) setAll(partial); });
-      setAll(s);
+      const s = await fetchCodSummaries(driverId, driverType, (partial) => { if (first) setList(partial); });
+      setList(s);
       setItems(s.filter((x) => x.canClear).map((x) => x.record));
       setFailed(false);
     } catch { setFailed(true); }
@@ -34,8 +34,8 @@ export function usePendingCodClears() {
     setLoading(false);
   }, [driverId, driverType]);
 
-  const removeOrder = useCallback((orderNumber: string) => {
-    setAll((a) => a.filter((s) => s.record.order_number !== orderNumber));
+  const markOrderCleared = useCallback((orderNumber: string, amount: number, proofUrls: string[]) => {
+    setList((a) => a.map((s) => (s.record.order_number === orderNumber ? markCleared(s, amount, proofUrls) : s)));
     setItems((a) => a.filter((r) => r.order_number !== orderNumber));
     if (driverId) removeFromCodCache(driverId, orderNumber);
   }, [driverId]);
@@ -48,5 +48,6 @@ export function usePendingCodClears() {
     return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis); };
   }, [reload]);
 
-  return { all, items, loading, loaded, failed, reload, removeOrder, driverId, driverType };
+  const { pending, cleared } = splitCodSummaries(list);
+  return { all: pending, cleared, items, loading, loaded, failed, reload, markOrderCleared, driverId, driverType };
 }
