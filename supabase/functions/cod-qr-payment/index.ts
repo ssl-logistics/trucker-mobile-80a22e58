@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
       expires_at: (typeof qr === 'object' ? qr?.expires_at : null) ?? data?.expires_at ?? null,
       error: r.ok ? undefined : (data?.error?.message || data?.error || data?.message || 'error'),
       request_id: data?.request_id,
+      detail: r.ok ? undefined : (data?.details ?? data?.error?.details ?? data),
     };
     return json(out, r.ok ? 200 : r.status);
   } catch (e) {
