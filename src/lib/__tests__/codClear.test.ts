@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterPending, codOrdersFromCheckins, codAmountMatches, summarizeCod, splitCodSummaries } from '../codClear';
+import { filterPending, codOrdersFromCheckins, codAmountMatches } from '../codClear';
 
 describe('codClear', () => {
   it('keeps only pending closed orders, skips cleared and missing COD', () => {
