@@ -194,7 +194,8 @@ export default function DeliveryDetailPage() {
   const loadJobDetail = async () => {
     if (!user || !jobId) return;
 
-    setLoading(true);
+    // Only block the screen when nothing is shown yet; later reruns refresh silently
+    if (!job) setLoading(true);
     
     try {
       // Use different API based on driver type - call external API directly
@@ -1120,9 +1121,20 @@ export default function DeliveryDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+      <div className="min-h-screen bg-background" aria-busy="true" aria-label={t('common.loading')}>
+        <div className="app-sticky-header bg-header px-4 py-4 flex items-center gap-3">
+          <div className="h-6 w-6 rounded-full bg-header-foreground/20" />
+          <div className="h-5 w-40 rounded bg-header-foreground/20 animate-pulse" />
+        </div>
+        <div className="p-4 space-y-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="bg-card rounded-xl shadow-sm p-4 space-y-3">
+              <div className="h-5 w-1/2 rounded bg-muted animate-pulse" />
+              <div className="h-4 w-full rounded bg-muted animate-pulse" />
+              <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
