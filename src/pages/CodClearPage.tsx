@@ -12,7 +12,15 @@ import { useNativeCamera } from '@/hooks/useNativeCamera';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { usePendingCodClears } from '@/hooks/usePendingCodClears';
+import { tabCount } from '@/lib/cod';
 import { submitCodClear, codAmountMatches, type CodClearRecord } from '@/lib/codClear';
+
+const TAB_TXT: Record<string, Tx> = {
+  th: { pending: 'ยังไม่เคลียร์', cleared: 'เคลียร์แล้ว', nonePending: 'ไม่มียอดค้างเคลียร์', noneCleared: 'ยังไม่มีรายการที่เคลียร์แล้ว', amount: 'ยอดที่เคลียร์', at: 'เวลาที่เคลียร์' },
+  en: { pending: 'Not cleared', cleared: 'Cleared', nonePending: 'No outstanding COD to clear', noneCleared: 'No cleared items yet', amount: 'Amount cleared', at: 'Cleared at' },
+  zh: { pending: '未结清', cleared: '已结清', nonePending: '没有待结清的货款', noneCleared: '暂无已结清记录', amount: '结清金额', at: '结清时间' },
+  ko: { pending: '미정산', cleared: '정산 완료', nonePending: '정산할 금액이 없습니다', noneCleared: '정산 완료 내역이 없습니다', amount: '정산 금액', at: '정산 시간' },
+};
 
 const SUM_TXT: Record<string, Tx> = {
   th: { stale: 'ดึงข้อมูลไม่สำเร็จ ปัดลงเพื่อลองใหม่', title: 'สรุปยอดเงิน', none: 'ไม่มียอด COD', total: 'ต้องเก็บ', collected: 'เก็บแล้ว', outstanding: 'ค้าง', running: 'กำลังวิ่ง', closed: 'ปิดงานแล้ว', got: 'เก็บแล้ว', notGot: 'ยังไม่เก็บ', cash: 'เงินสด', point: 'จุดส่ง', ready: 'พร้อมเคลียร์ กดไอคอนเพื่อเคลียร์ยอด', notReady: 'ยังเคลียร์ไม่ได้', whyCollect: 'ยังเก็บไม่ครบ', whyOpen: 'งานยังไม่ปิด', how2: 'เมื่อเก็บครบและปิดงานแล้ว กดไอคอนเคลียร์ที่งาน แล้วแนบรูปสลิป' },
@@ -184,7 +192,7 @@ export default function CodClearPage() {
 
 function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
   record: CodClearRecord; tx: Tx; driverId: string; driverType: 'internal' | 'external' | 'freelance';
-  onClose: () => void; onDone: () => void;
+  onClose: () => void; onDone: (amount: number, urls: string[]) => void;
 }) {
   const { isNative, takePhoto, selectFromGallery } = useNativeCamera();
   const [amount, setAmount] = useState('');
@@ -251,7 +259,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
       return;
     }
     toast({ title: tx.success });
-    onDone();
+    onDone(Number.isFinite(amt) && amount !== '' ? amt : Number(record.expected_total || 0), urls);
   };
 
   return (
