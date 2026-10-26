@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Wallet, Camera, ImageIcon, Loader2, X, CheckCircle2, Info, ChevronRight } from 'lucide-react';
+import { ChevronLeft, Wallet, Camera, ImageIcon, Loader2, X, CheckCircle2, Info, ChevronRight, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,10 +15,10 @@ import { usePendingCodClears } from '@/hooks/usePendingCodClears';
 import { submitCodClear, codAmountMatches, type CodClearRecord } from '@/lib/codClear';
 
 const SUM_TXT: Record<string, Tx> = {
-  th: { title: 'สรุปยอดเงิน', none: 'ไม่มียอด COD', total: 'ต้องเก็บ', collected: 'เก็บแล้ว', outstanding: 'ค้าง', running: 'กำลังวิ่ง', closed: 'ปิดงานแล้ว', got: 'เก็บแล้ว', notGot: 'ยังไม่เก็บ', cash: 'เงินสด', point: 'จุดส่ง', ready: 'พร้อมเคลียร์ กดไอคอนเพื่อเคลียร์ยอด', notReady: 'ยังเคลียร์ไม่ได้', whyCollect: 'ยังเก็บไม่ครบ', whyOpen: 'งานยังไม่ปิด', how2: 'เมื่อเก็บครบและปิดงานแล้ว กดไอคอนเคลียร์ที่งาน แล้วแนบรูปสลิป' },
-  en: { title: 'Payment Summary', none: 'No COD amounts', total: 'To collect', collected: 'Collected', outstanding: 'Outstanding', running: 'In progress', closed: 'Closed', got: 'Collected', notGot: 'Not yet', cash: 'Cash', point: 'Stop', ready: 'Ready — tap the icon to clear', notReady: 'Cannot clear yet', whyCollect: 'not fully collected', whyOpen: 'job not closed', how2: 'Once fully collected and closed, tap the clear icon and attach the slip' },
-  zh: { title: '款项汇总', none: '没有货到付款', total: '应收', collected: '已收', outstanding: '未收', running: '进行中', closed: '已完成', got: '已收', notGot: '未收', cash: '现金', point: '送货点', ready: '可结清，点击图标结清', notReady: '暂不能结清', whyCollect: '尚未收齐', whyOpen: '订单未关闭', how2: '收齐并关闭订单后，点击结清图标并上传凭证' },
-  ko: { title: '금액 요약', none: 'COD 금액이 없습니다', total: '수금액', collected: '수금 완료', outstanding: '미수금', running: '진행 중', closed: '종료됨', got: '수금 완료', notGot: '미수금', cash: '현금', point: '배송지', ready: '정산 가능 — 아이콘을 누르세요', notReady: '아직 정산 불가', whyCollect: '수금 미완료', whyOpen: '작업 미종료', how2: '수금 완료 및 작업 종료 후 정산 아이콘을 누르고 영수증을 첨부하세요' },
+  th: { stale: 'อาจไม่ใช่ข้อมูลล่าสุด ดึงข้อมูลไม่สำเร็จ', title: 'สรุปยอดเงิน', none: 'ไม่มียอด COD', total: 'ต้องเก็บ', collected: 'เก็บแล้ว', outstanding: 'ค้าง', running: 'กำลังวิ่ง', closed: 'ปิดงานแล้ว', got: 'เก็บแล้ว', notGot: 'ยังไม่เก็บ', cash: 'เงินสด', point: 'จุดส่ง', ready: 'พร้อมเคลียร์ กดไอคอนเพื่อเคลียร์ยอด', notReady: 'ยังเคลียร์ไม่ได้', whyCollect: 'ยังเก็บไม่ครบ', whyOpen: 'งานยังไม่ปิด', how2: 'เมื่อเก็บครบและปิดงานแล้ว กดไอคอนเคลียร์ที่งาน แล้วแนบรูปสลิป' },
+  en: { stale: 'Could not refresh — data may be out of date', title: 'Payment Summary', none: 'No COD amounts', total: 'To collect', collected: 'Collected', outstanding: 'Outstanding', running: 'In progress', closed: 'Closed', got: 'Collected', notGot: 'Not yet', cash: 'Cash', point: 'Stop', ready: 'Ready — tap the icon to clear', notReady: 'Cannot clear yet', whyCollect: 'not fully collected', whyOpen: 'job not closed', how2: 'Once fully collected and closed, tap the clear icon and attach the slip' },
+  zh: { stale: '刷新失败，数据可能不是最新', title: '款项汇总', none: '没有货到付款', total: '应收', collected: '已收', outstanding: '未收', running: '进行中', closed: '已完成', got: '已收', notGot: '未收', cash: '现金', point: '送货点', ready: '可结清，点击图标结清', notReady: '暂不能结清', whyCollect: '尚未收齐', whyOpen: '订单未关闭', how2: '收齐并关闭订单后，点击结清图标并上传凭证' },
+  ko: { stale: '새로고침 실패 — 최신 데이터가 아닐 수 있습니다', title: '금액 요약', none: 'COD 금액이 없습니다', total: '수금액', collected: '수금 완료', outstanding: '미수금', running: '진행 중', closed: '종료됨', got: '수금 완료', notGot: '미수금', cash: '현금', point: '배송지', ready: '정산 가능 — 아이콘을 누르세요', notReady: '아직 정산 불가', whyCollect: '수금 미완료', whyOpen: '작업 미종료', how2: '수금 완료 및 작업 종료 후 정산 아이콘을 누르고 영수증을 첨부하세요' },
 };
 
 type Tx = Record<string, string>;
@@ -41,7 +41,7 @@ export default function CodClearPage() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const tx = COD_CLEAR_TXT[language] || COD_CLEAR_TXT.th;
-  const { all, loading, loaded, reload, driverId, driverType } = usePendingCodClears();
+  const { all, loading, loaded, failed, reload, removeOrder, driverId, driverType } = usePendingCodClears();
   const [selected, setSelected] = useState<CodClearRecord | null>(null);
   const S = SUM_TXT[language] || SUM_TXT.th;
   const tot = all.reduce((a, s) => ({ t: a.t + s.total, c: a.c + s.collected, o: a.o + s.outstanding }), { t: 0, c: 0, o: 0 });
@@ -53,11 +53,12 @@ export default function CodClearPage() {
           <button onClick={() => navigate('/home')} className="absolute left-0 p-2 rounded-full">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold flex items-center gap-2">{S.title}{loading && (loaded || all.length > 0) && <Loader2 className="w-4 h-4 animate-spin opacity-70" />}</h1>
+          <h1 className="text-xl font-semibold flex items-center gap-2">{S.title}<button aria-label="Refresh" onClick={() => reload()} disabled={loading} className="p-1"><RefreshCw className={`w-4 h-4 opacity-70 ${loading ? 'animate-spin' : ''}`} /></button></h1>
         </div>
       </header>
 
       <PullToRefresh onRefresh={reload} className="px-4 pt-5 space-y-4">
+        {failed && !loading && <p className="text-xs text-destructive text-center">{S.stale}</p>}
         <>
             <div className="grid grid-cols-3 gap-2">
               {[[S.total, tot.t, 'text-foreground'], [S.collected, tot.c, 'text-green-600'], [S.outstanding, tot.o, tot.o > 0 ? 'text-destructive' : 'text-foreground']].map(([l, v, c]) => (
@@ -130,7 +131,7 @@ export default function CodClearPage() {
           driverId={driverId}
           driverType={driverType}
           onClose={() => setSelected(null)}
-          onDone={() => { setSelected(null); reload(); }}
+          onDone={() => { removeOrder(selected.order_number); setSelected(null); reload(); }}
         />
       )}
     </div>
