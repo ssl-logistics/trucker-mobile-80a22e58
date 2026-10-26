@@ -14,6 +14,7 @@ import jobHistoryIcon from "@/assets/job-history-icon.svg";
 import marketIcon from "@/assets/market-icon-new.webp";
 import codClearIcon from "@/assets/cod-clear-icon.png";
 import { usePendingCodClears } from "@/hooks/usePendingCodClears";
+import { tabCount } from "@/lib/cod";
 
 // Warm the browser image cache as soon as this module loads
 if (typeof window !== "undefined") {
@@ -77,7 +78,7 @@ export function AppHeader({
   };
 
   const userTypeInfo = getUserTypeInfo();
-  const { items: codPending } = usePendingCodClears();
+  const { all: codPending } = usePendingCodClears();
   
   // Get presigned URL for S3 profile photos
   const { url: presignedProfilePhoto, isLoading: isPhotoLoading } = usePresignedImageUrl(profilePhoto);
@@ -199,7 +200,7 @@ export function AppHeader({
           data-tour={item.labelKey === "home.market" ? "bidding-menu" : item.labelKey === "home.current_jobs" ? "current-jobs-menu" : undefined}
         >
                 <div className="w-16 h-16 flex items-center justify-center relative">
-                  {item.path === "/cod-clear" && codPending.length > 0 && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-xs font-bold flex items-center justify-center">{codPending.length}</span>}
+                  {item.path === "/cod-clear" && codPending.length > 0 && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-xs font-bold flex items-center justify-center">{tabCount(codPending.length)}</span>}
                   <img src={item.icon} alt={t(item.labelKey)} width={64} height={64} className="w-full h-full object-contain" decoding="sync" fetchPriority="high" loading="eager" />
                 </div>
                 <span className="text-sm text-[#153860] text-center">{t(item.labelKey)}</span>
