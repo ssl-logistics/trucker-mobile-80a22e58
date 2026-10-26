@@ -722,7 +722,6 @@ export default function DeliveryDetailPage() {
         latitude: podLatitude,
         longitude: podLongitude,
         notes: codState.method === 'mint_qr' ? 'ลูกค้าชำระผ่าน QR Mint แล้ว' : codState.method === 'static_qr' ? 'ลูกค้าชำระผ่าน QR โค้ก แล้ว' : 'ลูกค้าชำระเงินสดแล้ว',
-        cod_method: codState.method || 'cash',
         ...(codState.qrPaymentId ? { qr_payment_id: codState.qrPaymentId } : {}),
         cod_proof_urls: codState.urls,
         ...(isMultiDestination && destination?.sequence_number ? { destination_sequence_number: destination.sequence_number } : {}),
