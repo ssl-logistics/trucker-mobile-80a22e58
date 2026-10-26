@@ -50,6 +50,7 @@ Deno.serve(async (req) => {
       error: r.ok ? undefined : (data?.error?.message || data?.error || data?.message || 'error'),
       request_id: data?.request_id,
       detail: r.ok ? undefined : (data?.details ?? data?.error?.details ?? data),
+      raw: data,
     };
     return json(out, r.ok ? 200 : r.status);
   } catch (e) {
