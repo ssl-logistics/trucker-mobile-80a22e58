@@ -12,10 +12,10 @@ import { QRCodeSVG } from 'qrcode.react';
 import { createCodQr, checkCodQr, secondsLeft, formatCountdown, type CodQr } from '@/lib/codQr';
 
 const TXT: Record<string, Record<string, string>> = {
-  th: { title: 'เก็บเงินปลายทาง (COD)', cash: 'เงินสด', qr: 'QR', openQr: 'เปิด QR รับเงิน', qrTitle: 'สแกน QR เพื่อชำระเงิน', qrMock: 'QR ตัวอย่าง (ทดสอบ)', confirmQr: 'ยืนยันรับเงินแล้ว', qrDone: 'ยืนยันรับเงินผ่าน QR แล้ว', proof: 'รูปหลักฐานการรับเงิน (บังคับ)', take: 'ถ่ายรูป', pick: 'เลือกรูป', needQr: 'กรุณาเปิด QR และยืนยันรับเงินก่อน', needPhoto: 'กรุณาแนบรูปหลักฐานการรับเงินอย่างน้อย 1 รูป', uploadErr: 'อัปโหลดรูปไม่สำเร็จ ลองใหม่อีกครั้ง', creating: 'กำลังสร้าง QR...', waiting: 'รอลูกค้าชำระ...', expiresIn: 'หมดอายุใน', expired: 'QR หมดอายุ', regen: 'สร้าง QR ใหม่', paid: 'รับเงินผ่าน QR แล้ว', fail: 'สร้าง/ตรวจ QR ไม่ได้ กรุณาแนบรูปสลิปแทน', retry: 'ลองใหม่', proofOpt: 'รูปหลักฐาน (ไม่บังคับเมื่อชำระ QR สำเร็จ)' },
-  en: { title: 'Cash on delivery (COD)', cash: 'Cash', qr: 'QR', openQr: 'Open payment QR', qrTitle: 'Scan QR to pay', qrMock: 'Sample QR (test)', confirmQr: 'Payment received', qrDone: 'QR payment confirmed', proof: 'Payment proof photo (required)', take: 'Take photo', pick: 'Choose photo', needQr: 'Open the QR and confirm payment first', needPhoto: 'Attach at least 1 payment proof photo', uploadErr: 'Upload failed, please try again', creating: 'Creating QR...', waiting: 'Waiting for payment...', expiresIn: 'Expires in', expired: 'QR expired', regen: 'Create new QR', paid: 'QR payment received', fail: 'QR unavailable, please attach the slip photo instead', retry: 'Retry', proofOpt: 'Proof photo (optional once QR is paid)' },
-  zh: { title: '货到付款 (COD)', cash: '现金', qr: '二维码', openQr: '打开收款二维码', qrTitle: '扫码付款', qrMock: '示例二维码（测试）', confirmQr: '已收款', qrDone: '已确认二维码收款', proof: '收款凭证照片（必填）', take: '拍照', pick: '选择照片', needQr: '请先打开二维码并确认收款', needPhoto: '请至少上传1张收款凭证', uploadErr: '上传失败，请重试', creating: '正在生成二维码...', waiting: '等待付款...', expiresIn: '剩余', expired: '二维码已过期', regen: '重新生成二维码', paid: '已通过二维码收款', fail: '二维码不可用，请改为上传付款凭证', retry: '重试', proofOpt: '凭证照片（二维码付款成功后可不传）' },
-  ko: { title: '착불 (COD)', cash: '현금', qr: 'QR', openQr: '결제 QR 열기', qrTitle: 'QR 스캔 결제', qrMock: '샘플 QR (테스트)', confirmQr: '결제 받음', qrDone: 'QR 결제 확인됨', proof: '결제 증빙 사진 (필수)', take: '사진 촬영', pick: '사진 선택', needQr: '먼저 QR을 열고 결제를 확인하세요', needPhoto: '결제 증빙 사진을 1장 이상 첨부하세요', uploadErr: '업로드 실패, 다시 시도하세요', creating: 'QR 생성 중...', waiting: '결제 대기 중...', expiresIn: '만료까지', expired: 'QR 만료됨', regen: '새 QR 생성', paid: 'QR 결제 완료', fail: 'QR을 사용할 수 없습니다. 영수증 사진을 첨부하세요', retry: '다시 시도', proofOpt: '증빙 사진 (QR 결제 완료 시 선택)' },
+  th: { mCash: 'เงินสด', mStatic: 'QR โค้ก', mMint: 'QR Mint', openStatic: 'เปิด QR โค้ก', staticMock: 'รูป QR ตัวอย่าง (รอรูปจริง)', mLabel: 'วิธีรับเงิน', title: 'เก็บเงินปลายทาง (COD)', cash: 'เงินสด', qr: 'QR', openQr: 'เปิด QR รับเงิน', qrTitle: 'สแกน QR เพื่อชำระเงิน', qrMock: 'QR ตัวอย่าง (ทดสอบ)', confirmQr: 'ยืนยันรับเงินแล้ว', qrDone: 'ยืนยันรับเงินผ่าน QR แล้ว', proof: 'รูปหลักฐานการรับเงิน (บังคับ)', take: 'ถ่ายรูป', pick: 'เลือกรูป', needQr: 'กรุณาเปิด QR และยืนยันรับเงินก่อน', needPhoto: 'กรุณาแนบรูปหลักฐานการรับเงินอย่างน้อย 1 รูป', uploadErr: 'อัปโหลดรูปไม่สำเร็จ ลองใหม่อีกครั้ง', creating: 'กำลังสร้าง QR...', waiting: 'รอลูกค้าชำระ...', expiresIn: 'หมดอายุใน', expired: 'QR หมดอายุ', regen: 'สร้าง QR ใหม่', paid: 'รับเงินผ่าน QR แล้ว', fail: 'สร้าง/ตรวจ QR ไม่ได้ กรุณาแนบรูปสลิปแทน', retry: 'ลองใหม่', proofOpt: 'รูปหลักฐาน (ไม่บังคับเมื่อชำระ QR สำเร็จ)' },
+  en: { mCash: 'Cash', mStatic: 'Coke QR', mMint: 'Mint QR', openStatic: 'Open Coke QR', staticMock: 'Sample QR (placeholder)', mLabel: 'Payment method', title: 'Cash on delivery (COD)', cash: 'Cash', qr: 'QR', openQr: 'Open payment QR', qrTitle: 'Scan QR to pay', qrMock: 'Sample QR (test)', confirmQr: 'Payment received', qrDone: 'QR payment confirmed', proof: 'Payment proof photo (required)', take: 'Take photo', pick: 'Choose photo', needQr: 'Open the QR and confirm payment first', needPhoto: 'Attach at least 1 payment proof photo', uploadErr: 'Upload failed, please try again', creating: 'Creating QR...', waiting: 'Waiting for payment...', expiresIn: 'Expires in', expired: 'QR expired', regen: 'Create new QR', paid: 'QR payment received', fail: 'QR unavailable, please attach the slip photo instead', retry: 'Retry', proofOpt: 'Proof photo (optional once QR is paid)' },
+  zh: { mCash: '现金', mStatic: '可乐二维码', mMint: 'Mint 二维码', openStatic: '打开可乐二维码', staticMock: '示例二维码（占位）', mLabel: '收款方式', title: '货到付款 (COD)', cash: '现金', qr: '二维码', openQr: '打开收款二维码', qrTitle: '扫码付款', qrMock: '示例二维码（测试）', confirmQr: '已收款', qrDone: '已确认二维码收款', proof: '收款凭证照片（必填）', take: '拍照', pick: '选择照片', needQr: '请先打开二维码并确认收款', needPhoto: '请至少上传1张收款凭证', uploadErr: '上传失败，请重试', creating: '正在生成二维码...', waiting: '等待付款...', expiresIn: '剩余', expired: '二维码已过期', regen: '重新生成二维码', paid: '已通过二维码收款', fail: '二维码不可用，请改为上传付款凭证', retry: '重试', proofOpt: '凭证照片（二维码付款成功后可不传）' },
+  ko: { mCash: '현금', mStatic: '코크 QR', mMint: 'Mint QR', openStatic: '코크 QR 열기', staticMock: '샘플 QR (임시)', mLabel: '결제 방법', title: '착불 (COD)', cash: '현금', qr: 'QR', openQr: '결제 QR 열기', qrTitle: 'QR 스캔 결제', qrMock: '샘플 QR (테스트)', confirmQr: '결제 받음', qrDone: 'QR 결제 확인됨', proof: '결제 증빙 사진 (필수)', take: '사진 촬영', pick: '사진 선택', needQr: '먼저 QR을 열고 결제를 확인하세요', needPhoto: '결제 증빙 사진을 1장 이상 첨부하세요', uploadErr: '업로드 실패, 다시 시도하세요', creating: 'QR 생성 중...', waiting: '결제 대기 중...', expiresIn: '만료까지', expired: 'QR 만료됨', regen: '새 QR 생성', paid: 'QR 결제 완료', fail: 'QR을 사용할 수 없습니다. 영수증 사진을 첨부하세요', retry: '다시 시도', proofOpt: '증빙 사진 (QR 결제 완료 시 선택)' },
 };
 
 export function useCodText() {
@@ -23,7 +23,8 @@ export function useCodText() {
   return TXT[language] || TXT.th;
 }
 
-export interface CodState { qrConfirmed: boolean; urls: string[]; qr?: CodQr | null; qrFailed?: boolean }
+export type CodMethod = 'cash' | 'static_qr' | 'mint_qr';
+export interface CodState { method?: CodMethod; qrConfirmed: boolean; urls: string[]; qr?: CodQr | null; qrFailed?: boolean }
 
 interface Props {
   cod: CodInfo;
@@ -43,7 +44,9 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
   const [uploading, setUploading] = useState(false);
   const camRef = useRef<HTMLInputElement>(null);
   const galRef = useRef<HTMLInputElement>(null);
-  const needQr = cod.method === 'qr';
+  const method: CodMethod = state.method || (cod.method === 'qr' ? 'mint_qr' : 'cash');
+  const needQr = method === 'mint_qr';
+  const [staticOpen, setStaticOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [now, setNow] = useState(Date.now());
   const left = secondsLeft(state.qr?.expiresAt, now);
@@ -92,8 +95,8 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
 
   useEffect(() => {
     try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch { /* noop */ }
-    onChange({ ...state, ready: needQr ? (state.qrConfirmed || state.urls.length > 0) : state.urls.length > 0 });
-  }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
+    onChange({ ...state, method, ready: needQr ? (state.qrConfirmed || state.urls.length > 0) : state.urls.length > 0 });
+  }, [state, method]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const upload = async (files: File[]) => {
     if (!files.length) return;
@@ -128,9 +131,26 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
     <div className="bg-card rounded-xl shadow-md p-4 space-y-3 ring-1 ring-primary/30">
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-semibold text-lg flex items-center gap-2"><Banknote className="w-5 h-5 text-primary" />{tx.title}</h3>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">{cod.method === 'qr' ? tx.qr : cod.method === 'cash' ? tx.cash : '-'}</span>
+
       </div>
       <div className="text-2xl font-bold">฿{cod.amount != null ? cod.amount.toLocaleString() : '-'}</div>
+
+      {!readOnly && (
+        <div className="space-y-1">
+          <div className="text-sm font-medium">{tx.mLabel}</div>
+          <div className="grid grid-cols-3 gap-1 p-1 rounded-lg bg-muted">
+            {([['cash', tx.mCash], ['static_qr', tx.mStatic], ['mint_qr', tx.mMint]] as [CodMethod, string][]).map(([m, l]) => (
+              <button key={m} type="button" onClick={() => setState((s) => ({ ...s, method: m }))}
+                className={`h-10 rounded-md text-sm font-medium transition-colors ${method === m ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground'}`}>{l}</button>
+            ))}
+          </div>
+        </div>
+      )}
+      {readOnly && <div className="text-xs text-muted-foreground">{method === 'cash' ? tx.mCash : method === 'static_qr' ? tx.mStatic : tx.mMint}</div>}
+
+      {method === 'static_qr' && !readOnly && (
+        <Button variant="outline" className="w-full h-11 gap-2" onClick={() => setStaticOpen(true)}><QrCode className="w-5 h-5" />{tx.openStatic}</Button>
+      )}
 
       {needQr && !readOnly && (
         state.qrConfirmed ? (
@@ -171,6 +191,18 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
 
       <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onInput} />
       <input ref={galRef} type="file" accept="image/*" multiple className="hidden" onChange={onInput} />
+
+      <Dialog open={staticOpen} onOpenChange={setStaticOpen}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader><DialogTitle className="text-center">{tx.mStatic}</DialogTitle></DialogHeader>
+          <div className="flex flex-col items-center gap-3">
+            <div className="bg-background p-3 rounded-xl ring-1 ring-border"><QRCodeSVG value="COKE-QR-PLACEHOLDER" size={220} level="M" /></div>
+            <div className="text-xs text-muted-foreground">{tx.staticMock}</div>
+            <div className="text-2xl font-bold">฿{cod.amount != null ? cod.amount.toLocaleString() : '-'}</div>
+            <div className="text-xs text-destructive">{tx.needPhoto}</div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
         <DialogContent className="max-w-sm rounded-2xl">
