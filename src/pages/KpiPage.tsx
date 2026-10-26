@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2, MapPin, Clock, Package, ClipboardList } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -76,16 +77,19 @@ export default function KpiPage() {
   const Mini = ({ icon: I, label, p, sub }: { icon: any; label: string; p: number | null; sub: string }) => {
     const t = kpiTone(p);
     return (
-      <div className="rounded-2xl border bg-card p-3 shadow-sm flex flex-col gap-2">
-        <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground"><I className="w-3.5 h-3.5 text-primary" />{label}</div>
-        <div className={`text-2xl font-bold ${toneText[t]}`}>{fmt(p)}</div>
-        <div className="h-1.5 rounded-full bg-muted overflow-hidden"><div className={`h-full ${toneBg[t]}`} style={{ width: `${Math.min(100, p ?? 0)}%` }} /></div>
-        <div className="text-[11px] text-muted-foreground leading-tight">{sub}</div>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-sm font-medium"><I className="w-4 h-4 text-primary" />{label}</div>
+          <div className={`text-lg font-bold ${toneText[t]}`}>{fmt(p)}</div>
+        </div>
+        <div className="h-3 rounded-full bg-muted overflow-hidden"><div className={`h-full rounded-full ${toneBg[t]}`} style={{ width: `${Math.min(100, p ?? 0)}%` }} /></div>
+        <div className="text-xs text-muted-foreground">{sub}</div>
       </div>
     );
   };
 
   const fmtDay = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+  const chartData = [...daily].reverse().map((r) => ({ day: fmtDay(r.kpi_date), loc: r.location_pass_pct ?? null, time: r.time_pass_pct ?? null, load: r.load_pct ?? null }));
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -122,7 +126,7 @@ export default function KpiPage() {
               </div>
               {oTone !== 'none' && <div className={`mt-2 rounded-full px-3 py-1 text-sm font-semibold text-primary-foreground ${toneBg[oTone]}`}>{tx[oTone]}</div>}
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="rounded-2xl border bg-card p-4 shadow-sm space-y-4">
               <Mini icon={MapPin} label={tx.loc} p={agg.location.pct} sub={`${tx.passed} ${agg.location.passed} ${tx.of} ${agg.location.checked} ${tx.points}`} />
               <Mini icon={Clock} label={tx.time} p={agg.time.pct} sub={`${tx.passed} ${agg.time.passed} ${tx.of} ${agg.time.checked} ${tx.points}`} />
               <Mini icon={Package} label={tx.load} p={agg.load.pct} sub={`${agg.load.orders} ${tx.of} ${agg.load.company} ${tx.jobs}`} />
@@ -136,19 +140,22 @@ export default function KpiPage() {
               ))}
             </div>
             {daily.length > 1 && (
-              <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
-                <div className="px-4 pt-3 pb-2 font-semibold">{tx.daily}</div>
-                <div className="grid grid-cols-4 gap-2 px-4 py-2 bg-muted text-xs font-medium text-muted-foreground">
-                  <span>{tx.date}</span><span className="text-right">{tx.loc}</span><span className="text-right">{tx.time}</span><span className="text-right">{tx.load}</span>
+              <div className="rounded-2xl border bg-card shadow-sm p-4">
+                <div className="font-semibold mb-2">{tx.daily}</div>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="day" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                      <YAxis domain={[0, 100]} ticks={[0, 50, 100]} tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                      <Tooltip formatter={(v: any) => `${Math.round(v)}%`} contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }} />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Line type="monotone" dataKey="loc" name={tx.loc} stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
+                      <Line type="monotone" dataKey="time" name={tx.time} stroke="hsl(38 92% 50%)" strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
+                      <Line type="monotone" dataKey="load" name={tx.load} stroke="hsl(142 71% 35%)" strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
-                {daily.map((r) => (
-                  <div key={r.kpi_date} className="grid grid-cols-4 gap-2 px-4 py-2.5 border-t text-sm">
-                    <span>{fmtDay(r.kpi_date)}</span>
-                    {[r.location_pass_pct, r.time_pass_pct, r.load_pct].map((v, i) => (
-                      <span key={i} className={`text-right font-semibold ${toneText[kpiTone(v ?? null)]}`}>{fmt(v ?? null)}</span>
-                    ))}
-                  </div>
-                ))}
               </div>
             )}
           </>
