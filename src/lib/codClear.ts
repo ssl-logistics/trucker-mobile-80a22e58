@@ -175,8 +175,8 @@ export async function fetchCodSummaries(driverId: string, driverType: DriverType
     return recs.filter((r): r is CodClearRecord => !!r && r.status === 'pending' && !seen.has(r.order_number) && !!seen.add(r.order_number))
       .map((r) => summarizeCod(r as any, checkins));
   };
-  for (let i = 0; i < list.length; i += 6) {
-    const slice = list.slice(i, i + 6);
+  for (let i = 0; i < list.length; i += 10) {
+    const slice = list.slice(i, i + 10);
     recs.push(...await Promise.all(slice.map((r) => getCodClear(r).catch(() => null))));
     slice.forEach((r) => checked.add(String(r.order_number || r.order_id)));
     onProgress?.(build(), checked);

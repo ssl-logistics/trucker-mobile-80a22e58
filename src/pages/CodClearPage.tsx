@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Wallet, Camera, ImageIcon, Loader2, X, CheckCircle2, Info, ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronLeft, Wallet, Camera, ImageIcon, Loader2, X, CheckCircle2, Info, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -53,7 +53,7 @@ export default function CodClearPage() {
           <button onClick={() => navigate('/home')} className="absolute left-0 p-2 rounded-full">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold flex items-center gap-2">{S.title}<button aria-label="Refresh" onClick={() => reload()} disabled={loading} className="p-1"><RefreshCw className={`w-4 h-4 opacity-70 ${loading ? 'animate-spin' : ''}`} /></button></h1>
+          <h1 className="text-xl font-semibold flex items-center gap-2">{S.title}</h1>
         </div>
       </header>
 
