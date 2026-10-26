@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterPending, codOrdersFromCheckins, codAmountMatches } from '../codClear';
+import { filterPending, codOrdersFromCheckins, codAmountMatches, clearMethodFields } from '../codClear';
 
 describe('codClear', () => {
   it('keeps only pending closed orders, skips cleared and missing COD', () => {
@@ -124,4 +124,12 @@ describe('QR-paid points need no clearing', () => {
       [{ order_number: 'B', checkin_type: 'payment', destination_sequence_number: 1 }]);
     expect(s.clearRequired).toBe(1); expect(s.qrPaid).toBe(2); expect(s.collected).toBe(3); expect(s.canClear).toBe(true);
   });
+});
+
+describe('clear method fields', () => {
+  it('slip tab sends no clear_method', () => { expect(clearMethodFields('slip', 'x')).toEqual({}); });
+  it('mint tab sends Mint payment_id as clear_reference', () => {
+    expect(clearMethodFields('mint_qr', '33962211-e2e7-43ad-b76f-d206b282f642')).toEqual({ clear_method: 'mint_qr', clear_reference: '33962211-e2e7-43ad-b76f-d206b282f642' });
+  });
+  it('mint tab before payment sends nothing', () => { expect(clearMethodFields('mint_qr', null)).toEqual({}); });
 });

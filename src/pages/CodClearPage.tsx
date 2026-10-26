@@ -1,4 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+import { createCodQr, checkCodQr, secondsLeft, formatCountdown, type CodQr } from '@/lib/codQr';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Wallet, Camera, ImageIcon, Loader2, X, CheckCircle2, Info, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,7 +15,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { usePendingCodClears } from '@/hooks/usePendingCodClears';
 import { tabCount } from '@/lib/cod';
-import { submitCodClear, codAmountMatches, type CodClearRecord } from '@/lib/codClear';
+import { submitCodClear, codAmountMatches, clearMethodFields, type CodClearRecord } from '@/lib/codClear';
 import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
 
 function ProofImg({ url, className }: { url: string; className?: string }) {
@@ -38,10 +40,10 @@ const SUM_TXT: Record<string, Tx> = {
 
 type Tx = Record<string, string>;
 export const COD_CLEAR_TXT: Record<string, Tx> = {
-  th: { ALREADY_CLEARED: 'เคลียร์ยอดออเดอร์นี้ไปแล้ว', reading: 'กำลังอ่านยอดจากสลิป...', ocrFail: 'อ่านยอดไม่ได้ กรุณาตรวจ/กรอกยอดเอง', mismatch: 'ยอดไม่ตรงกับยอดที่ต้องเคลียร์', title: 'เคลียร์ยอด', none: 'ไม่มียอดค้างเคลียร์', howTitle: 'วิธีเคลียร์ยอด', how1: 'โอนยอด COD ที่เก็บได้เข้าบัญชีบริษัท', how2: 'กดที่งาน แล้วถ่ายรูปหรือเลือกรูปสลิป', how3: 'ตรวจยอดแล้วกด "ยืนยันเคลียร์ยอด"', order: 'งาน', due: 'ยอดที่ต้องเคลียร์', amount: 'ยอดที่เคลียร์จริง', notes: 'หมายเหตุ', proof: 'รูปหลักฐาน (บังคับอย่างน้อย 1 รูป)', take: 'ถ่ายรูป', pick: 'เลือกรูป', confirm: 'ยืนยันเคลียร์ยอด', success: 'เคลียร์ยอดเรียบร้อย', uploadErr: 'อัปโหลดรูปไม่สำเร็จ ลองใหม่อีกครั้ง', PROOF_REQUIRED: 'กรุณาแนบรูปหลักฐานอย่างน้อย 1 รูป', ORDER_NOT_CLOSED: 'งานนี้ยังไม่ปิด ยังเคลียร์ยอดไม่ได้', ORDER_NOT_FOUND: 'ไม่พบงานนี้', COD_NOT_FOUND: 'งานนี้ไม่มียอด COD', failed: 'ส่งไม่สำเร็จ ลองใหม่อีกครั้ง', pendingCount: 'งานค้างเคลียร์' },
-  en: { ALREADY_CLEARED: 'This order was already cleared', reading: 'Reading amount from slip...', ocrFail: 'Could not read the amount, please check/enter it', mismatch: 'Amount does not match the amount to clear', title: 'Clear COD', none: 'No outstanding COD to clear', howTitle: 'How to clear', how1: 'Transfer the collected COD to the company account', how2: 'Tap the job, then take or choose the slip photo', how3: 'Check the amount and tap "Confirm clear"', order: 'Job', due: 'Amount to clear', amount: 'Amount cleared', notes: 'Notes', proof: 'Proof photo (at least 1 required)', take: 'Take photo', pick: 'Choose photo', confirm: 'Confirm clear', success: 'COD cleared', uploadErr: 'Upload failed, please try again', PROOF_REQUIRED: 'Attach at least 1 proof photo', ORDER_NOT_CLOSED: 'This job is not closed yet', ORDER_NOT_FOUND: 'Job not found', COD_NOT_FOUND: 'This job has no COD', failed: 'Failed to send, please try again', pendingCount: 'jobs to clear' },
-  zh: { ALREADY_CLEARED: '该订单已结清', reading: '正在读取凭证金额...', ocrFail: '无法读取金额，请检查/手动输入', mismatch: '金额与应结清金额不符', title: '结清货款', none: '没有待结清的货款', howTitle: '结清方法', how1: '将收取的货到付款转入公司账户', how2: '点击订单，拍照或选择转账凭证', how3: '核对金额后点击"确认结清"', order: '订单', due: '应结清金额', amount: '实际结清金额', notes: '备注', proof: '凭证照片（至少1张）', take: '拍照', pick: '选择照片', confirm: '确认结清', success: '已结清', uploadErr: '上传失败，请重试', PROOF_REQUIRED: '请至少上传1张凭证', ORDER_NOT_CLOSED: '该订单尚未关闭', ORDER_NOT_FOUND: '未找到订单', COD_NOT_FOUND: '该订单没有货到付款', failed: '发送失败，请重试', pendingCount: '待结清订单' },
-  ko: { ALREADY_CLEARED: '이미 정산된 주문입니다', reading: '영수증에서 금액 읽는 중...', ocrFail: '금액을 읽을 수 없습니다. 확인/입력해 주세요', mismatch: '정산할 금액과 일치하지 않습니다', title: 'COD 정산', none: '정산할 금액이 없습니다', howTitle: '정산 방법', how1: '수금한 COD를 회사 계좌로 이체하세요', how2: '작업을 누르고 이체 영수증을 촬영하거나 선택하세요', how3: '금액 확인 후 "정산 확인"을 누르세요', order: '작업', due: '정산할 금액', amount: '실제 정산 금액', notes: '메모', proof: '증빙 사진 (최소 1장 필수)', take: '사진 촬영', pick: '사진 선택', confirm: '정산 확인', success: '정산 완료', uploadErr: '업로드 실패, 다시 시도하세요', PROOF_REQUIRED: '증빙 사진을 1장 이상 첨부하세요', ORDER_NOT_CLOSED: '아직 종료되지 않은 작업입니다', ORDER_NOT_FOUND: '작업을 찾을 수 없습니다', COD_NOT_FOUND: '이 작업에는 COD가 없습니다', failed: '전송 실패, 다시 시도하세요', pendingCount: '정산 대기 작업' },
+  th: { tabSlip: 'แนบสลิป', tabMint: 'QR Mint', creating: 'กำลังสร้าง QR...', waiting: 'รอชำระ...', expiresIn: 'หมดอายุใน', expired: 'QR หมดอายุ', regen: 'สร้าง QR ใหม่', mintPaid: 'ชำระผ่าน QR Mint แล้ว', qrFail: 'สร้าง QR ไม่ได้', retry: 'ลองใหม่', proofMint: 'แนบรูปหลักฐาน เช่น ภาพหน้าจอ (บังคับอย่างน้อย 1 รูป)', via: 'ผ่าน', ALREADY_CLEARED: 'เคลียร์ยอดออเดอร์นี้ไปแล้ว', reading: 'กำลังอ่านยอดจากสลิป...', ocrFail: 'อ่านยอดไม่ได้ กรุณาตรวจ/กรอกยอดเอง', mismatch: 'ยอดไม่ตรงกับยอดที่ต้องเคลียร์', title: 'เคลียร์ยอด', none: 'ไม่มียอดค้างเคลียร์', howTitle: 'วิธีเคลียร์ยอด', how1: 'โอนยอด COD ที่เก็บได้เข้าบัญชีบริษัท', how2: 'กดที่งาน แล้วถ่ายรูปหรือเลือกรูปสลิป', how3: 'ตรวจยอดแล้วกด "ยืนยันเคลียร์ยอด"', order: 'งาน', due: 'ยอดที่ต้องเคลียร์', amount: 'ยอดที่เคลียร์จริง', notes: 'หมายเหตุ', proof: 'รูปหลักฐาน (บังคับอย่างน้อย 1 รูป)', take: 'ถ่ายรูป', pick: 'เลือกรูป', confirm: 'ยืนยันเคลียร์ยอด', success: 'เคลียร์ยอดเรียบร้อย', uploadErr: 'อัปโหลดรูปไม่สำเร็จ ลองใหม่อีกครั้ง', PROOF_REQUIRED: 'กรุณาแนบรูปหลักฐานอย่างน้อย 1 รูป', ORDER_NOT_CLOSED: 'งานนี้ยังไม่ปิด ยังเคลียร์ยอดไม่ได้', ORDER_NOT_FOUND: 'ไม่พบงานนี้', COD_NOT_FOUND: 'งานนี้ไม่มียอด COD', failed: 'ส่งไม่สำเร็จ ลองใหม่อีกครั้ง', pendingCount: 'งานค้างเคลียร์' },
+  en: { tabSlip: 'Attach slip', tabMint: 'Mint QR', creating: 'Creating QR...', waiting: 'Waiting for payment...', expiresIn: 'Expires in', expired: 'QR expired', regen: 'Create new QR', mintPaid: 'Paid via Mint QR', qrFail: 'Could not create QR', retry: 'Retry', proofMint: 'Attach proof, e.g. a screenshot (at least 1)', via: 'via', ALREADY_CLEARED: 'This order was already cleared', reading: 'Reading amount from slip...', ocrFail: 'Could not read the amount, please check/enter it', mismatch: 'Amount does not match the amount to clear', title: 'Clear COD', none: 'No outstanding COD to clear', howTitle: 'How to clear', how1: 'Transfer the collected COD to the company account', how2: 'Tap the job, then take or choose the slip photo', how3: 'Check the amount and tap "Confirm clear"', order: 'Job', due: 'Amount to clear', amount: 'Amount cleared', notes: 'Notes', proof: 'Proof photo (at least 1 required)', take: 'Take photo', pick: 'Choose photo', confirm: 'Confirm clear', success: 'COD cleared', uploadErr: 'Upload failed, please try again', PROOF_REQUIRED: 'Attach at least 1 proof photo', ORDER_NOT_CLOSED: 'This job is not closed yet', ORDER_NOT_FOUND: 'Job not found', COD_NOT_FOUND: 'This job has no COD', failed: 'Failed to send, please try again', pendingCount: 'jobs to clear' },
+  zh: { tabSlip: '上传凭证', tabMint: 'Mint 二维码', creating: '正在生成二维码...', waiting: '等待付款...', expiresIn: '剩余', expired: '二维码已过期', regen: '重新生成', mintPaid: '已通过 Mint 二维码支付', qrFail: '无法生成二维码', retry: '重试', proofMint: '上传凭证，如截图（至少1张）', via: '方式', ALREADY_CLEARED: '该订单已结清', reading: '正在读取凭证金额...', ocrFail: '无法读取金额，请检查/手动输入', mismatch: '金额与应结清金额不符', title: '结清货款', none: '没有待结清的货款', howTitle: '结清方法', how1: '将收取的货到付款转入公司账户', how2: '点击订单，拍照或选择转账凭证', how3: '核对金额后点击"确认结清"', order: '订单', due: '应结清金额', amount: '实际结清金额', notes: '备注', proof: '凭证照片（至少1张）', take: '拍照', pick: '选择照片', confirm: '确认结清', success: '已结清', uploadErr: '上传失败，请重试', PROOF_REQUIRED: '请至少上传1张凭证', ORDER_NOT_CLOSED: '该订单尚未关闭', ORDER_NOT_FOUND: '未找到订单', COD_NOT_FOUND: '该订单没有货到付款', failed: '发送失败，请重试', pendingCount: '待结清订单' },
+  ko: { tabSlip: '영수증 첨부', tabMint: 'Mint QR', creating: 'QR 생성 중...', waiting: '결제 대기 중...', expiresIn: '만료까지', expired: 'QR 만료됨', regen: '새 QR 생성', mintPaid: 'Mint QR로 결제 완료', qrFail: 'QR 생성 실패', retry: '다시 시도', proofMint: '증빙 첨부 (예: 스크린샷, 최소 1장)', via: '방법', ALREADY_CLEARED: '이미 정산된 주문입니다', reading: '영수증에서 금액 읽는 중...', ocrFail: '금액을 읽을 수 없습니다. 확인/입력해 주세요', mismatch: '정산할 금액과 일치하지 않습니다', title: 'COD 정산', none: '정산할 금액이 없습니다', howTitle: '정산 방법', how1: '수금한 COD를 회사 계좌로 이체하세요', how2: '작업을 누르고 이체 영수증을 촬영하거나 선택하세요', how3: '금액 확인 후 "정산 확인"을 누르세요', order: '작업', due: '정산할 금액', amount: '실제 정산 금액', notes: '메모', proof: '증빙 사진 (최소 1장 필수)', take: '사진 촬영', pick: '사진 선택', confirm: '정산 확인', success: '정산 완료', uploadErr: '업로드 실패, 다시 시도하세요', PROOF_REQUIRED: '증빙 사진을 1장 이상 첨부하세요', ORDER_NOT_CLOSED: '아직 종료되지 않은 작업입니다', ORDER_NOT_FOUND: '작업을 찾을 수 없습니다', COD_NOT_FOUND: '이 작업에는 COD가 없습니다', failed: '전송 실패, 다시 시도하세요', pendingCount: '정산 대기 작업' },
 };
 
 const fileToBase64 = (f: Blob) => new Promise<string>((res, rej) => {
@@ -177,6 +179,8 @@ export default function CodClearPage() {
                 ) : done ? (
                   <div className="space-y-2 border-t pt-2">
                     <div className="flex justify-between text-sm"><span className="text-muted-foreground">{T.amount}</span><span className="font-bold text-green-600">฿{fmt(s.record.cleared_amount ?? s.total)}</span></div>
+                    {s.record.clear_method && <div className="flex justify-between text-sm"><span className="text-muted-foreground">{tx.via}</span><span>{s.record.clear_method === 'mint_qr' ? 'QR Mint' : s.record.clear_method === 'static_qr' ? 'QR โค้ก' : S.cash}</span></div>}
+                    {s.record.clear_reference && <div className="text-xs text-muted-foreground break-all">Ref: {s.record.clear_reference}</div>}
                     {s.record.cleared_at && <div className="flex justify-between text-sm"><span className="text-muted-foreground">{T.at}</span><span>{fmtDate(s.record.cleared_at)}</span></div>}
                     {!!s.record.proof_urls?.length && (
                       <div className="flex gap-2 overflow-x-auto">
@@ -224,7 +228,32 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
   onClose: () => void; onDone: (amount: number, urls: string[]) => void;
 }) {
   const { isNative, takePhoto, selectFromGallery } = useNativeCamera();
-  const [amount, setAmount] = useState('');
+  const MINT_KEY = `cod_clear_mint_${record.order_number}`;
+  const saved = (() => { try { return JSON.parse(localStorage.getItem(MINT_KEY) || 'null'); } catch { return null; } })();
+  const [tab, setTab] = useState<'slip' | 'mint_qr'>(saved?.paid ? 'mint_qr' : 'slip');
+  const [mintQr, setMintQr] = useState<CodQr | null>(saved?.qr ?? null);
+  const [mintPaid, setMintPaid] = useState<boolean>(!!saved?.paid);
+  const [mintBusy, setMintBusy] = useState(false);
+  const [mintErr, setMintErr] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const left = secondsLeft(mintQr?.expiresAt, now);
+  const mintExpired = left === 0;
+  useEffect(() => { try { localStorage.setItem(MINT_KEY, JSON.stringify({ qr: mintQr, paid: mintPaid })); } catch { /* noop */ } }, [mintQr, mintPaid]); // eslint-disable-line react-hooks/exhaustive-deps
+  const makeQr = async () => {
+    setMintBusy(true); setMintErr(false);
+    try { setMintQr(await createCodQr(Number(record.expected_total || 0), `CLEAR-${record.order_number}`)); } catch { setMintErr(true); }
+    setMintBusy(false);
+  };
+  useEffect(() => { if (tab === 'mint_qr' && !mintQr && !mintPaid && !mintBusy) makeQr(); }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (tab !== 'mint_qr' || mintPaid || !mintQr) return;
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    const poll = setInterval(async () => {
+      try { const r = await checkCodQr(mintQr.paymentId); if (r.paid) { setMintQr((q) => q ? { ...q, paymentId: r.paymentId } : q); setMintPaid(true); setAmount(String(record.expected_total ?? '')); } } catch { /* keep polling */ }
+    }, 4000);
+    return () => { clearInterval(tick); clearInterval(poll); };
+  }, [tab, mintPaid, mintQr?.paymentId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [amount, setAmount] = useState(saved?.paid ? String(record.expected_total ?? '') : '');
   const [reading, setReading] = useState(false);
   const [ocrFailed, setOcrFailed] = useState(false);
   const matches = codAmountMatches(amount, record.expected_total);
@@ -281,6 +310,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
       ...(Number.isFinite(amt) && amount !== '' ? { amount: amt } : {}),
       ...(notes.trim() ? { notes: notes.trim() } : {}),
       proof_urls: urls,
+      ...clearMethodFields(tab, mintPaid ? mintQr?.paymentId : null),
       driver_type: driverType,
       driver_id: driverId,
     });
@@ -295,6 +325,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
       toast({ title: tx[code] || tx.failed, description: tx[code] ? undefined : error.message, variant: 'destructive' });
       return;
     }
+    try { localStorage.removeItem(MINT_KEY); } catch { /* noop */ }
     toast({ title: tx.success });
     onDone(Number.isFinite(amt) && amount !== '' ? amt : Number(record.expected_total || 0), urls);
   };
@@ -308,6 +339,36 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
             <span className="text-sm text-muted-foreground">{tx.due}</span>
             <span className="text-lg font-bold text-destructive">฿{fmt(record.expected_total)}</span>
           </div>
+          <div className="grid grid-cols-2 gap-1 bg-muted rounded-xl p-1">
+            {(['slip', 'mint_qr'] as const).map((k) => (
+              <button key={k} disabled={mintPaid && k !== 'mint_qr'} onClick={() => setTab(k)}
+                className={`h-10 rounded-lg text-sm font-semibold disabled:opacity-40 ${tab === k ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
+                {k === 'slip' ? tx.tabSlip : tx.tabMint}
+              </button>
+            ))}
+          </div>
+          {tab === 'mint_qr' && (
+            <div className="flex flex-col items-center gap-2 bg-muted/50 rounded-xl p-3">
+              {mintPaid ? (
+                <div className="flex items-start gap-2 text-sm text-green-600 font-semibold"><CheckCircle2 className="w-5 h-5 shrink-0" />
+                  <span>{tx.mintPaid}{mintQr?.paymentId && <span className="block text-xs font-normal text-muted-foreground break-all">Ref: {mintQr.paymentId}</span>}</span></div>
+              ) : mintBusy ? (
+                <div className="w-[200px] h-[200px] flex flex-col items-center justify-center gap-2 text-muted-foreground"><Loader2 className="w-8 h-8 animate-spin" />{tx.creating}</div>
+              ) : mintErr ? (
+                <div className="flex flex-col items-center gap-2 text-sm text-destructive">{tx.qrFail}<Button variant="secondary" size="sm" onClick={makeQr}>{tx.retry}</Button></div>
+              ) : mintQr ? (
+                <>
+                  <div className={`bg-background p-3 rounded-xl ring-1 ring-border ${mintExpired ? 'opacity-30' : ''}`}>
+                    {mintQr.qrRaw ? <QRCodeSVG value={mintQr.qrRaw} size={200} level="M" /> : <img src={mintQr.qrImage!} alt="QR" className="w-[200px] h-[200px]" />}
+                  </div>
+                  <div className="text-lg font-bold">฿{fmt(record.expected_total)}</div>
+                  {mintExpired
+                    ? <Button variant="secondary" size="sm" onClick={() => { setMintQr(null); makeQr(); }}>{tx.expired} · {tx.regen}</Button>
+                    : <div className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" />{tx.waiting}{left != null && ` · ${tx.expiresIn} ${formatCountdown(left)}`}</div>}
+                </>
+              ) : null}
+            </div>
+          )}
           <div className="space-y-1">
             <label className="text-sm font-medium">{tx.amount}</label>
             <Input inputMode="decimal" value={amount} disabled={reading} aria-invalid={amount !== '' && !matches}
@@ -322,7 +383,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
             <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">{tx.proof}</label>
+            <label className="text-sm font-medium">{tab === 'mint_qr' ? tx.proofMint : tx.proof}</label>
             {urls.length > 0 && (
               <div className="grid grid-cols-3 gap-2">
                 {urls.map((u) => (
@@ -346,7 +407,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
             <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onInput} />
             <input ref={galRef} type="file" accept="image/*" multiple className="hidden" onChange={onInput} />
           </div>
-          <Button className="w-full h-12" disabled={!urls.length || uploading || reading || sending || !matches} onClick={send}>
+          <Button className="w-full h-12" disabled={!urls.length || uploading || reading || sending || !matches || (tab === 'mint_qr' && !mintPaid)} onClick={send}>
             {sending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}{tx.confirm}
           </Button>
         </div>
