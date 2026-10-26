@@ -1,14 +1,15 @@
-# แก้กล่องเก็บเงินปลายทาง (COD) รีเซ็ตเมื่อปิดแล้วเปิดหน้าต่างใหม่
+# แท็บวิธีรับเงิน COD เริ่มตามงานทุกครั้งที่เปิด
 
-## สาเหตุ
-กล่อง COD จำวิธีรับเงิน, QR และรูปที่แนบไว้ในเครื่องอยู่แล้ว แต่ตอนเปิดหน้าต่างใหม่ ข้อมูลจุดส่งยังโหลดไม่ครบ กล่องเลยไปอ่านข้อมูลผิดช่อง (เจอแต่ช่องว่าง) พอข้อมูลจุดส่งโหลดเสร็จ กล่องก็เอาค่าว่างไปเขียนทับข้อมูลที่เคยบันทึกไว้ จึงดูเหมือนถูกรีเซ็ต
+## ปัญหา
+กล่องเก็บเงินปลายทางจำแท็บที่เลือกไว้ครั้งก่อน เปิดใหม่จึงค้างอยู่แท็บเดิม แทนที่จะเริ่มตามวิธีที่งานกำหนด
 
 ## แก้ไข
-- ใช้เลขจุดส่งจากลิงก์ของหน้า (เช่น /delivery/1) เป็นตัวระบุช่องที่บันทึก ให้ตรงกันตั้งแต่ตอนเปิดหน้า
-- ถ้าตัวระบุเปลี่ยน ให้โหลดข้อมูลที่บันทึกไว้ของช่องใหม่ก่อน และห้ามเขียนค่าว่างทับ
-- ผลที่ได้: ปิดหน้าต่างแล้วเปิดใหม่ วิธีรับเงินที่เลือก, รูปที่แนบ และ QR Mint (ถ้ายังไม่หมดอายุ) จะยังอยู่เหมือนเดิม
-- ไม่เปลี่ยนขั้นตอนเช็คอิน/POD หรือข้อมูลที่ส่งเข้าระบบ
+- ทุกครั้งที่เปิดหน้าต่างจุดส่ง แท็บเริ่มต้นตามงาน:
+  - งานเก็บเงินสด -> แท็บ "เงินสด"
+  - งานเก็บด้วย QR -> แท็บ "QR Mint"
+- ระหว่างเปิดอยู่ คนขับยังสลับแท็บได้ตามปกติ แต่ปิดแล้วเปิดใหม่จะกลับไปค่าเริ่มต้นของงาน
+- ถ้าจ่ายผ่าน QR Mint สำเร็จแล้ว ให้คงแสดงแท็บ QR Mint (ไม่ให้สถานะจ่ายแล้วหาย)
+- ไม่แตะรูปที่แนบ, ขั้นตอนเช็คอิน/POD หรือข้อมูลที่ส่งเข้าระบบ
 
 ## Technical details
-- `DeliveryDetailPage.tsx`: build COD `storageKey` from the route's delivery index param (fallback to current logic) so it is stable on first render.
-- `CodCollectSection.tsx`: track the key in a ref; when `storageKey` changes, re-read localStorage into state and skip the persist effect for that render so it never overwrites saved data with the empty initial state.
+- `CodCollectSection.tsx`: when restoring state from localStorage, drop the saved `method` (keep it only if `qrConfirmed` is true, forcing `mint_qr`), so `method` falls back to `cod.method` (qr -> mint_qr, else cash) on every mount.
