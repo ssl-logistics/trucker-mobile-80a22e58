@@ -1,32 +1,34 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { fetchCodSummaries, mergeCodSummaries, readSummaryCache, readPendingCache, removeFromCodCache, type CodClearRecord, type CodSummary, type DriverType } from '@/lib/codClear';
+import { fetchCodSummaries, readPendingCache, removeFromCodCache, type CodClearRecord, type CodSummary, type DriverType } from '@/lib/codClear';
 
 export function usePendingCodClears() {
   const { user } = useAuth();
   const { isInternalDriver, isExternalDriver } = useUserRole();
   const driverId = user?.id ? String(user.id) : '';
   const driverType: DriverType = isInternalDriver ? 'internal' : isExternalDriver ? 'external' : 'freelance';
-  const [all, setAll] = useState<CodSummary[]>(() => (driverId ? readSummaryCache(driverId) || [] : []));
+  const [all, setAll] = useState<CodSummary[]>([]);
   const [items, setItems] = useState<CodClearRecord[]>(() => (driverId ? readPendingCache(driverId) || [] : []));
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  const [loaded, setLoaded] = useState(() => !!(driverId && readSummaryCache(driverId)));
+  const [loaded, setLoaded] = useState(false);
   const busy = useRef(false);
+  const loadedRef = useRef(false);
 
   const reload = useCallback(async () => {
     if (!driverId) { setLoading(false); return; }
     if (busy.current) return;
     busy.current = true;
     setLoading(true);
-    const cached = readSummaryCache(driverId) || [];
+    const first = !loadedRef.current;
     try {
-      const s = await fetchCodSummaries(driverId, driverType, (partial, checked) => setAll(mergeCodSummaries(cached, partial, checked)));
+      const s = await fetchCodSummaries(driverId, driverType, (partial) => { if (first) setAll(partial); });
       setAll(s);
       setItems(s.filter((x) => x.canClear).map((x) => x.record));
       setFailed(false);
-    } catch { setFailed(true); setAll(cached); }
+    } catch { setFailed(true); }
+    loadedRef.current = true;
     busy.current = false;
     setLoaded(true);
     setLoading(false);
