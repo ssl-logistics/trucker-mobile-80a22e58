@@ -41,7 +41,7 @@ export default function CodClearPage() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const tx = COD_CLEAR_TXT[language] || COD_CLEAR_TXT.th;
-  const { all, loading, reload, driverId, driverType } = usePendingCodClears();
+  const { all, loading, loaded, reload, driverId, driverType } = usePendingCodClears();
   const [selected, setSelected] = useState<CodClearRecord | null>(null);
   const S = SUM_TXT[language] || SUM_TXT.th;
   const tot = all.reduce((a, s) => ({ t: a.t + s.total, c: a.c + s.collected, o: a.o + s.outstanding }), { t: 0, c: 0, o: 0 });
@@ -53,7 +53,7 @@ export default function CodClearPage() {
           <button onClick={() => navigate('/home')} className="absolute left-0 p-2 rounded-full">
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold">{S.title}</h1>
+          <h1 className="text-xl font-semibold flex items-center gap-2">{S.title}{loading && (loaded || all.length > 0) && <Loader2 className="w-4 h-4 animate-spin opacity-70" />}</h1>
         </div>
       </header>
 
@@ -87,7 +87,7 @@ export default function CodClearPage() {
                 <div className="h-12 rounded-lg bg-muted" />
                 <div className="h-3 w-full rounded bg-muted" />
               </div>
-            )).concat([])}
+            ))}
             {all.map((s) => (
               <div key={s.record.order_number} className={`bg-card rounded-xl p-4 shadow-md border-2 space-y-3 ${s.canClear ? 'border-green-500/50' : 'border-destructive/30'}`}>
                 <div className="flex items-start gap-3">
@@ -120,8 +120,7 @@ export default function CodClearPage() {
                 </div>
               </div>
             ))}
-          </>
-        )}
+        </>
       </PullToRefresh>
 
       {selected && (
