@@ -264,8 +264,13 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
     });
     setSending(false);
     if (error) {
-      const code = data?.code || data?.error_code || data?.error || '';
-      toast({ title: tx[code] || tx.failed, variant: 'destructive' });
+      const code = String(data?.error_code || data?.code || '');
+      if (code === 'ALREADY_CLEARED') {
+        toast({ title: ALREADY[lang] || ALREADY.th });
+        onDone(Number(record.expected_total || 0), urls);
+        return;
+      }
+      toast({ title: tx[code] || tx.failed, description: tx[code] ? undefined : error.message, variant: 'destructive' });
       return;
     }
     toast({ title: tx.success });
