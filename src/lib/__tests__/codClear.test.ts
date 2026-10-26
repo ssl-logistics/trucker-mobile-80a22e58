@@ -74,3 +74,19 @@ describe('checkinsForDriver', () => {
     expect(r.map((x) => x.id)).toEqual([1, 3]);
   });
 });
+
+import { collectOrderRefs } from '../codClear';
+describe('collectOrderRefs', () => {
+  it('includes jobs without check-ins, dedupes, skips old', () => {
+    const now = Date.parse('2026-10-26T00:00:00Z');
+    const r = collectOrderRefs(
+      [{ order_number: 'NEW', id: 'n1', created_at: '2026-10-25T00:00:00Z' }, { order_number: 'OLD', created_at: '2026-08-01T00:00:00Z' }],
+      [{ order_number: 'NEW', created_at: '2026-10-25T00:00:00Z' }, { order_number: 'X', created_at: '2026-10-24T00:00:00Z' }], 30, now);
+    expect(r).toEqual([{ order_number: 'NEW' }, { order_number: 'X' }]);
+  });
+  it('single-point COD with no sequence counts after delivery confirm', () => {
+    const rec = { order_number: 'S', status: 'pending', order_status: 'in_transit', expected_total: 1, points: [{ amount: 1, sequence_number: null }] };
+    expect(summarizeCod(rec, []).collected).toBe(0);
+    expect(summarizeCod(rec, [{ order_number: 'S', checkin_type: 'delivery_confirmed' }]).collected).toBe(1);
+  });
+});

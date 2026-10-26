@@ -1,4 +1,4 @@
-import { getDriverCheckins } from '@/lib/externalApi';
+import { getDriverCheckins, getDriverAssignedJobs, getFreelanceAcceptedJobs, getFactoryAssignedJobs } from '@/lib/externalApi';
 import { supabase } from '@/integrations/supabase/client';
 
 const CLOSED = new Set(['closed', 'completed', 'delivered']);
@@ -160,37 +160,60 @@ export function readSummaryCache(driverId: string): CodSummary[] | null {
   return null;
 }
 
-/** Every order with COD (open or closed) not yet cleared, from the last 30 days of check-ins. */
-export async function fetchCodSummaries(driverId: string, driverType: DriverType, onProgress?: (items: CodSummary[], checked: Set<string>) => void): Promise<CodSummary[]> {
-  const { data, error } = await getDriverCheckins(driverId, driverType, 'all', { limit: 2000 });
-  if (error && !data) throw new Error('checkins failed');
-  const checkins: any[] = checkinsForDriver(data?.data || [], driverId);
-  const cutoff = Date.now() - 30 * 86400000;
+const JOB_STATUSES = 'accepted,arrived_at_pickup,pickup_checked_in,in_transit,delivery_checked_in,delivery_sop_completed,delivered,returning_container,at_container_return,container_returned,completed,closed';
+
+/** Unique order refs from the driver's jobs + own check-ins, newest first, within `days`. */
+export function collectOrderRefs(jobs: any[], ownCheckins: any[], days = 30, now = Date.now()): CodOrderRef[] {
+  const cutoff = now - days * 86400000;
   const refs = new Map<string, CodOrderRef>();
-  for (const c of checkins) {
-    const t = new Date(c.checked_in_at || c.created_at || 0).getTime();
-    if (t && t < cutoff) continue;
-    const on = c.transport_orders?.order_number || c.order_number;
-    const key = on || c.transport_order_id;
-    if (key && !refs.has(key)) refs.set(key, on ? { order_number: on } : { order_id: c.transport_order_id });
-  }
-  const list = [...refs.values()];
-  const recs: Array<CodClearRecord | null> = [];
-  const checked = new Set<string>();
-  const build = () => {
-    const seen = new Set<string>();
-    return recs.filter((r): r is CodClearRecord => !!r && r.status === 'pending' && !seen.has(r.order_number) && !!seen.add(r.order_number))
-      .map((r) => summarizeCod(r as any, checkins));
+  const add = (on?: string, id?: string, t?: string) => {
+    const ts = new Date(t || 0).getTime();
+    if (ts && ts < cutoff) return;
+    const key = on || id;
+    if (key && !refs.has(key) && !(id && refs.has(id))) refs.set(key, on ? { order_number: on } : { order_id: id });
   };
+  for (const j of jobs || []) add(j?.order_number, j?.id, j?.updated_at || j?.created_at);
+  for (const c of ownCheckins || []) add(c.transport_orders?.order_number || c.order_number, c.transport_order_id, c.checked_in_at || c.created_at);
+  return [...refs.values()];
+}
+
+async function driverJobs(driverId: string, driverType: DriverType): Promise<any[]> {
+  try {
+    if (driverType === 'freelance') {
+      const [a, f] = await Promise.all([
+        getFreelanceAcceptedJobs(driverId).catch(() => null),
+        getFactoryAssignedJobs(driverId, 50).catch(() => null),
+      ]);
+      return [...((a as any)?.data?.data || []), ...((f as any)?.data?.data || [])];
+    }
+    const r: any = await getDriverAssignedJobs(driverId, driverType, 200, JOB_STATUSES);
+    return r?.data?.data || [];
+  } catch { return []; }
+}
+
+/** Every COD order (open or closed, checked in or not) of this driver not yet cleared. */
+export async function fetchCodSummaries(driverId: string, driverType: DriverType, onProgress?: (items: CodSummary[], checked: Set<string>) => void): Promise<CodSummary[]> {
+  const [jobs, ci] = await Promise.all([
+    driverJobs(driverId, driverType),
+    getDriverCheckins(driverId, driverType, 'all', { limit: 2000 }).catch(() => ({ data: null, error: 'x' } as any)),
+  ]);
+  if (!jobs.length && ci?.error && !ci?.data) throw new Error('load failed');
+  const list = collectOrderRefs(jobs, checkinsForDriver(ci?.data?.data || [], driverId));
+  const out: CodSummary[] = [];
+  const seen = new Set<string>();
+  const checked = new Set<string>();
   for (let i = 0; i < list.length; i += 10) {
     const slice = list.slice(i, i + 10);
-    recs.push(...await Promise.all(slice.map((r) => getCodClear(r).catch(() => null))));
+    const res = await Promise.all(slice.map(async (r) => {
+      const rec = await getCodClear(r).catch(() => null);
+      if (!rec || rec.status !== 'pending') return null;
+      const c: any = await getDriverCheckins(driverId, driverType, rec.order_number, { allDrivers: true }).catch(() => null);
+      return summarizeCod(rec as any, c?.data?.data || []);
+    }));
     slice.forEach((r) => checked.add(String(r.order_number || r.order_id)));
-    onProgress?.(build(), checked);
+    for (const s of res) if (s && !seen.has(s.record.order_number)) { seen.add(s.record.order_number); out.push(s); }
+    onProgress?.([...out], checked);
   }
-  const seen = new Set<string>();
-  const out = recs.filter((r): r is CodClearRecord => !!r && r.status === 'pending' && !seen.has(r.order_number) && !!seen.add(r.order_number))
-    .map((r) => summarizeCod(r as any, checkins));
   try {
     localStorage.setItem(ALL_KEY, JSON.stringify({ driverId, items: out }));
     localStorage.setItem(CACHE_KEY, JSON.stringify({ driverId, items: out.filter((s) => s.canClear).map((s) => s.record), at: Date.now() }));
