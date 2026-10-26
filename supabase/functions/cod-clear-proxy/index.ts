@@ -32,6 +32,7 @@ Deno.serve(async (req) => {
       body,
     });
     const text = await r.text();
+    if (r.status >= 400) console.log('upstream rejected', req.method, r.status, text.slice(0, 1000), body?.slice(0, 500));
     return new Response(text, { status: r.status, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
   } catch (e) {
     return json({ success: false, error: String(e) }, 500);
