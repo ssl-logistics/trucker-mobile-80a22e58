@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 const CLOSED = new Set(['closed']);
 export function isClosedStatus(s?: string | null) { return !!s && CLOSED.has(String(s).toLowerCase()); }
+// Delivered-but-not-closed jobs may be cleared too (main system accepts them).
+const CLEARABLE = new Set(['closed', 'completed', 'delivered']);
+export function isClearableStatus(s?: string | null) { return !!s && CLEARABLE.has(String(s).toLowerCase()); }
 
 export interface CodClearRecord {
   order_id?: string;
@@ -20,7 +23,7 @@ export type DriverType = 'internal' | 'external' | 'freelance';
 /** Keep only closed orders still waiting to be cleared. */
 export function filterPending(records: Array<CodClearRecord | null | undefined>): CodClearRecord[] {
   return records.filter(
-    (r): r is CodClearRecord => !!r && r.status === 'pending' && isClosedStatus(r.order_status),
+    (r): r is CodClearRecord => !!r && r.status === 'pending' && isClearableStatus(r.order_status),
   );
 }
 
@@ -167,7 +170,7 @@ export function summarizeCod(record: CodClearRecord & { points?: CodPoint[] }, c
   const collected = Math.min(total, sum(points.filter((p) => p.collected)));
   const outstanding = Math.round((total - collected) * 100) / 100;
   const closed = isClosedStatus(record.order_status);
-  const reason = outstanding > 0 ? 'not_collected' : !closed ? 'not_closed' : 'ready';
+  const reason = outstanding > 0 ? 'not_collected' : !isClearableStatus(record.order_status) ? 'not_closed' : 'ready';
   return { record, total, collected, outstanding, points, closed, canClear: reason === 'ready' && record.status === 'pending', reason };
 }
 
