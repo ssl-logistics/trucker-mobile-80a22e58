@@ -12,7 +12,15 @@ import { useNativeCamera } from '@/hooks/useNativeCamera';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { usePendingCodClears } from '@/hooks/usePendingCodClears';
+import { tabCount } from '@/lib/cod';
 import { submitCodClear, codAmountMatches, type CodClearRecord } from '@/lib/codClear';
+
+const TAB_TXT: Record<string, Tx> = {
+  th: { pending: 'ยังไม่เคลียร์', cleared: 'เคลียร์แล้ว', nonePending: 'ไม่มียอดค้างเคลียร์', noneCleared: 'ยังไม่มีรายการที่เคลียร์แล้ว', amount: 'ยอดที่เคลียร์', at: 'เวลาที่เคลียร์' },
+  en: { pending: 'Not cleared', cleared: 'Cleared', nonePending: 'No outstanding COD to clear', noneCleared: 'No cleared items yet', amount: 'Amount cleared', at: 'Cleared at' },
+  zh: { pending: '未结清', cleared: '已结清', nonePending: '没有待结清的货款', noneCleared: '暂无已结清记录', amount: '结清金额', at: '结清时间' },
+  ko: { pending: '미정산', cleared: '정산 완료', nonePending: '정산할 금액이 없습니다', noneCleared: '정산 완료 내역이 없습니다', amount: '정산 금액', at: '정산 시간' },
+};
 
 const SUM_TXT: Record<string, Tx> = {
   th: { stale: 'ดึงข้อมูลไม่สำเร็จ ปัดลงเพื่อลองใหม่', title: 'สรุปยอดเงิน', none: 'ไม่มียอด COD', total: 'ต้องเก็บ', collected: 'เก็บแล้ว', outstanding: 'ค้าง', running: 'กำลังวิ่ง', closed: 'ปิดงานแล้ว', got: 'เก็บแล้ว', notGot: 'ยังไม่เก็บ', cash: 'เงินสด', point: 'จุดส่ง', ready: 'พร้อมเคลียร์ กดไอคอนเพื่อเคลียร์ยอด', notReady: 'ยังเคลียร์ไม่ได้', whyCollect: 'ยังเก็บไม่ครบ', whyOpen: 'งานยังไม่ปิด', how2: 'เมื่อเก็บครบและปิดงานแล้ว กดไอคอนเคลียร์ที่งาน แล้วแนบรูปสลิป' },
@@ -41,10 +49,15 @@ export default function CodClearPage() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const tx = COD_CLEAR_TXT[language] || COD_CLEAR_TXT.th;
-  const { all, loading, loaded, failed, reload, removeOrder, driverId, driverType } = usePendingCodClears();
+  const { all: pendingList, cleared, loading, loaded, failed, reload, markOrderCleared, driverId, driverType } = usePendingCodClears();
   const [selected, setSelected] = useState<CodClearRecord | null>(null);
+  const [tab, setTab] = useState<'pending' | 'cleared'>('pending');
+  const [zoom, setZoom] = useState<string | null>(null);
   const S = SUM_TXT[language] || SUM_TXT.th;
+  const T = TAB_TXT[language] || TAB_TXT.th;
+  const all = tab === 'pending' ? pendingList : cleared;
   const tot = all.reduce((a, s) => ({ t: a.t + s.total, c: a.c + s.collected, o: a.o + s.outstanding }), { t: 0, c: 0, o: 0 });
+  const fmtDate = (d?: string | null) => { if (!d) return ''; const x = new Date(d); return isNaN(x.getTime()) ? '' : x.toLocaleString(language === 'th' ? 'th-TH' : language === 'zh' ? 'zh-CN' : language === 'ko' ? 'ko-KR' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' }); };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -59,6 +72,18 @@ export default function CodClearPage() {
 
       <PullToRefresh onRefresh={reload} className="px-4 pt-5 space-y-4">
         {failed && !loading && <p className="text-xs text-destructive text-center">{S.stale}</p>}
+        <div className="grid grid-cols-2 gap-1 bg-muted rounded-xl p-1">
+          {(['pending', 'cleared'] as const).map((k) => {
+            const n = k === 'pending' ? pendingList.length : cleared.length;
+            return (
+              <button key={k} onClick={() => setTab(k)}
+                className={`h-10 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 ${tab === k ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>
+                {k === 'pending' ? T.pending : T.cleared}
+                <span className={`min-w-5 h-5 px-1.5 rounded-full text-xs flex items-center justify-center ${tab === k ? (k === 'pending' ? 'bg-destructive text-destructive-foreground' : 'bg-green-600 text-primary-foreground') : 'bg-background text-muted-foreground'}`}>{tabCount(n)}</span>
+              </button>
+            );
+          })}
+        </div>
         <>
             <div className="grid grid-cols-3 gap-2">
               {[[S.total, tot.t, 'text-foreground'], [S.collected, tot.c, 'text-green-600'], [S.outstanding, tot.o, tot.o > 0 ? 'text-destructive' : 'text-foreground']].map(([l, v, c]) => (
@@ -70,16 +95,16 @@ export default function CodClearPage() {
                 </div>
               ))}
             </div>
-            <div className="bg-card rounded-xl p-4 shadow-sm ring-1 ring-primary/20 space-y-2">
+            {tab === 'pending' && <div className="bg-card rounded-xl p-4 shadow-sm ring-1 ring-primary/20 space-y-2">
               <div className="flex items-center gap-2 font-semibold text-foreground"><Info className="w-4 h-4 text-primary" />{tx.howTitle}</div>
               <ol className="list-decimal pl-5 text-sm text-muted-foreground space-y-1">
                 <li>{tx.how1}</li><li>{S.how2}</li><li>{tx.how3}</li>
               </ol>
-            </div>
+            </div>}
             {loaded && !loading && all.length === 0 && (
               <div className="flex flex-col items-center gap-3 py-10 text-muted-foreground">
                 <CheckCircle2 className="w-12 h-12 text-primary/60" />
-                <p className="text-base">{S.none}</p>
+                <p className="text-base">{tab === 'pending' ? T.nonePending : T.noneCleared}</p>
               </div>
             )}
             {!loaded && loading && Array.from({ length: all.length ? 1 : 2 }).map((_, i) => (
@@ -89,17 +114,21 @@ export default function CodClearPage() {
                 <div className="h-3 w-full rounded bg-muted" />
               </div>
             ))}
-            {all.map((s) => (
-              <div key={s.record.order_number} className={`bg-card rounded-xl p-4 shadow-md border-2 space-y-3 ${s.canClear ? 'border-green-500/50' : 'border-destructive/30'}`}>
+            {all.map((s) => {
+              const done = s.record.status === 'cleared';
+              return (
+              <div key={s.record.order_number} className={`bg-card rounded-xl p-4 shadow-md border-2 space-y-3 ${done || s.canClear ? 'border-green-500/50' : 'border-destructive/30'}`}>
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-foreground truncate">{s.record.order_number}</div>
-                    <span className={`inline-block mt-1 text-xs rounded-full px-2 py-0.5 ${s.closed ? 'bg-muted text-foreground' : 'bg-primary/10 text-primary'}`}>{s.closed ? S.closed : S.running}</span>
+                    {done
+                      ? <span className="inline-flex items-center gap-1 mt-1 text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700"><CheckCircle2 className="w-3 h-3" />{T.cleared}</span>
+                      : <span className={`inline-block mt-1 text-xs rounded-full px-2 py-0.5 ${s.closed ? 'bg-muted text-foreground' : 'bg-primary/10 text-primary'}`}>{s.closed ? S.closed : S.running}</span>}
                   </div>
-                  <button aria-label={tx.confirm} disabled={!s.canClear} onClick={() => setSelected(s.record)}
+                  {!done && <button aria-label={tx.confirm} disabled={!s.canClear} onClick={() => setSelected(s.record)}
                     className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${s.canClear ? 'bg-green-600 text-primary-foreground shadow active:scale-95' : 'bg-muted text-muted-foreground'}`}>
                     <Wallet className="w-6 h-6" />
-                  </button>
+                  </button>}
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center bg-muted rounded-lg p-2">
                   <div><div className="text-[11px] text-muted-foreground">{S.total}</div><div className="font-bold">฿{fmt(s.total)}</div></div>
@@ -112,17 +141,40 @@ export default function CodClearPage() {
                       <span className="flex-1 min-w-0 truncate">{p.sequence_number ? `${p.sequence_number}. ` : ''}{p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point}</span>
                       <span className="text-xs text-muted-foreground">{p.payment_method === 'qr' ? 'QR' : p.payment_method === 'cash' ? S.cash : ''}</span>
                       <span className="font-semibold">฿{fmt(p.amount)}</span>
-                      <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>
+                      {!done && <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>}
                     </div>
                   ))}
                 </div>
-                <div className={`text-xs font-medium ${s.canClear ? 'text-green-600' : 'text-destructive'}`}>
-                  {s.canClear ? S.ready : `${S.notReady}: ${s.reason === 'not_collected' ? S.whyCollect : S.whyOpen}`}
-                </div>
+                {done ? (
+                  <div className="space-y-2 border-t pt-2">
+                    <div className="flex justify-between text-sm"><span className="text-muted-foreground">{T.amount}</span><span className="font-bold text-green-600">฿{fmt(s.record.cleared_amount ?? s.total)}</span></div>
+                    {s.record.cleared_at && <div className="flex justify-between text-sm"><span className="text-muted-foreground">{T.at}</span><span>{fmtDate(s.record.cleared_at)}</span></div>}
+                    {!!s.record.proof_urls?.length && (
+                      <div className="flex gap-2 overflow-x-auto">
+                        {s.record.proof_urls.map((u) => (
+                          <button key={u} onClick={() => setZoom(u)} className="w-16 h-16 rounded-lg overflow-hidden bg-muted shrink-0"><img src={u} alt="" className="w-full h-full object-cover" /></button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className={`text-xs font-medium ${s.canClear ? 'text-green-600' : 'text-destructive'}`}>
+                    {s.canClear ? S.ready : `${S.notReady}: ${s.reason === 'not_collected' ? S.whyCollect : S.whyOpen}`}
+                  </div>
+                )}
               </div>
-            ))}
+              );
+            })}
         </>
       </PullToRefresh>
+
+      {zoom && (
+        <Dialog open onOpenChange={(o) => !o && setZoom(null)}>
+          <DialogContent className="w-[94vw] max-w-lg max-h-[90vh] p-2 rounded-2xl">
+            <img src={zoom} alt="" className="w-full max-h-[85vh] object-contain rounded-xl" />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {selected && (
         <ClearDialog
@@ -131,7 +183,7 @@ export default function CodClearPage() {
           driverId={driverId}
           driverType={driverType}
           onClose={() => setSelected(null)}
-          onDone={() => { removeOrder(selected.order_number); setSelected(null); reload(); }}
+          onDone={(amt, urls) => { markOrderCleared(selected.order_number, amt, urls); setSelected(null); reload(); }}
         />
       )}
     </div>
@@ -140,7 +192,7 @@ export default function CodClearPage() {
 
 function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
   record: CodClearRecord; tx: Tx; driverId: string; driverType: 'internal' | 'external' | 'freelance';
-  onClose: () => void; onDone: () => void;
+  onClose: () => void; onDone: (amount: number, urls: string[]) => void;
 }) {
   const { isNative, takePhoto, selectFromGallery } = useNativeCamera();
   const [amount, setAmount] = useState('');
@@ -207,7 +259,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
       return;
     }
     toast({ title: tx.success });
-    onDone();
+    onDone(Number.isFinite(amt) && amount !== '' ? amt : Number(record.expected_total || 0), urls);
   };
 
   return (

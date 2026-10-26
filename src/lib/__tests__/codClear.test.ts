@@ -90,3 +90,20 @@ describe('collectOrderRefs', () => {
     expect(summarizeCod(rec, [{ order_number: 'S', checkin_type: 'delivery_confirmed' }]).collected).toBe(1);
   });
 });
+
+import { splitCodSummaries, markCleared } from '@/lib/codClear';
+describe('splitCodSummaries', () => {
+  const mk = (on: string, status: string) => ({ record: { order_number: on, status }, total: 1, collected: 1, outstanding: 0, points: [], closed: true, canClear: status === 'pending', reason: 'ready' } as any);
+  it('separates pending and cleared orders', () => {
+    const r = splitCodSummaries([mk('A', 'pending'), mk('B', 'cleared'), mk('C', 'pending')]);
+    expect(r.pending.map((s) => s.record.order_number)).toEqual(['A', 'C']);
+    expect(r.cleared.map((s) => s.record.order_number)).toEqual(['B']);
+  });
+  it('a just-cleared order moves to cleared and can no longer be cleared', () => {
+    const c = markCleared(mk('A', 'pending'), 120, ['u']);
+    const r = splitCodSummaries([c]);
+    expect(r.pending).toHaveLength(0);
+    expect(r.cleared[0].canClear).toBe(false);
+    expect(r.cleared[0].record.cleared_amount).toBe(120);
+  });
+});
