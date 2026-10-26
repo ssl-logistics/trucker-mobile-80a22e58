@@ -1,7 +1,7 @@
 # ใช้ QR จริงตอนเก็บเงิน COD แบบ QR (หน้าส่งสินค้า)
 
 ## สิ่งที่คนขับจะเห็น
-1. จุดส่งที่เก็บเงินแบบ QR: กด "เปิด QR รับเงิน" แล้วแอปจะสร้าง QR จริงตามยอด COD ของจุดนั้น (ร้าน Live, แบบ Thai QR)
+1. จุดส่งที่เก็บเงินแบบ QR: กด "เปิด QR รับเงิน" แล้วแอปจะสร้าง QR จริงตามยอด COD ของจุดนั้น (ร้าน Live, แบบ BOT QR เป็นค่าเริ่มต้น)
 2. ในหน้าต่าง QR จะมี
    - รูป QR ให้ลูกค้าสแกน และยอดเงิน
    - เวลานับถอยหลังตามเวลาหมดอายุที่ระบบสหพันธ์ส่งมา (ประมาณ 10 นาที)
@@ -15,7 +15,7 @@
 ถ้าออกจากหน้าแล้วกลับมาใหม่ระหว่างที่ QR ยังไม่หมดอายุ แอปจะแสดง QR เดิมต่อ ไม่สร้างใหม่
 
 ## Technical details
-- `cod-qr-payment` edge function: default `shop` to live, `qr_provider` thai_qr (returns `qrCodeUrl` image). Map paid status: `paymentStatus`/`kbank_status` = PAID/SUCCESS/COMPLETED → `paid: true` (note: outer `data.status` "SUCCEEDED" means the API call succeeded, not payment; use paymentStatus). Fall back to rendering `qr_raw_data` with a QR library (`qrcode.react`) when no image URL.
+- `cod-qr-payment` edge function: default `shop` to live, `qr_provider` bot_qr (no image URL returned, so the app draws the QR from `qr_raw_data`). Map paid status: `paymentStatus`/`kbank_status` = PAID/SUCCESS/COMPLETED → `paid: true` (note: outer `data.status` "SUCCEEDED" means the API call succeeded, not payment; use paymentStatus). Render `qr_raw_data` with `qrcode.react`; use `qr_image_url` only when present.
 - New `src/lib/codQr.ts`: `createCodQr(amount, ref)`, `checkCodQr(paymentId)`, `isQrPaid(status)`, `secondsLeft(expiresAt, now)`; unit tests for paid detection + countdown.
 - `CodCollectSection.tsx`: replace MockQr dialog with real QR, 4s polling while open & pending, countdown, regenerate on expiry; persist `{paymentId, qrImage, qrRaw, expiresAt, paid}` in existing storageKey state. `ready = paid || urls.length > 0` for QR; on create/status failure show fallback message and require photo (current behavior). Cash unchanged.
 - Save `payment_id` with the COD check-in payload alongside existing COD fields if the payload already carries COD metadata.
