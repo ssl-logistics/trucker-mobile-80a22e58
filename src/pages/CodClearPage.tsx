@@ -175,7 +175,7 @@ export default function CodClearPage() {
                     <div className="flex items-center gap-2 text-sm">
                       <span className="flex-1 min-w-0 truncate font-medium">{p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point}</span>
                       <span className="font-semibold">฿{fmt(p.amount)}</span>
-                      <button type="button" aria-label={S.proofTitle} onClick={() => setProofView({ name: p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point, amount: p.amount, urls: p.proofUrls || [] })} className="p-1 rounded-full text-primary active:scale-95"><Eye className="w-4 h-4" /></button>
+                      <button type="button" aria-label={S.proofTitle} onClick={() => setProofView({ name: p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point, amount: p.amount, urls: p.proofUrls || [] })} className="p-2.5 rounded-full bg-primary/10 text-primary active:scale-95 shrink-0"><Eye className="w-7 h-7" /></button>
                       {p.qr && p.collected && <span className="text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700">{S.qrBadge}</span>}
                       {!done && !(p.qr && p.collected) && <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>}
                     </div>
