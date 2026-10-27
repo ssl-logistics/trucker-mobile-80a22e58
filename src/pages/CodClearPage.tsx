@@ -188,7 +188,6 @@ export default function CodClearPage() {
                   <div className="space-y-2 border-t pt-2">
                     <div className="flex justify-between text-sm"><span className="text-muted-foreground">{T.amount}</span><span className="font-bold text-green-600">฿{fmt(s.record.cleared_amount ?? s.total)}</span></div>
                     {s.record.clear_method && <div className="flex justify-between text-sm"><span className="text-muted-foreground">{tx.via}</span><span>{s.record.clear_method === 'mint_qr' ? 'QR Mint' : s.record.clear_method === 'static_qr' ? 'QR โค้ก' : S.cash}</span></div>}
-                    {s.record.clear_reference && <div className="text-xs text-muted-foreground break-all">Ref: {s.record.clear_reference}</div>}
                     {s.record.cleared_at && <div className="flex justify-between text-sm"><span className="text-muted-foreground">{T.at}</span><span>{fmtDate(s.record.cleared_at)}</span></div>}
                     {!!s.record.proof_urls?.length && (
                       <div className="flex gap-2 overflow-x-auto">
