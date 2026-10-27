@@ -171,7 +171,7 @@ export default function CodClearPage() {
                     return (
                     <div key={i} className="space-y-1.5 rounded-lg border bg-card p-2">
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="flex-1 min-w-0 truncate font-medium">{p.sequence_number ? `${p.sequence_number}. ` : ''}{p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point}</span>
+                      <span className="flex-1 min-w-0 truncate font-medium">{p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point}</span>
                       <span className="font-semibold">฿{fmt(p.amount)}</span>
                       {p.qr && p.collected && <span className="text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700">{S.qrBadge}</span>}
                       {!done && !(p.qr && p.collected) && <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>}
