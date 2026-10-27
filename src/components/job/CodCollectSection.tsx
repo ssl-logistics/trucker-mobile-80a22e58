@@ -9,6 +9,13 @@ import { toast } from '@/hooks/use-toast';
 import type { CodInfo } from '@/lib/cod';
 import { QRCodeSVG } from 'qrcode.react';
 import { createCodQr, checkCodQr, secondsLeft, formatCountdown, type CodQr } from '@/lib/codQr';
+import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
+
+function ProofThumb({ url }: { url: string }) {
+  const { url: src } = usePresignedImageUrl(url);
+  if (!src) return <div className="w-full h-full flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
+  return <img src={src} alt="" className="w-full h-full object-cover" />;
+}
 
 const TXT: Record<string, Record<string, string>> = {
   th: { mCash: 'เงินสด', mStatic: 'QR โค้ก', mMint: 'QR Mint', openStatic: 'เปิด QR โค้ก', staticMock: 'รูป QR ตัวอย่าง (รอรูปจริง)', mLabel: 'วิธีรับเงิน', title: 'เก็บเงินปลายทาง (COD)', cash: 'เงินสด', qr: 'QR', openQr: 'เปิด QR รับเงิน', qrTitle: 'สแกน QR เพื่อชำระเงิน', qrMock: 'QR ตัวอย่าง (ทดสอบ)', confirmQr: 'ยืนยันรับเงินแล้ว', qrDone: 'ยืนยันรับเงินผ่าน QR แล้ว', proof: 'รูปหลักฐานการรับเงิน (บังคับ)', take: 'ถ่ายรูป', pick: 'เลือกรูป', needQr: 'กรุณาเปิด QR และยืนยันรับเงินก่อน', needPhoto: 'กรุณาแนบรูปหลักฐานการรับเงินอย่างน้อย 1 รูป', uploadErr: 'อัปโหลดรูปไม่สำเร็จ ลองใหม่อีกครั้ง', creating: 'กำลังสร้าง QR...', waiting: 'รอลูกค้าชำระ...', expiresIn: 'หมดอายุใน', expired: 'QR หมดอายุ', regen: 'สร้าง QR ใหม่', paid: 'รับเงินผ่าน QR แล้ว', fail: 'สร้าง/ตรวจ QR ไม่ได้ กรุณาแนบรูปสลิปแทน', retry: 'ลองใหม่', proofOpt: 'รูปหลักฐาน (ไม่บังคับเมื่อชำระ QR สำเร็จ)' },
@@ -219,7 +226,7 @@ export default function CodCollectSection({ cod, storageKey, filenamePrefix, rea
           <div className="grid grid-cols-3 gap-2">
             {state.urls.map((u) => (
               <div key={u} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
-                <img src={u} alt="" className="w-full h-full object-cover" />
+                <ProofThumb url={u} />
                 {!readOnly && (
                   <button aria-label="remove" className="absolute top-1 right-1 h-6 w-6 rounded-full bg-background/90 flex items-center justify-center"
                     onClick={() => setState((s) => ({ ...s, urls: s.urls.filter((x) => x !== u) }))}><X className="w-4 h-4" /></button>
