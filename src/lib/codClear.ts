@@ -191,7 +191,8 @@ export function summarizeCod(record: CodRecordFull, checkins: any[]): CodSummary
   const outstanding = r2(total - collected);
   const qrLocal = sum(points.filter((p) => p.qr && p.collected));
   const qrPaid = record.qr_paid_total != null ? Math.min(Number(record.qr_paid_total), qrLocal) : qrLocal;
-  const clearRequired = record.clear_required_total != null ? Number(record.clear_required_total) : sum(points.filter((p) => !p.qr));
+  // Only stops in the cash box (actual method, else billed method) need clearing.
+  const clearRequired = sum(points.filter((p) => (p.paidMethod ?? normMethod(p.payment_method)) === 'cash'));
   const allCollected = points.every((p) => p.collected);
   const noClearNeeded = allCollected && (record.no_clear_needed != null ? !!record.no_clear_needed : points.every((p) => p.qr));
   const closed = isClosedStatus(record.order_status);
