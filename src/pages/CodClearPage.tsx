@@ -144,9 +144,9 @@ export default function CodClearPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center bg-muted rounded-lg p-2">
-                  <div><div className="text-[11px] text-muted-foreground">{S.total}</div><div className="font-bold">฿{fmt(s.total)}</div></div>
-                  <div><div className="text-[11px] text-muted-foreground">{S.collected}</div><div className="font-bold text-green-600">฿{fmt(s.collected)}</div></div>
-                  <div><div className="text-[11px] text-muted-foreground">{S.outstanding}</div><div className={`font-bold ${s.outstanding > 0 ? 'text-destructive' : ''}`}>฿{fmt(s.outstanding)}</div></div>
+                  <div><div className="text-[11px] text-muted-foreground">{S.total}</div><div className="text-lg font-bold leading-tight">฿{fmt(s.total)}</div></div>
+                  <div><div className="text-[11px] text-muted-foreground">{S.collected}</div><div className="text-lg font-bold leading-tight text-green-600">฿{fmt(s.collected)}</div></div>
+                  <div><div className="text-[11px] text-muted-foreground">{S.outstanding}</div><div className={`text-lg font-bold leading-tight ${s.outstanding > 0 ? 'text-destructive' : ''}`}>฿{fmt(s.outstanding)}</div></div>
                 </div>
                 {(s.qrPaid ?? 0) > 0 && (
                   <div className="flex flex-col gap-1 text-sm bg-green-50 rounded-lg px-3 py-2">
