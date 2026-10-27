@@ -145,7 +145,7 @@ export function codAmountMatches(entered: string | number, expected?: number | n
 }
 
 export interface CodPoint { name?: string; amount?: number | null; payment_method?: string | null; paid_method?: string | null; no_clear_needed?: boolean | null; sequence_number?: number | null; destination_id?: string | null }
-export interface CodSummaryPoint extends CodPoint { collected: boolean; qr: boolean; paidMethod?: 'cash' | 'qr' | null; methodMismatch?: boolean }
+export interface CodSummaryPoint extends CodPoint { collected: boolean; qr: boolean; paidMethod?: 'cash' | 'qr' | null; methodMismatch?: boolean; proofUrls?: string[] }
 export type CodRecordFull = CodClearRecord & { points?: CodPoint[]; clear_required_total?: number | null; qr_paid_total?: number | null; no_clear_needed?: boolean | null };
 export interface CodSummary {
   record: CodRecordFull;
@@ -181,7 +181,8 @@ export function summarizeCod(record: CodRecordFull, checkins: any[]): CodSummary
     const qr = p.no_clear_needed != null ? !!p.no_clear_needed : paidMethod ? paidMethod === 'qr' : isQrMethod(p.payment_method);
     const methodMismatch = normMethod(p.payment_method) === 'qr' && paidMethod === 'cash';
     // Collected only when money was actually received (check-in or real paid method), not just because it's QR.
-    return { ...p, qr, paidMethod, methodMismatch, collected: ofPoint.length > 0 || !!p.paid_method };
+    const proofUrls = Array.from(new Set(ofPoint.flatMap((c) => (Array.isArray(c.cod_proof_urls) ? c.cod_proof_urls : [])).filter((u: any) => typeof u === 'string' && u)));
+    return { ...p, qr, paidMethod, methodMismatch, proofUrls, collected: ofPoint.length > 0 || !!p.paid_method };
   });
   const r2 = (n: number) => Math.round(n * 100) / 100;
   const sum = (a: CodPoint[]) => r2(a.reduce((s, p) => s + (Number(p.amount) || 0), 0));
