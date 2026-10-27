@@ -175,7 +175,7 @@ export default function CodClearPage() {
                     <div className="flex items-center gap-2 text-sm">
                       <span className="flex-1 min-w-0 truncate font-medium">{p.sequence_number ? `${S.stopNo} ${p.sequence_number} · ` : ''}{(() => { const n = p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point; return n.length > 25 ? n.slice(0, 25) + '...' : n; })()}</span>
                       <span className={`font-semibold ${p.collected ? 'text-green-600' : 'text-muted-foreground'}`}>฿{fmt(p.amount)}</span>
-                      <button type="button" aria-label={S.proofTitle} onClick={() => setProofView({ name: p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point, amount: p.amount, urls: p.proofUrls || [] })} className="p-1.5 rounded-full bg-primary/10 text-primary active:scale-95 shrink-0"><Eye className="w-5 h-5" /></button>
+                      <button type="button" aria-label={S.proofTitle} onClick={() => setProofView({ name: p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point, amount: p.amount, urls: p.proofUrls || [] })} className={`p-1.5 rounded-full active:scale-95 shrink-0 ${p.collected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}><Eye className="w-5 h-5" /></button>
                     </div>
                     {p.methodMismatch && <div className="text-xs font-medium rounded-md px-2 py-1.5 bg-amber-100 text-amber-800">QR → {S.cash} · {S.mismatch}</div>}
                     </div>
