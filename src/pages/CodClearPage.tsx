@@ -147,10 +147,6 @@ export default function CodClearPage() {
                       ? <span className="inline-flex items-center gap-1 mt-1 text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700"><CheckCircle2 className="w-3 h-3" />{noClear ? S.noClear : T.cleared}</span>
                       : <span className={`inline-block mt-1 text-xs rounded-full px-2 py-0.5 ${s.closed ? 'bg-muted text-foreground' : 'bg-primary/10 text-primary'}`}>{s.closed ? S.closed : ['completed','delivered'].includes(String(s.record.order_status||'').toLowerCase()) ? S.delivered : S.running}</span>}
                   </div>
-                  {!done && <button aria-label={tx.confirm} disabled={!s.canClear} onClick={() => setSelected({ ...s.record, expected_total: s.clearRequired ?? s.record.expected_total })}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${s.canClear ? 'bg-green-600 text-primary-foreground shadow active:scale-95' : 'bg-muted text-muted-foreground'}`}>
-                    <Wallet className="w-6 h-6" />
-                  </button>}
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center bg-muted rounded-lg p-2">
                   <div><div className="text-[11px] text-muted-foreground">{S.total}</div><div className="font-bold">฿{fmt(s.total)}</div></div>
@@ -211,8 +207,14 @@ export default function CodClearPage() {
                     )}
                   </div>
                 ) : (
-                  <div className={`text-xs font-medium ${s.canClear ? 'text-green-600' : 'text-destructive'}`}>
-                    {s.canClear ? S.ready : `${S.notReady}: ${s.reason === 'not_collected' ? S.whyCollect : S.whyOpen}`}
+                  <div className="space-y-2">
+                    <div className={`text-xs font-medium ${s.canClear ? 'text-green-600' : 'text-destructive'}`}>
+                      {s.canClear ? S.ready : `${S.notReady}: ${s.reason === 'not_collected' ? S.whyCollect : S.whyOpen}`}
+                    </div>
+                    <button disabled={!s.canClear} onClick={() => setSelected({ ...s.record, expected_total: s.clearRequired ?? s.record.expected_total })}
+                      className={`w-full h-12 rounded-xl flex items-center justify-center gap-2 font-semibold ${s.canClear ? 'bg-green-600 text-primary-foreground shadow active:scale-[0.98]' : 'bg-muted text-muted-foreground'}`}>
+                      <Wallet className="w-5 h-5" />{S.clearBtn} ฿{fmt(s.clearRequired ?? s.total)}
+                    </button>
                   </div>
                 )}
               </div>
