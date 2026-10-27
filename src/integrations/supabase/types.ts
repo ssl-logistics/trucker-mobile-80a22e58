@@ -211,6 +211,24 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_push_profiles: {
+        Row: {
+          driver_id: string
+          driver_type: string
+          last_seen_at: string
+        }
+        Insert: {
+          driver_id: string
+          driver_type: string
+          last_seen_at?: string
+        }
+        Update: {
+          driver_id?: string
+          driver_type?: string
+          last_seen_at?: string
+        }
+        Relationships: []
+      }
       driver_work_preferences: {
         Row: {
           created_at: string

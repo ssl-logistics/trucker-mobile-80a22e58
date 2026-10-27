@@ -74,75 +74,43 @@ serve(async (req) => {
 
     console.log(`[check-new-jobs] Checking for driver: ${driver_id}, type: ${driver_type}`);
 
+    // Remember driver type so the backend cron can check this driver while the app is closed
+    if (!body.from_cron && ['internal', 'external', 'freelance'].includes(driver_type)) {
+      supabase.from('driver_push_profiles')
+        .upsert({ driver_id: String(driver_id), driver_type, last_seen_at: new Date().toISOString() })
+        .then(({ error }) => { if (error) console.error('[check-new-jobs] profile upsert', error); });
+    }
+
     // Fetch jobs from external API based on driver type
     let jobs: any[] = [];
 
     if (driver_type === 'internal' || driver_type === 'external') {
-      // Fetch pending (newly assigned) jobs
-      const params = new URLSearchParams({
-        driver_id,
-        driver_type,
-        status: 'pending',
-        limit: '20',
-      });
-
-      const response = await fetch(`${EXTERNAL_API_URL}/get-driver-assigned-jobs?${params}`, {
-        headers: { 'x-api-key': EXTERNAL_API_KEY, 'Content-Type': 'application/json' },
-      });
-
+      const mk = (status: string) => new URLSearchParams({ driver_id, driver_type, status, limit: '20' });
+      const hdr = { headers: { 'x-api-key': EXTERNAL_API_KEY, 'Content-Type': 'application/json' } };
+      const [response, response2] = await Promise.all([
+        fetch(`${EXTERNAL_API_URL}/get-driver-assigned-jobs?${mk('pending')}`, hdr),
+        fetch(`${EXTERNAL_API_URL}/get-driver-assigned-jobs?${mk('in_progress')}`, hdr),
+      ]);
       if (response.ok) {
         const data = await response.json();
         jobs = (data?.data || []).map((j: any) => ({ ...j, __newly_assigned: true }));
-        console.log(`[check-new-jobs] Pending jobs: ${jobs.length}`);
       } else {
-        const errText = await response.text();
-        console.log(`[check-new-jobs] Pending fetch failed: ${response.status} - ${errText}`);
+        console.log(`[check-new-jobs] Pending fetch failed: ${response.status} - ${await response.text()}`);
       }
-
-      // Also fetch in_progress jobs (might be newly assigned)
-      const params2 = new URLSearchParams({
-        driver_id,
-        driver_type,
-        status: 'in_progress',
-        limit: '20',
-      });
-
-      const response2 = await fetch(`${EXTERNAL_API_URL}/get-driver-assigned-jobs?${params2}`, {
-        headers: { 'x-api-key': EXTERNAL_API_KEY, 'Content-Type': 'application/json' },
-      });
-
       if (response2.ok) {
         const data2 = await response2.json();
-        const inProgressJobs = data2?.data || [];
-        console.log(`[check-new-jobs] In-progress jobs: ${inProgressJobs.length}`, JSON.stringify(data2).substring(0, 200));
-        jobs = [...jobs, ...inProgressJobs];
+        jobs = [...jobs, ...(data2?.data || [])];
       } else {
-        const errText2 = await response2.text();
-        console.log(`[check-new-jobs] In-progress fetch failed: ${response2.status} - ${errText2}`);
+        console.log(`[check-new-jobs] In-progress fetch failed: ${response2.status} - ${await response2.text()}`);
       }
     } else if (driver_type === 'freelance') {
-      // Fetch freelance accepted jobs
-      const params = new URLSearchParams({ freelance_driver_id: driver_id });
-      const response = await fetch(`${EXTERNAL_API_URL}/get-freelance-accepted-jobs?${params}`, {
-        headers: { 'x-api-key': EXTERNAL_API_KEY, 'Content-Type': 'application/json' },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        jobs = data?.data || [];
-      }
-
-      // Also check factory-assigned jobs
-      const params2 = new URLSearchParams({ freelance_driver_id: driver_id, limit: '20' });
-      const response2 = await fetch(`${EXTERNAL_API_URL}/get-factory-assigned-jobs?${params2}`, {
-        headers: { 'x-api-key': EXTERNAL_API_KEY, 'Content-Type': 'application/json' },
-      });
-
-      if (response2.ok) {
-        const data2 = await response2.json();
-        const factoryJobs = data2?.data || [];
-        jobs = [...jobs, ...factoryJobs];
-      }
+      const hdr = { headers: { 'x-api-key': EXTERNAL_API_KEY, 'Content-Type': 'application/json' } };
+      const [response, response2] = await Promise.all([
+        fetch(`${EXTERNAL_API_URL}/get-freelance-accepted-jobs?${new URLSearchParams({ freelance_driver_id: driver_id })}`, hdr),
+        fetch(`${EXTERNAL_API_URL}/get-factory-assigned-jobs?${new URLSearchParams({ freelance_driver_id: driver_id, limit: '20' })}`, hdr),
+      ]);
+      if (response.ok) jobs = (await response.json())?.data || [];
+      if (response2.ok) jobs = [...jobs, ...((await response2.json())?.data || [])];
     }
 
     // Deduplicate jobs by order_number before processing

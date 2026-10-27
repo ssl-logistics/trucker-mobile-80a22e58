@@ -8,3 +8,4 @@
 - Images shown in the installed (Capacitor) app must be bundled imports from src/assets, never /__l5e CDN pointers — the native app loads from local files where that relative path has no server.
 
 - Every edge function the app calls must list the app's shared secret header (`x-app-secret`, attached by `src/lib/installFetchWrapper.ts`) in its own `Access-Control-Allow-Headers` — a CORS allow-list that omits it makes the browser block the call at the preflight step, so the app only ever sees a failed load.
+- New-job alerts are checked by pg_cron every minute via cron-check-new-jobs, which reads driver_push_profiles (filled by check-new-jobs when the app calls it) and reuses check-new-jobs per driver — alerts arrive while the app is closed, dedupe stays in one place.
