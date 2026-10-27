@@ -145,7 +145,7 @@ export function codAmountMatches(entered: string | number, expected?: number | n
 }
 
 export interface CodPoint { name?: string; amount?: number | null; payment_method?: string | null; paid_method?: string | null; no_clear_needed?: boolean | null; sequence_number?: number | null; destination_id?: string | null }
-export interface CodSummaryPoint extends CodPoint { collected: boolean; qr: boolean }
+export interface CodSummaryPoint extends CodPoint { collected: boolean; qr: boolean; paidMethod?: 'cash' | 'qr' | null; methodMismatch?: boolean }
 export type CodRecordFull = CodClearRecord & { points?: CodPoint[]; clear_required_total?: number | null; qr_paid_total?: number | null; no_clear_needed?: boolean | null };
 export interface CodSummary {
   record: CodRecordFull;
@@ -162,6 +162,8 @@ export interface CodSummary {
 const orderKeyOf = (c: any) => c?.transport_orders?.order_number || c?.order_number || c?.transport_order_id || '';
 const isCollectCheckin = (c: any) => isCodCheckin(c) || ['payment', 'pod', 'delivery_confirmed'].includes(c?.checkin_type);
 const isQrMethod = (m?: string | null) => !!m && m.toLowerCase() !== 'cash';
+/** 'cash' | 'qr' | null from any method value (cash, qr, mint_qr, qr_mint, static_qr, qr_coke). */
+export const normMethod = (m?: string | null): 'cash' | 'qr' | null => (!m ? null : m.toLowerCase() === 'cash' ? 'cash' : 'qr');
 
 /** Per-order COD totals: a point counts as collected once a COD/payment check-in exists for it. */
 export function summarizeCod(record: CodRecordFull, checkins: any[]): CodSummary {
@@ -172,10 +174,13 @@ export function summarizeCod(record: CodRecordFull, checkins: any[]): CodSummary
   const raw: CodPoint[] = record.points?.length ? record.points : [{ amount: record.expected_total ?? 0, sequence_number: null }];
   const single = raw.length === 1;
   const points = raw.map((p) => {
-    const qr = p.no_clear_needed != null ? !!p.no_clear_needed : isQrMethod(p.paid_method ?? p.payment_method);
-    const hasCi = mine.some((c) => single || c.destination_sequence_number == null
+    const ofPoint = mine.filter((c) => single || c.destination_sequence_number == null
       ? single : Number(c.destination_sequence_number) === Number(p.sequence_number));
-    return { ...p, qr, collected: hasCi || p.no_clear_needed === true };
+    const ciMethod = ofPoint.map((c) => c.cod_method).find(Boolean) as string | undefined;
+    const paidMethod = normMethod(p.paid_method ?? ciMethod);
+    const qr = p.no_clear_needed != null ? !!p.no_clear_needed : paidMethod ? paidMethod === 'qr' : isQrMethod(p.payment_method);
+    const methodMismatch = normMethod(p.payment_method) === 'qr' && paidMethod === 'cash';
+    return { ...p, qr, paidMethod, methodMismatch, collected: ofPoint.length > 0 || p.no_clear_needed === true };
   });
   const r2 = (n: number) => Math.round(n * 100) / 100;
   const sum = (a: CodPoint[]) => r2(a.reduce((s, p) => s + (Number(p.amount) || 0), 0));
