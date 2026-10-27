@@ -159,36 +159,35 @@ export default function CodClearPage() {
                     {!noClear && <div className="flex justify-between"><span className="text-muted-foreground">{S.mustClear}</span><span className="font-bold">฿{fmt(s.clearRequired)}</span></div>}
                   </div>
                 )}
-                <div className="space-y-1.5">
-                  {s.points.map((p, i) => {
+                {(['qr', 'cash'] as const).map((grp) => {
+                  const pts = s.points.filter((p) => ((p.paidMethod ?? normMethod(p.payment_method)) === 'cash' ? 'cash' : 'qr') === grp);
+                  if (!pts.length) return null;
+                  const sumG = pts.reduce((a, p) => a + (Number(p.amount) || 0), 0);
+                  return (
+                  <details key={grp} className={`group rounded-lg border ${grp === 'cash' ? 'bg-amber-50/60' : 'bg-green-50/60'}`}>
+                    <summary className="flex items-center gap-2 px-3 py-2 cursor-pointer list-none">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-muted-foreground">{grp === 'cash' ? S.cashBox : S.transferBox} ({pts.length})</div>
+                        <div className={`text-lg font-bold ${grp === 'cash' ? 'text-amber-700' : 'text-green-700'}`}>฿{fmt(sumG)}</div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform group-open:rotate-90" />
+                    </summary>
+                <div className="space-y-1.5 px-2 pb-2">
+                  {pts.map((p, i) => {
                     const ml = (m?: string | null) => (m === 'cash' ? S.cash : m ? 'QR' : '');
                     return (
-                    <div key={i} className="space-y-1.5 rounded-lg border p-2">
+                    <div key={i} className="space-y-1.5 rounded-lg border bg-card p-2">
                     <div className="flex items-center gap-2 text-sm">
                       <span className="flex-1 min-w-0 truncate font-medium">{p.sequence_number ? `${p.sequence_number}. ` : ''}{p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point}</span>
                       <span className="font-semibold">฿{fmt(p.amount)}</span>
                       {p.qr && p.collected && <span className="text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700">{S.qrBadge}</span>}
                       {!done && !(p.qr && p.collected) && <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>}
                     </div>
-                    {(p.payment_method || p.paidMethod) && (
-                      <div className="flex items-stretch gap-2">
-                        <div className="flex-1 rounded-md bg-muted px-2 py-1.5">
-                          <div className="text-[11px] text-muted-foreground">{S.billed}</div>
-                          <div className="text-base font-bold">{ml(p.payment_method) || '-'}</div>
-                        </div>
-                        {p.paidMethod && <>
-                          <span className="self-center text-muted-foreground">→</span>
-                          <div className={`flex-1 rounded-md px-2 py-1.5 ${p.paidMethod === 'cash' ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'} ${p.methodMismatch ? 'ring-2 ring-amber-500' : ''}`}>
-                            <div className="text-[11px] opacity-80">{S.actual}</div>
-                            <div className="text-base font-bold">{ml(p.paidMethod)}</div>
-                          </div>
-                        </>}
-                      </div>
-                    )}
-                    {p.methodMismatch && <div className="text-xs font-medium rounded-md px-2 py-1.5 bg-amber-100 text-amber-800">⚠ {S.mismatch}</div>}
+                    {p.methodMismatch && <div className="text-xs font-medium rounded-md px-2 py-1.5 bg-amber-100 text-amber-800">QR → {S.cash} · {S.mismatch}</div>}
                     </div>
                   ); })}
                 </div>
+                  </details>); })}
                 {s.points.some((p) => p.methodMismatch) && !done && <div className="text-xs text-amber-700">{S.mismatchNote}</div>}
                 {noClear ? (
                   <div className="text-xs font-medium text-green-600 border-t pt-2">{S.noClear}</div>
