@@ -163,7 +163,7 @@ export default function CodClearPage() {
                     <summary className="flex items-center gap-2 px-3 py-2 cursor-pointer list-none">
                       <div className="flex-1 min-w-0">
                         <div className="text-sm text-foreground">{grp === 'cash' ? S.cashBox : S.transferBox}</div>
-                        <div className="text-3xl font-bold text-primary">{sumG.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div className="text-xl font-bold text-primary">{sumG.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                       </div>
                       <ChevronDown className="w-5 h-5 text-muted-foreground/60 transition-transform group-open:rotate-180" />
                     </summary>
@@ -175,7 +175,7 @@ export default function CodClearPage() {
                     <div className="flex items-center gap-2 text-sm">
                       <span className="flex-1 min-w-0 truncate font-medium">{p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point}</span>
                       <span className="font-semibold">฿{fmt(p.amount)}</span>
-                      <button type="button" aria-label={S.proofTitle} onClick={() => setProofView({ name: p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point, amount: p.amount, urls: p.proofUrls || [] })} className="p-2.5 rounded-full bg-primary/10 text-primary active:scale-95 shrink-0"><Eye className="w-7 h-7" /></button>
+                      <button type="button" aria-label={S.proofTitle} onClick={() => setProofView({ name: p.name && p.name !== 'ไม่ระบุ' ? p.name : S.point, amount: p.amount, urls: p.proofUrls || [] })} className="p-1.5 rounded-full bg-primary/10 text-primary active:scale-95 shrink-0"><Eye className="w-5 h-5" /></button>
                       {p.qr && p.collected && <span className="text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700">{S.qrBadge}</span>}
                       {!done && !(p.qr && p.collected) && <span className={`text-xs rounded-full px-2 py-0.5 ${p.collected ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>{p.collected ? S.got : S.notGot}</span>}
                     </div>
