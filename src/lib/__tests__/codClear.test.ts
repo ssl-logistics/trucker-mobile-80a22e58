@@ -133,3 +133,15 @@ describe('clear method fields', () => {
   });
   it('mint tab before payment sends nothing', () => { expect(clearMethodFields('mint_qr', null)).toEqual({}); });
 });
+
+describe('QR billed but paid cash', () => {
+  it('counts the stop as cash to clear and flags mismatch', async () => {
+    const { summarizeCod } = await import('../codClear');
+    const s = summarizeCod({ order_number: 'OR1', status: 'pending', order_status: 'delivered', expected_total: 100,
+      points: [{ amount: 100, payment_method: 'qr', sequence_number: 1 }] } as any,
+      [{ order_number: 'OR1', checkin_type: 'payment', cod_method: 'cash' }]);
+    expect(s.points[0].methodMismatch).toBe(true);
+    expect(s.clearRequired).toBe(100);
+    expect(s.noClearNeeded).toBe(false);
+  });
+});
