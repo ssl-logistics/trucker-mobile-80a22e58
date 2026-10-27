@@ -15,7 +15,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { usePendingCodClears } from '@/hooks/usePendingCodClears';
 import { tabCount } from '@/lib/cod';
-import { submitCodClear, codAmountMatches, clearMethodFields, type CodClearRecord } from '@/lib/codClear';
+import { submitCodClear, codAmountMatches, clearMethodFields, normMethod, type CodClearRecord } from '@/lib/codClear';
 import { usePresignedImageUrl } from '@/hooks/usePresignedImageUrl';
 
 function ProofImg({ url, className }: { url: string; className?: string }) {
