@@ -1,11 +1,11 @@
-Add an eye icon on each delivery stop in the Payment Summary job cards to view payment proof.
+เพิ่มไอคอนรูปตา (eye) ที่จุดส่งแต่ละจุดในการ์ดงานหน้า "สรุปยอดเงิน" เพื่อดูหลักฐานการชำระ
 
-- Eye icon next to the stop amount, in both dropdowns (QR and cash).
-- Tap opens a centered popup with the stop name, amount, and proof photos (slip / cash photo) taken at that stop's payment check-in. Tap a photo to enlarge.
-- No photos: popup shows "ไม่ได้แนบหลักฐาน" (not attached).
-- All texts in 4 languages (th / en / zh / ko), following the app language.
-- View only; amounts and clearing are unchanged.
+- ไอคอนตาอยู่ข้างยอดเงินของจุดส่ง ทั้งในกล่อง "ยอดเงินโอนจากลูกค้า" และ "ยอดเงินสดที่ต้องโอนคืนบริษัท"
+- กดแล้วเปิดหน้าต่างกลางจอ แสดงชื่อจุดส่ง ยอดเงิน และรูปหลักฐาน (สลิป QR / รูปเงินสด) ที่แนบตอนเช็คอินรับเงินของจุดนั้น กดที่รูปเพื่อดูภาพใหญ่ได้
+- ถ้าไม่มีรูป แสดงข้อความ "ไม่ได้แนบหลักฐาน"
+- ข้อความทั้งหมดรองรับ 4 ภาษา (ไทย / อังกฤษ / จีน / เกาหลี) ตามภาษาที่ตั้งในแอป
+- ดูได้อย่างเดียว ยอดเงินและการเคลียร์ยอดไม่เปลี่ยน
 
-Technical:
-- `src/lib/codClear.ts`: add `proofUrls?: string[]` to `CodSummaryPoint`, filled in `summarizeCod` from the matching payment check-in's `cod_proof_urls` (+ photo fields if present).
-- `src/pages/CodClearPage.tsx`: `Eye` icon button per stop (stopPropagation), `Dialog` with `ProofImg` (presigned) thumbnails; new `SUM_TXT` labels `proofTitle`, `noProof`.
+รายละเอียดทางเทคนิค:
+- `src/lib/codClear.ts`: เพิ่ม `proofUrls?: string[]` ใน `CodSummaryPoint` โดยดึงจาก `cod_proof_urls` ของเช็คอินรับเงินที่ตรงกับจุดนั้นใน `summarizeCod`
+- `src/pages/CodClearPage.tsx`: ปุ่มไอคอน `Eye` ต่อจุดส่ง, `Dialog` แสดงรูปผ่าน `ProofImg` (presigned URL), เพิ่มข้อความ `proofTitle`, `noProof` ใน `SUM_TXT`
