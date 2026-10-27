@@ -110,13 +110,13 @@ export default function CodClearPage() {
                   <div className="text-xs text-muted-foreground">{l}</div>
                   {!loaded && all.length === 0
                     ? <div className="h-6 mt-1 mx-auto w-16 rounded bg-muted animate-pulse" />
-                    : <div className={`text-lg font-bold ${c}`}>฿{fmt(v as number)}</div>}
+                    : <div className={`text-xl font-bold ${c}`}>฿{fmt(v as number)}</div>}
                 </div>
               ))}
             </div>}
             {tab === 'pending' && loaded && tot.q > 0 && <div className="grid grid-cols-2 gap-2">
-              <div className="bg-card rounded-xl p-3 shadow-sm border text-center"><div className="text-xs text-muted-foreground">{S.qrPaid}</div><div className="text-lg font-bold text-green-600">฿{fmt(tot.q)}</div></div>
-              <div className="bg-card rounded-xl p-3 shadow-sm border text-center"><div className="text-xs text-muted-foreground">{S.mustClear}</div><div className="text-lg font-bold text-foreground">฿{fmt(tot.r)}</div></div>
+              <div className="bg-card rounded-xl p-3 shadow-sm border text-center"><div className="text-xs text-muted-foreground">{S.qrPaid}</div><div className="text-xl font-bold text-green-600">฿{fmt(tot.q)}</div></div>
+              <div className="bg-card rounded-xl p-3 shadow-sm border text-center"><div className="text-xs text-muted-foreground">{S.mustClear}</div><div className="text-xl font-bold text-foreground">฿{fmt(tot.r)}</div></div>
             </div>}
             {tab === 'pending' && <div className="bg-card rounded-xl p-4 shadow-sm ring-1 ring-primary/20 space-y-2">
               <div className="flex items-center gap-2 font-semibold text-foreground"><Info className="w-4 h-4 text-primary" />{tx.howTitle}</div>
@@ -144,9 +144,9 @@ export default function CodClearPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center bg-muted rounded-lg p-2">
-                  <div><div className="text-[11px] text-muted-foreground">{S.total}</div><div className="text-lg font-bold leading-tight">฿{fmt(s.total)}</div></div>
-                  <div><div className="text-[11px] text-muted-foreground">{S.collected}</div><div className="text-lg font-bold leading-tight text-green-600">฿{fmt(s.collected)}</div></div>
-                  <div><div className="text-[11px] text-muted-foreground">{S.outstanding}</div><div className={`text-lg font-bold leading-tight ${s.outstanding > 0 ? 'text-destructive' : ''}`}>฿{fmt(s.outstanding)}</div></div>
+                  <div><div className="text-[11px] text-muted-foreground">{S.total}</div><div className="text-xl font-bold leading-tight">฿{fmt(s.total)}</div></div>
+                  <div><div className="text-[11px] text-muted-foreground">{S.collected}</div><div className="text-xl font-bold leading-tight text-green-600">฿{fmt(s.collected)}</div></div>
+                  <div><div className="text-[11px] text-muted-foreground">{S.outstanding}</div><div className={`text-xl font-bold leading-tight ${s.outstanding > 0 ? 'text-destructive' : ''}`}>฿{fmt(s.outstanding)}</div></div>
                 </div>
                 {(s.qrPaid ?? 0) > 0 && (
                   <div className="flex flex-col gap-1 text-sm bg-green-50 rounded-lg px-3 py-2">
@@ -163,7 +163,7 @@ export default function CodClearPage() {
                     <summary className="flex items-center gap-2 px-3 py-2 cursor-pointer list-none">
                       <div className="flex-1 min-w-0">
                         <div className="text-sm text-foreground">{grp === 'cash' ? S.cashBox : S.transferBox}</div>
-                        <div className="text-2xl font-semibold text-primary">{sumG.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div className="text-3xl font-bold text-primary">{sumG.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                       </div>
                       <ChevronDown className="w-5 h-5 text-muted-foreground/60 transition-transform group-open:rotate-180" />
                     </summary>
