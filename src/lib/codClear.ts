@@ -180,16 +180,19 @@ export function summarizeCod(record: CodRecordFull, checkins: any[]): CodSummary
     const paidMethod = normMethod(p.paid_method ?? ciMethod);
     const qr = p.no_clear_needed != null ? !!p.no_clear_needed : paidMethod ? paidMethod === 'qr' : isQrMethod(p.payment_method);
     const methodMismatch = normMethod(p.payment_method) === 'qr' && paidMethod === 'cash';
-    return { ...p, qr, paidMethod, methodMismatch, collected: ofPoint.length > 0 || p.no_clear_needed === true };
+    // Collected only when money was actually received (check-in or real paid method), not just because it's QR.
+    return { ...p, qr, paidMethod, methodMismatch, collected: ofPoint.length > 0 || !!p.paid_method };
   });
   const r2 = (n: number) => Math.round(n * 100) / 100;
   const sum = (a: CodPoint[]) => r2(a.reduce((s, p) => s + (Number(p.amount) || 0), 0));
   const total = record.expected_total != null ? Number(record.expected_total) : sum(points);
   const collected = Math.min(total, sum(points.filter((p) => p.collected)));
   const outstanding = r2(total - collected);
-  const qrPaid = record.qr_paid_total != null ? Number(record.qr_paid_total) : sum(points.filter((p) => p.qr && p.collected));
+  const qrLocal = sum(points.filter((p) => p.qr && p.collected));
+  const qrPaid = record.qr_paid_total != null ? Math.min(Number(record.qr_paid_total), qrLocal) : qrLocal;
   const clearRequired = record.clear_required_total != null ? Number(record.clear_required_total) : sum(points.filter((p) => !p.qr));
-  const noClearNeeded = record.no_clear_needed != null ? !!record.no_clear_needed : points.every((p) => p.qr && p.collected);
+  const allCollected = points.every((p) => p.collected);
+  const noClearNeeded = allCollected && (record.no_clear_needed != null ? !!record.no_clear_needed : points.every((p) => p.qr));
   const closed = isClosedStatus(record.order_status);
   const reason = outstanding > 0 ? 'not_collected' : !isClearableStatus(record.order_status) ? 'not_closed' : 'ready';
   return { record, total, collected, outstanding, qrPaid, clearRequired, noClearNeeded, points, closed, canClear: !noClearNeeded && reason === 'ready' && record.status === 'pending', reason };

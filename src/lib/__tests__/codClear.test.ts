@@ -145,3 +145,16 @@ describe('QR billed but paid cash', () => {
     expect(s.noClearNeeded).toBe(false);
   });
 });
+
+import { summarizeCod as _sum } from '../codClear';
+describe('unpaid QR point', () => {
+  it('QR point with no_clear_needed but no check-in is not collected', () => {
+    const s = _sum({ order_number: 'OR1', status: 'pending', order_status: 'in_transit', expected_total: 1100, qr_paid_total: 100,
+      points: [{ amount: 1000, payment_method: 'cash', sequence_number: 1 }, { amount: 100, payment_method: 'qr', no_clear_needed: true, sequence_number: 2 }] } as any, []);
+    expect(s.points[1].collected).toBe(false);
+    expect(s.collected).toBe(0);
+    expect(s.qrPaid).toBe(0);
+    expect(s.outstanding).toBe(1100);
+    expect(s.noClearNeeded).toBe(false);
+  });
+});
