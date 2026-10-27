@@ -158,3 +158,16 @@ describe('unpaid QR point', () => {
     expect(s.noClearNeeded).toBe(false);
   });
 });
+
+describe('clear amount = cash box only', () => {
+  it('cash 1000 + unpaid QR 100 clears 1000', () => {
+    const s = _sum({ order_number: 'X', status: 'pending', order_status: 'closed', expected_total: 1100, clear_required_total: 1100,
+      points: [{ amount: 1000, payment_method: 'cash', sequence_number: 1 }, { amount: 100, payment_method: 'qr', sequence_number: 2 }] } as any, []);
+    expect(s.clearRequired).toBe(1000);
+  });
+  it('QR billed but paid cash counts', () => {
+    const s = _sum({ order_number: 'Y', status: 'pending', order_status: 'closed', expected_total: 300,
+      points: [{ amount: 200, payment_method: 'cash', sequence_number: 1 }, { amount: 100, payment_method: 'qr', paid_method: 'cash', sequence_number: 2 }] } as any, []);
+    expect(s.clearRequired).toBe(300);
+  });
+});
