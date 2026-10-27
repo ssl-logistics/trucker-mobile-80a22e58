@@ -5,8 +5,8 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { getAuthItem } from '@/utils/authStorage';
 
 // Adaptive intervals
-const POLL_FOREGROUND_MS = 60_000;       // foreground: every 60s
-const POLL_IDLE_MS = 5 * 60_000;          // idle (>5m no activity): 5m heartbeat
+const POLL_FOREGROUND_MS = 30_000;       // foreground: every 30s
+const POLL_IDLE_MS = 30_000;              // no slow-down when idle (backend cron covers closed app)
 const IDLE_THRESHOLD_MS = 5 * 60_000;
 
 export function useNewJobPolling() {
