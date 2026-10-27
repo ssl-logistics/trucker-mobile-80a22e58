@@ -242,6 +242,30 @@ export default function CodClearPage() {
           onDone={(amt, urls) => { markOrderCleared(selected.order_number, amt, urls); setSelected(null); reload(); }}
         />
       )}
+      <Dialog open={!!proofView} onOpenChange={(o) => { if (!o) setProofView(null); }}>
+        <DialogContent className="w-[94vw] max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{S.proofTitle}</DialogTitle></DialogHeader>
+          {proofView && (
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm"><span className="font-medium truncate">{proofView.name}</span><span className="font-semibold">฿{fmt(proofView.amount)}</span></div>
+              {proofView.urls.length ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {proofView.urls.map((u) => (
+                    <button key={u} type="button" onClick={() => setBigImg(u)}><ProofImg url={u} className="w-full aspect-square object-cover rounded-lg border bg-muted" /></button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2 py-6 text-sm text-muted-foreground"><ImageIcon className="w-8 h-8" />{S.noProof}</div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!bigImg} onOpenChange={(o) => { if (!o) setBigImg(null); }}>
+        <DialogContent className="w-[96vw] max-w-2xl p-2">
+          {bigImg && <ProofImg url={bigImg} className="w-full max-h-[80vh] object-contain rounded-lg" />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
