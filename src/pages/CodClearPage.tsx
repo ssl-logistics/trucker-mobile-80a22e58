@@ -372,7 +372,7 @@ function ClearDialog({ record, tx, driverId, driverType, onClose, onDone }: {
             <div className="flex flex-col items-center gap-2 bg-muted/50 rounded-xl p-3">
               {mintPaid ? (
                 <div className="flex items-start gap-2 text-sm text-green-600 font-semibold"><CheckCircle2 className="w-5 h-5 shrink-0" />
-                  <span>{tx.mintPaid}{mintQr?.paymentId && <span className="block text-xs font-normal text-muted-foreground break-all">Ref: {mintQr.paymentId}</span>}</span></div>
+                  <span>{tx.mintPaid}</span></div>
               ) : mintBusy ? (
                 <div className="w-[200px] h-[200px] flex flex-col items-center justify-center gap-2 text-muted-foreground"><Loader2 className="w-8 h-8 animate-spin" />{tx.creating}</div>
               ) : mintErr ? (
