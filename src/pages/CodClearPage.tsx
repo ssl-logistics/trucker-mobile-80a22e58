@@ -128,13 +128,6 @@ export default function CodClearPage() {
                 <p className="text-base">{tab === 'pending' ? T.nonePending : T.noneCleared}</p>
               </div>
             )}
-            {!loaded && loading && Array.from({ length: all.length ? 1 : 2 }).map((_, i) => (
-              <div key={`sk${i}`} className="bg-card rounded-xl p-4 shadow-sm border space-y-3 animate-pulse">
-                <div className="flex items-center gap-3"><div className="flex-1 space-y-2"><div className="h-4 w-36 rounded bg-muted" /><div className="h-3 w-16 rounded bg-muted" /></div><div className="w-12 h-12 rounded-full bg-muted" /></div>
-                <div className="h-12 rounded-lg bg-muted" />
-                <div className="h-3 w-full rounded bg-muted" />
-              </div>
-            ))}
             {all.map((s) => {
               const noClear = !!s.noClearNeeded && s.record.status !== 'cleared';
               const done = s.record.status === 'cleared' || noClear;
@@ -219,6 +212,13 @@ export default function CodClearPage() {
               </div>
               );
             })}
+            {loading && Array.from({ length: all.length ? 1 : 2 }).map((_, i) => (
+              <div key={`sk${i}`} className="bg-card rounded-xl p-4 shadow-sm border space-y-3 animate-pulse">
+                <div className="flex items-center gap-3"><div className="flex-1 space-y-2"><div className="h-4 w-36 rounded bg-muted" /><div className="h-3 w-16 rounded bg-muted" /></div><div className="w-12 h-12 rounded-full bg-muted" /></div>
+                <div className="h-12 rounded-lg bg-muted" />
+                <div className="h-3 w-full rounded bg-muted" />
+              </div>
+            ))}
         </>
       </PullToRefresh>
 
