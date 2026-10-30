@@ -17,4 +17,4 @@
 - ใส่ `onPointerDownOutside`/`onEscapeKeyDown`/`onInteractOutside` preventDefault เมื่อ busy; Drawer ใช้ `dismissible={!busy}`
 - ซ่อน/disable ปุ่มปิดของ DialogContent ขณะ busy
 - ใช้ `try/finally` รีเซ็ต busy เสมอ เพื่อไม่ค้างล็อกเมื่อ API ล้มเหลว
-- ไม่แก้ logic การส่ง API
+- แก้เฉพาะหน้าจอ (frontend) เท่านั้น ไม่แก้ API, ข้อมูลที่ส่ง, ระบบหลังบ้าน หรือขั้นตอนการทำงานใดๆ
