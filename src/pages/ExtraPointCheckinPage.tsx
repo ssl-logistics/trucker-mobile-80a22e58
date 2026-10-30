@@ -134,7 +134,7 @@ export function ExtraPointCheckinForm({ type, seq, st, onDone, onCancel, childre
         {children}
 
         <div className="bg-white rounded-2xl p-4 space-y-3">
-          <div className="text-sm font-medium text-[#454545]">{t('extraPoint.addPhoto')} *</div>
+          <div className="text-sm font-medium text-[#454545]">{t('extraPoint.addPhoto')} <span className="text-red-500">*</span></div>
           <div className="grid grid-cols-3 gap-2">
             {files.map((f, i) => (
               <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
