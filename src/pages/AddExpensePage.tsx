@@ -982,11 +982,25 @@ const AddExpensePage = ({ embeddedJobId, embeddedState, onClose }: { embeddedJob
               </div>
               <Input
                 id={`amount-${expense.id}`}
-                inputMode="numeric"
+                inputMode="decimal"
                 placeholder="0"
-                value={expense.amount ? Number(expense.amount).toLocaleString() : ''}
+                value={(() => {
+                  const s = expense.amount ? String(expense.amount) : '';
+                  if (!s) return '';
+                  const [i, d] = s.split('.');
+                  const intFmt = i ? Number(i).toLocaleString('en-US') : '0';
+                  return d !== undefined ? `${intFmt}.${d}` : intFmt;
+                })()}
                 onChange={(e) => {
-                  const raw = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+                  let v = e.target.value.replace(/[^0-9.]/g, '');
+                  const dot = v.indexOf('.');
+                  if (dot !== -1) {
+                    v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '').slice(0, 2);
+                  }
+                  let [i, d] = v.split('.');
+                  i = i.replace(/^0+(?=\d)/, '');
+                  if (d !== undefined && i === '') i = '0';
+                  const raw = d !== undefined ? `${i}.${d}` : (i === '0' ? '' : i);
                   handleExpenseChange(expense.id, "amount", raw);
                 }}
                 className={cn("text-right", getTotalOCRAmount(expense) > 0 ? "border-green-300 ring-1 ring-green-200" : "")}
